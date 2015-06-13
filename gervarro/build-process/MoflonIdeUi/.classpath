@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/Moca"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/Dependencies"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/MoflonTextEditorFramework"/>
+	<classpathentry kind="lib" path="lib/org.eclipse.gef4.zest.core_0.1.0.201311060306.jar"/>
+	<classpathentry kind="lib" path="lib/org.eclipse.gef4.zest.jface_0.1.0.201311060306.jar"/>
+	<classpathentry kind="lib" path="lib/org.eclipse.gef4.zest.layouts_0.1.0.201311060306.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/TGGLanguage"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/TGGRuntime"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/DotToTGGTGG"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/DotToSDMLanguageTGG"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/MocaTree"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/DotToPG"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

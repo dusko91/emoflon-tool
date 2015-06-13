@@ -1,0 +1,121 @@
+group MocaMain;
+
+MocaMainParser(name) ::= <<
+package org.moflon.moca;
+import java.io.File;
+import org.apache.log4j.BasicConfigurator;
+import org.moflon.moca.<name>.parser.<name; format="firstToUpper">ParserAdapter;
+import org.moflon.util.eMoflonEMFUtil;
+import Moca.CodeAdapter;
+import Moca.MocaFactory;
+import MocaTree.Folder;
+import MocaTree.MocaTreePackage;
+
+public class MocaMain 
+{
+
+  private static CodeAdapter codeAdapter;
+
+  public static void main(String[] args) 
+  {
+    BasicConfigurator.configure();
+
+    // Register parsers and unparsers
+    codeAdapter = MocaFactory.eINSTANCE.createCodeAdapter();
+    codeAdapter.getParser().add(new <name; format="firstToUpper">ParserAdapter());
+    
+    // Perform text-to-tree
+    Folder tree = codeAdapter.parse(new File("instances/in/"));
+
+    // Save tree to file
+    eMoflonEMFUtil.saveModel(MocaTreePackage.eINSTANCE, tree, "instances/tree.xmi");
+
+    // Perform tree-to-model
+    //TODO
+    
+    // Save model to file
+    //TODO
+   
+  }
+}
+>>
+
+MocaMainUnparser(name) ::= <<
+package org.moflon.moca;
+import java.io.File;
+import org.apache.log4j.BasicConfigurator;
+import org.moflon.moca.<name>.unparser.<name; format="firstToUpper">UnparserAdapter;
+import org.moflon.util.eMoflonEMFUtil;
+import Moca.CodeAdapter;
+import Moca.MocaFactory;
+import MocaTree.Folder;
+import MocaTree.MocaTreePackage;
+
+public class MocaMain 
+{
+
+  private static CodeAdapter codeAdapter;
+
+  public static void main(String[] args) 
+  {
+    BasicConfigurator.configure();
+
+    // Register parsers and unparsers
+    codeAdapter = MocaFactory.eINSTANCE.createCodeAdapter();
+    codeAdapter.getUnparser().add(new <name; format="firstToUpper">UnparserAdapter());
+
+    // load tree from file
+    Folder tree = (Folder) eMoflonEMFUtil.loadModel(MocaTreePackage.eINSTANCE, "instances/tree.xmi", null);
+    
+    // Perform tree-to-text
+    codeAdapter.unparse("instances/out", tree);    
+  }
+}
+>>
+
+MocaMainParserUnparser(name) ::= <<
+package org.moflon.moca;
+import java.io.File;
+import org.apache.log4j.BasicConfigurator;
+import org.moflon.moca.<name>.parser.<name; format="firstToUpper">ParserAdapter;
+import org.moflon.moca.<name>.unparser.<name; format="firstToUpper">UnparserAdapter;
+import org.moflon.util.eMoflonEMFUtil;
+import Moca.CodeAdapter;
+import Moca.MocaFactory;
+import MocaTree.Folder;
+import MocaTree.MocaTreePackage;
+
+public class MocaMain 
+{
+
+  private static CodeAdapter codeAdapter;
+
+  public static void main(String[] args) 
+  {
+    BasicConfigurator.configure();
+
+    // Register parsers and unparsers
+    codeAdapter = MocaFactory.eINSTANCE.createCodeAdapter();
+    codeAdapter.getParser().add(new <name; format="firstToUpper">ParserAdapter());
+    codeAdapter.getUnparser().add(new <name; format="firstToUpper">UnparserAdapter());
+
+    // Perform text-to-tree
+    Folder tree = codeAdapter.parse(new File("instances/in/"));
+
+    // Save tree to file
+    eMoflonEMFUtil.saveModel(MocaTreePackage.eINSTANCE, tree, "instances/tree.xmi");
+
+    // Perform tree-to-model
+    //TODO
+    
+    // Save model to file
+    //TODO
+    
+    // Perform model-to-tree
+    //TODO
+    
+    // Perform tree-to-text (using initial tree)
+    codeAdapter.unparse("instances/out", tree);    
+  }
+}
+>>

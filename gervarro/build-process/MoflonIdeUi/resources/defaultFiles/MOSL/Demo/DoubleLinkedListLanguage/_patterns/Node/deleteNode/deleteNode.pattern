@@ -1,0 +1,12 @@
+pattern deleteNode {
+
+	// Delete node
+	-- @this : Node
+	
+	previous : Node
+
+	// Repairs 'previous' link on next node
+	next : Node {
+		++ -> previous : previous		
+	}	
+}

@@ -1,0 +1,36 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: IDE for MOFLON (core functionality)
+Bundle-SymbolicName: org.moflon.ide.core;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Bundle-Vendor: Real-Time Systems Lab, TU Darmstadt
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Require-Bundle: org.eclipse.core.resources;bundle-version="3.5.2",
+ org.eclipse.core.runtime;bundle-version="3.5.0",
+ org.eclipse.emf.ecore.xmi;bundle-version="2.5.0",
+ org.eclipse.jdt.core;bundle-version="3.5.2",
+ org.eclipse.ui;bundle-version="3.5.2",
+ org.eclipse.jdt.ui;bundle-version="3.5.2",
+ org.moflon.dependencies;bundle-version="1.0.0",
+ de.uni_kassel.fujaba.codegen;bundle-version="5.5.0",
+ org.eclipse.emf.codegen.ecore;bundle-version="2.5.0",
+ org.moflon.backend.Ecore2FujabaTransformation;bundle-version="1.0.0",
+ org.moflon.SDMLanguage;bundle-version="1.0.0",
+ org.moflon.TGGLanguage;bundle-version="1.0.0",
+ org.eclipse.pde.ui;bundle-version="3.6.100",
+ org.moflon.MoflonValidationPlugin;bundle-version="1.0.0",
+ org.eclipse.emf.edit.ui;bundle-version="2.7.0",
+ org.moflon.MocaToMoflonTransformation;bundle-version="1.0.0",
+ org.moflon.moca.MocaTree;bundle-version="1.0.0",
+ org.moflon.CSPCodeAdapter;bundle-version="1.0.0",
+ org.moflon.TGGRuntime;bundle-version="1.0.0",
+ org.moflon.moca;bundle-version="1.0.0",
+ org.moflon.TextualTGGCodeAdapter;bundle-version="1.0.0",
+ org.moflon.VTGGCodeAdapter;bundle-version="1.0.0"
+Export-Package: org.moflon.ide.core,
+ org.moflon.ide.core.admin,
+ org.moflon.ide.core.runtime,
+ org.moflon.ide.core.runtime.builders,
+ org.moflon.moca.dot.unparser
+Bundle-ActivationPolicy: lazy
+Bundle-Activator: org.moflon.ide.core.CoreActivator

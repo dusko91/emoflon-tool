@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<psf version="2.0">
+<provider id="org.tigris.subversion.subclipse.core.svnnature">
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/sdmTestSuite/BooleanStatementNodes,BooleanStatementNodes"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/specifications/CDDS,CDDS"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/specifications/DemoLanguages,DemoLanguages"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/dictionary/DictionaryCodeAdapter,DictionaryCodeAdapter"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/dictionary/DictionaryLanguage,DictionaryLanguage"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/doubleLinkedList/DoubleLinkedListLanguage,DoubleLinkedListLanguage"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2tstsuite/trunk/EclipseTestSuite,EclipseTestSuite"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/featureModel/FeatureModelLanguage,FeatureModelLanguage"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/featureModel/FlatteningRules,FlatteningRules"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/specifications/LSCtoMPNTransformation,LSCtoMPN"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/LSCToMPN/LSCToMPNTransformation,LSCToMPNTransformation"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/MBSecMon/MBSecMonLanguage,MBSecMonLanguage"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/featureModel/mCSPLanguage,mCSPLanguage"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/featureModel/mCSPSubsetExtraction,mCSPSubsetExtraction"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/memoryBox/MemoryBoxLanguage,MemoryBoxLanguage"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/memoryBoxToDoubleLinkedList/MemoryBoxToDoubleLinkedListIntegration,MemoryBoxToDoubleLinkedListIntegration"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/memoryBoxToDoubleLinkedList/MemoryBoxToDoubleLinkedListTransformation,MemoryBoxToDoubleLinkedListTransformation"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/specifications/Mosopolite,Mosopolite"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/MPN/MPNLanguage,MPNLanguage"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/MPNToMPNGenView/MPNToMPNGenViewTransformation,MPNToMPNGenViewTransformation"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/sdmTestSuite/SDMTestSuite,SDMTestSuite"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/simpleClassToRDBMS/SimpleClass2RDBMS,SimpleClass2RDBMS"/>
+</provider>
+</psf>

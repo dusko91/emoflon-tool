@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.jdt.core.classpathContainerInitializer">
+      <classpathContainerInitializer
+            class="org.moflon.ide.core.admin.MoflonClasspathContainerInitializer"
+            id="org.moflon.ide.MOFLON_CONTAINER">
+      </classpathContainerInitializer>
+   </extension>
+   <extension
+         point="org.eclipse.jdt.core.classpathContainerInitializer">
+      <classpathContainerInitializer
+            class="org.moflon.ide.core.admin.MoslClasspathContainerInitializer"
+            id="org.moflon.ide.MOSL">
+      </classpathContainerInitializer>
+   </extension>
+
+</plugin>

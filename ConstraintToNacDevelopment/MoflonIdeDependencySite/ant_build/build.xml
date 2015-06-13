@@ -1,0 +1,63 @@
+<project name="MyProject" default="dist" basedir=".">
+	
+	<property file="build.properties" />
+	
+	<target name="dist" depends="createDir, clear, buildCompositeRepository, copyToDeploymentLocation">		
+		<echo>Done.</echo>
+		<echo>The composite dependency repository should be available shortly at:</echo>
+		<echo>--> http://www.emoflon.org/fileadmin/download/moflon-ide/eclipse-plugin/beta/dependency</echo>
+	</target>
+	
+	<target name="createDir">
+		<echo>Step 0: creating temp. build dir if it does not exist already...</echo>
+		<mkdir dir="${dependency_site.deploy.dir}"/>
+	</target>
+	
+	<target name="clear">
+		<echo>Step 1: clearing temp. build dir...</echo>
+		<delete>
+			<fileset dir="${dependency_site.deploy.dir}">
+				<include name="**"/>
+				<!-- <exclude name="**/projlib-build.xml"/> -->
+			</fileset>
+		</delete>
+	</target>
+	
+	<target name="copyToDeploymentLocation">
+		<echo>Step 3: copying resulting jar to deployment dir...</echo>
+		<copy todir="${deploy.path}">
+			<fileset dir="${dependency_site.deploy.dir}">
+				<include name="${compositeContentJarName}"/>
+			</fileset>			
+		</copy>
+	</target>
+	
+	<target name="buildCompositeRepository">
+		<echo>Step 2: generating composite repository...</echo>
+		<p2.composite.repository>
+			<repository location="${dependency_site.deploy.dir}/" name="eMoflon Dependency Repository" kind="M" />
+			<add>
+				<!-- "Subclipse" - this is our preferred svn client for Eclipse -->
+				<repository name="Subclipse (http://subclipse.tigris.org/)" location="http://subclipse.tigris.org/update_1.8.x" kind="M" />
+				
+				<!-- eMoflon-Update-Site (daily-build) -->
+				<repository name="eMoflon (http://www.emoflon.org/)" location="http://www.emoflon.org/fileadmin/download/moflon-ide/eclipse-plugin/beta/update-site2" kind="M" />
+				
+				<!-- eMoflon-Developer/Test-Plugin -->
+				<repository name="eMoflon Dev/Test-Plugin (http://www.emoflon.org/)" location="http://www.emoflon.org/fileadmin/download/moflon-ide/eclipse-plugin/beta/devtools" kind="M" />
+				
+				<!-- Fujaba4Eclipse (currently with Reclipse, which is not needed -->
+				<repository name="Fujaba4Eclipse (http://www.fujaba.de/ and https://dsd-serv.uni-paderborn.de/svn/fujaba)" location="http://dsd-serv.uni-paderborn.de/svn/updatesites/trunk/de.uni_paderborn.fujaba4eclipse.updatesite" kind="M" />
+				
+				<!-- IDE for ANTLR including editors and viewers for grammars and syntax diagrams --> 
+				<repository name="ANTLR IDE (http://antlrv3ide.sourceforge.net/)" location="http://antlrv3ide.sourceforge.net/updates" kind="M" />
+				
+				<!-- Eclipse Dynamic Language Toolkit (DLTK) - this is a dependency introduced by the ANTLR IDE -->
+				<repository name="DLTK - Eclipse Dynamic Language Toolkit (http://www.eclipse.org/dltk/)" location="http://www.emoflon.org/fileadmin/download/moflon-ide/eclipse-plugin/beta/dltk-S-3.0.1-201108261011-updateSite" kind="M" />
+
+				<!-- add more here ... -->
+			</add>
+		</p2.composite.repository>
+	</target>
+	
+</project>

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <extension
+         point="org.eclipse.ui.editors">
+      <editor
+            class="org.moflon.ide.texteditor.editors.MoflonTextEditor"
+            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
+            default="false"
+            icon="icons/moflonSmall.png"
+            id="org.moflon.ide.texteditor.editors.MoflonTextEditor"
+            name="MOFLON Editor">
+         <contentTypeBinding
+               contentTypeId="org.moflon.textualEditor.contentTypes.mosl">
+         </contentTypeBinding>
+         <contentTypeBinding
+               contentTypeId="org.moflon.textualEditor.contentTypes.velocity">
+         </contentTypeBinding>
+      </editor>
+   </extension>
+   <extension
+         id="org.moflon.ide.texteditor.editors.TextEditorBuilder"
+         name="Text Editor Builder"
+         point="org.eclipse.core.resources.builders">
+      <builder
+            callOnEmptyDelta="false"
+            hasNature="false"
+            isConfigurable="true"
+            supportsConfigurations="true">
+         <run
+               class="org.moflon.ide.texteditor.editors.TextEditorBuilder">
+         </run>
+      </builder>
+   </extension>
+   <extension id="MoflonEditorMarker" point="org.eclipse.core.resources.markers"/>
+   <extension
+         id="MoflonEditorProblem"
+         name="Molfon Text Editor Problem"
+         point="org.eclipse.core.resources.markers">
+     	<super type="org.eclipse.core.resources.problemmarker"/>
+   		<super type="org.moflon.ide.TextEditor.MoflonEditorMarker"/>
+   		<persistent value="true"/>
+   </extension>
+   <extension
+         id="org.moflon.textualEditor.contentTypes"
+         name="MoflonContentTypes"
+         point="org.eclipse.core.contenttype.contentTypes">
+      <content-type
+            file-extensions="sch,tgg"
+            id="org.moflon.textualEditor.contentTypes.mosl"
+            name="MOSL files"
+            priority="high">
+      </content-type>
+      <content-type
+            file-extensions="vm"
+            id="org.moflon.textualEditor.contentTypes.velocity"
+            name="Velocity templates"
+            priority="normal">
+      </content-type>
+   </extension>
+
+</plugin>

@@ -1,0 +1,144 @@
+group TGGMain;
+
+TGGMainBatch(projects, corrPackage, className) ::= <<
+<basic()>
+
+	public static void main(String[] args) throws IOException {
+		// Set up logging
+        BasicConfigurator.configure();
+
+		// Forward Transformation
+        <className> helper = new <className>();
+		helper.performForward("instances/fwd.src.xmi");
+		
+		// Backward Transformation
+		helper = new <className>();
+		helper.performBackward("instances/bwd.src.xmi");
+	}
+
+	public void performForward(String source) {
+		try {
+			loadSrc(source);
+		} catch (IllegalArgumentException iae) {
+			System.err.println("Unable to load " + source + ", " + iae.getMessage());
+			return;
+		}
+		
+		integrateForward();
+		
+		saveTrg("instances/fwd.trg.xmi");
+		saveCorr("instances/fwd.corr.xmi");
+		saveProtocol("instances/fwd.protocol.xmi");
+		
+		System.out.println("Completed forward transformation!");
+	}
+
+	public void performBackward(String target) {
+		try {
+			loadTrg(target);
+		} catch (IllegalArgumentException iae) {
+			System.err.println("Unable to load " + target + ", " + iae.getMessage());
+			return;
+		}
+		
+		integrateBackward();
+		
+		saveSrc("instances/bwd.trg.xmi");
+		saveCorr("instances/bwd.corr.xmi");
+		saveProtocol("instances/bwd.protocol.xmi");
+		
+		System.out.println("Completed backward transformation!");
+	}
+}
+>>
+
+basic() ::= <<
+package org.moflon.tie;
+
+import org.eclipse.emf.ecore.EObject;
+import TGGRuntime.CorrespondenceModel;
+import org.eclipse.emf.common.util.URI;
+import java.io.IOException;
+import org.apache.log4j.BasicConfigurator;
+import org.moflon.util.IntegratorHelper;
+import org.moflon.util.eMoflonEMFUtil;
+<projects: {project | import <project>.<project; format="firstToUpper">Package;<\n>}>
+
+public class <className> extends IntegratorHelper {
+
+	public <className>() throws IOException {
+		// Register packages
+        <projects: {project | eMoflonEMFUtil.init(<project; format="firstToUpper">Package.eINSTANCE);<\n>}>
+                
+        // Load rules and set correspondence
+		setCorrPackage(<corrPackage; format="firstToUpper">);
+		loadRulesFromProject("..");
+	}
+>>
+
+TGGMainSync(projects, corrPackage, className) ::= <<
+<basic()>
+	
+	public static void main(String[] args) throws IOException {
+		// Set up logging
+        BasicConfigurator.configure();
+
+		// Propagate changes made to source
+        <className> helper = new <className>();
+		helper.syncForward("instances/fwd.corr.xmi");
+		
+		// Propagate changes made to target
+		helper = new <className>();
+		helper.syncBackward("instances/fwd.corr.xmi");
+	}
+
+	@Override
+	public void changeSrc(EObject root){ 
+		// TODO: Specify source delta here by performing changes to root
+	}
+	
+	@Override
+	public void changeTrg(EObject root){ 
+		// TODO: Specify target delta here by performing changes to root
+	}
+	
+	public void syncForward(String corr) {
+		loadTriple(corr);
+		integrateForward();
+		saveResult("fwd");
+		
+		System.out.println("Completed forward synchronization");
+	}
+	
+	public void syncBackward(String corr) {
+		loadTriple(corr);
+		integrateBackward();
+		saveResult("bwd");
+		
+		System.out.println("Completed backward synchronization");
+	}
+	
+	private void loadTriple(String corr){ 
+		try {
+			loadCorr(corr);
+			CorrespondenceModel corrModel = (CorrespondenceModel) getCorr();
+			setSrc(corrModel.getSource());
+			setTrg(corrModel.getTarget());
+		} catch (IllegalArgumentException iae) {
+			System.err.println("Unable to load input triple for " + corr
+					+ ", " + iae.getMessage());
+		}
+	}
+	
+	private void saveResult(String direction){ 
+		getSrc().eResource().setURI(URI.createFileURI("sync." + direction + ".src.xmi"));
+		getTrg().eResource().setURI(URI.createFileURI("sync." + direction + ".trg.xmi"));
+		getCorr().eResource().setURI(URI.createFileURI("sync." + direction + ".corr.xmi"));
+		
+		saveSrc("instances/sync." + direction + ".src.xmi");
+		saveTrg("instances/sync." + direction + ".trg.xmi");
+		saveCorr("instances/sync." + direction + ".corr.xmi");
+		saveProtocol("instances/sync." + direction + ".protocol.xmi");
+	}
+}
+>>

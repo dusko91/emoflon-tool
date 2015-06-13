@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<psf version="2.0">
+<provider id="org.tigris.subversion.subclipse.core.svnnature">
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/component/ComponentCodeAdapter_EdgeRules,ComponentCodeAdapter_EdgeRules"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/specifications/EdgeRulesTestSuite,EdgeRulesTestSuite"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/specifications/FlatToTree,FlatToTree"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/FlatToTreeIntegration,FlatToTreeIntegration"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/folksonomy/FolksonomyCodeAdapter,FolksonomyCodeAdapter"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/folksonomy/FolksonomyDataGenerator,FolksonomyDataGenerator"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/LearningBoxLanguage,LearningBoxLanguage"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/specifications/libraryToBibliographyExample/LibraryToBibliography,LibraryToBibliography"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/specifications/libraryToBibliographyExample/LibraryToBibliographyCSP,LibraryToBibliographyCSP"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/libraryToBibliographyExample/LibraryToBibliographyHandcrafted,LibraryToBibliographyHandcrafted"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/libraryToBibliographyExample/LibraryToBibliographyIntegration,LibraryToBibliographyIntegration"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/libraryToBibliographyExample/LibraryToBibliographyIntegrationCSP,LibraryToBibliographyIntegrationCSP"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/specifications/libraryToBibliographyExample/LibraryToBibliographyTextual,LibraryToBibliographyTextual"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/specifications/MDAE,MDAE"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/MocaToECoreIntegration,MocaToECoreIntegration"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/specifications/MOSLTest,MOSLTest"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/specifications/productrequirementsToSimulinkproject/ProductrequirementsToSimulinkproject,ProductrequirementsToSimulinkproject"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/specifications/SDFToSense,SDFToSense"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/SDFToSenseIntegration,SDFToSenseIntegration"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2tstsuite/trunk/TGGTestSuite_1,TGGTestSuite_1"/>
+</provider>
+</psf>

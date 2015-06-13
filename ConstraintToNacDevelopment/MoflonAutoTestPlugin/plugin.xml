@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.ui.actionSets">
+      <actionSet
+            id="org.moflon.ide.ui.addon.actionSet"
+            label="eMoflon Action Set Addon"
+            visible="false">
+         <action
+               class="org.moflon.autotest.ui.DropDownMenuAction"
+               icon="icons/junitmoflon.gif"
+               id="org.moflon.moflonautotestplugin.actions.StartMoflonAutoTestPluginAction"
+               label="Install, Configure and Deploy eMoflon"
+               style="pulldown"
+               toolbarPath="Normal/Moflon">
+         </action>
+      </actionSet>
+   </extension>
+   <extension
+         point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension
+            targetID="org.moflon.ide.ui.perspective">
+         <actionSet
+               id="org.moflon.ide.ui.addon.actionSet">
+         </actionSet>
+      </perspectiveExtension>
+   </extension>
+   <extension
+         point="org.eclipse.ui.menus">
+      <menuContribution
+            allPopups="false"
+            locationURI="popup:org.moflon.ide.ui.moflon?after=additions">
+         <command
+               commandId="MoflonAutoTestPlugin.exportandBuildcoomand"
+               icon="icons/import_wiz.gif"
+               label="Export and Build"
+               style="push">
+<!--            <visibleWhen
+                  checkEnabled="false">
+               <or>
+                  <adapt
+                        type="org.eclipse.core.resources.IResource">
+                  </adapt>
+                  <iterate
+                        ifEmpty="false"
+                        operator="or">
+                     <adapt
+                           type="org.eclipse.core.resources.IResource">
+                     </adapt>
+                  </iterate>
+               </or>
+            </visibleWhen>
+-->
+         </command>
+      </menuContribution>
+   </extension>
+   <extension
+         point="org.eclipse.ui.commands">
+      <command
+            id="MoflonAutoTestPlugin.exportandBuildcoomand"
+            name="name">
+      </command>
+   </extension>
+   <extension
+         point="org.eclipse.ui.handlers">
+      <handler
+            class="org.moflon.autotest.ui.ExportAndBuildHandler"
+            commandId="MoflonAutoTestPlugin.exportandBuildcoomand">
+         <enabledWhen>
+           <iterate
+                 operator="or">
+           		<or>
+		           <adapt type="org.eclipse.core.resources.IFile">
+		               <test
+		                     forcePluginActivation="true"
+		                     property="org.eclipse.core.resources.extension"
+		                     value="eap">
+		               </test>
+		           </adapt>
+	           </or>
+           </iterate>
+         </enabledWhen>
+      </handler>
+   </extension>
+
+</plugin>

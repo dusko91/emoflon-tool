@@ -1,0 +1,11 @@
+
+import TGGLanguage.csp.CspFactory;
+import TGGLanguage.csp.Variable;
+import csp.constraints.*;
+
+
+partial class TestGeneratorImpl {
+
+
+
+}

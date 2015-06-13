@@ -1,0 +1,158 @@
+group ANTLR;
+
+Lexer(name, package) ::= <<
+lexer grammar <name;format="firstToUpper">Lexer;
+
+@header {
+package <package>;
+}
+
+// Common token definitions
+// ID: ('a'..'z' | 'A'..'Z')+;
+// STRING: ('_' | ID | ('0'..'9') )+; 
+// WS : (' ' | '\t' | '\f' | '\n' | '\r')+ {skip();};
+
+// Lexer Rules:
+RULE:;
+>>
+
+Parser(name, package) ::= <<
+parser grammar <name;format="firstToUpper">Parser;
+
+options {
+  language = Java;
+  tokenVocab = <name; format="firstToUpper">Lexer;
+  output = AST;
+}
+
+// List of tokens used only used to structure the tree
+//tokens {
+//  MY_TOKEN;
+//}
+
+@header {
+package <package>; 
+}
+// parser rules:
+main:;
+>>
+
+TreeGrammar(name, package) ::= <<
+tree grammar <name;format="firstToUpper">TreeGrammar;
+
+options {
+  ASTLabelType = CommonTree; 
+  output       = template;
+}
+
+// Tokens used internally by Moca
+// ID: ('a'..'z' | 'A'..'Z')+;
+// STRING: ( ID | ('0'..'9') )+; 
+// ATRIBUTE: Used as an imaginary token for coding attributes in XML files (ATTRIBUTE name=ID value=STRING)
+tokens {
+  ID;
+  STRING;
+  ATTRIBUTE; 
+} 
+  
+@header {
+package <package>;
+}
+// tree grammar rules:
+main:;
+>>
+
+ParserAdapter(name, package) ::= <<
+package <package>;
+import java.io.IOException;
+import java.io.Reader;
+import org.antlr.runtime.ANTLRReaderStream;
+import org.antlr.runtime.CommonTokenStream;
+import org.antlr.runtime.RecognitionException;
+import org.antlr.runtime.tree.CommonTree;
+import org.moflon.moca.MocaUtil;
+import Moca.parser.impl.ParserImpl;
+import MocaTree.Node;
+
+public class <name;format="firstToUpper">ParserAdapter extends ParserImpl 
+{
+
+  @Override
+  public boolean canParseFile(String fileName) 
+  {
+    return fileName.endsWith(".<name>");
+  }
+
+  @Override
+  public Node parse(Reader reader) 
+  {
+    try 
+    {
+      <name;format="firstToUpper">Lexer lexer = new <name;format="firstToUpper">Lexer(new ANTLRReaderStream(reader));
+      CommonTokenStream tokens = new CommonTokenStream(lexer);
+      <name;format="firstToUpper">Parser parser = new <name;format="firstToUpper">Parser(tokens);
+      CommonTree result = (CommonTree) parser.main().tree; 
+      return MocaUtil.commonTreeToMocaTree(result);
+    } catch (IOException e) 
+    {
+      e.printStackTrace();
+    } catch (RecognitionException e) 
+    {
+      e.printStackTrace();
+    } 
+    return null;
+  }
+}
+>>
+
+UnparserAdapter(name, package) ::= <<
+package org.moflon.moca.<name>.unparser;
+import java.io.FileNotFoundException;
+import org.antlr.runtime.RecognitionException;
+import org.antlr.runtime.tree.CommonTreeNodeStream;
+import org.antlr.stringtemplate.StringTemplate;
+import org.antlr.stringtemplate.StringTemplateGroup;
+import Moca.unparser.impl.TemplateUnparserImpl;
+
+public class <name;format="firstToUpper">UnparserAdapter extends TemplateUnparserImpl 
+{
+  
+  @Override
+  public boolean canUnparseFile(String fileName) 
+  {
+    return fileName.endsWith(".<name>");
+  }
+
+  @Override
+  protected String callMainRule(CommonTreeNodeStream tree, StringTemplateGroup templates) throws RecognitionException 
+  {
+    <name;format="firstToUpper">TreeGrammar <name>TreeGrammar = new <name;format="firstToUpper">TreeGrammar(tree);
+    <name>TreeGrammar.setTemplateLib(templates);  
+    StringTemplate st = <name>TreeGrammar.main().st;
+    if (st==null) {
+      return "";
+    }
+    else {
+      return st.toString();
+    }  
+  }
+
+  @Override
+  protected StringTemplateGroup getStringTemplateGroup() throws FileNotFoundException 
+  {
+    //TODO provide StringTemplateGroup ...
+    // ... from folder "<name>" containing .st files
+    // return new StringTemplateGroup("<name>", "templates/<name>");
+    // ... from group file <name;format="firstToUpper">.stg
+    // return new StringTemplateGroup(new FileReader(new File("./templates/<name;format="firstToUpper">.stg")));
+    throw new UnsupportedOperationException("Creation of StringTemplateGroup not implemented yet ...");
+  }
+
+  @Override
+  protected String[] getTokenNames() 
+  {
+    return <name;format="firstToUpper">TreeGrammar.tokenNames;
+  }
+}
+>>
+

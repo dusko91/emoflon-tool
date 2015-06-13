@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<psf version="2.0">
+<provider id="org.tigris.subversion.subclipse.core.svnnature">
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/mbse/trunk/BoardCodeAdapter,BoardCodeAdapter"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/mbse/trunk/BoardGame,BoardGame"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/mbse/trunk/BoardGameGUI,BoardGameGUI"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/mbse/trunk/BoardGameLanguage,BoardGameLanguage"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/boardGameLanguage/BoardGameTGG_eMoflonTutorial,BoardGameTGG_eMoflonTutorial"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/mbse/trunk/BoardGameToTreeIntegration,BoardGameToTreeIntegration"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/simplePetriNet/de_tu_darmstadt_es_SimplePetriNetModel,de_tu_darmstadt_es_SimplePetriNetModel"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/specifications/Ecore2GenModelTransformation,Ecore2GenModelTransformation"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/EcoreToGenModel,EcoreToGenModel"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/specifications/eMoflonTutorialEAVersion,eMoflonTutorialEAVersion"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/specifications/fixmlTransformation,fixmlTransformation"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/ttc-2013-flowgraph/flowgraph,flowgraph"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/ttc-2013-flowgraph/FlowGraphs,FlowGraphs"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/mbse/trunk/Rules,GameRules"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/ttc-2013-flowgraph/JavaToFlowGraph,JavaToFlowGraph"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/specifications/OpenstreetMap,OpenstreetMap"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/OpenStreetMap/OSMLanguage,OSMLanguage"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/OpenStreetMap/OSMTGG,OSMTGG"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/specifications/PetriNet2Statechart,PetriNet2Statechart"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/modellingWizards/ProcessCodeAdapter,ProcessCodeAdapter"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/modellingWizards/ProcessDefinition,ProcessDefinition"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/specifications/ProcessLanguage,ProcessLanguage"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/specifications/RTF2HTML,RTF2HTML"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/rtf2html/RTF2HTMLCodeAdapter,RTF2HTMLCodeAdapter"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/simplePetriNet/SimplePetriNet,SimplePetriNet"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/specifications/SokobanTutorial,SokobanTutorial"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/StatechartLanguage,StatechartLanguage"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2lngsuite/trunk/ttc-2013-flowgraph/ttc-2013-flowgraphs-case,ttc-2013-flowgraphs-case"/>
+<project reference="0.9.3,svn+ssh://scm.gforge.echtzeitsysteme.org/svnroot/moflon2tstsuite/trunk/ZooTestSuite0,ZooTestSuite0"/>
+</provider>
+</psf>

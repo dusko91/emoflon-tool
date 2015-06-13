@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature url="features/org.moflon.MoflonDevToolsFeature_1.0.0.qualifier.jar" id="org.moflon.MoflonDevToolsFeature" version="1.0.0.qualifier">
+      <category name="org.moflon.devtools"/>
+   </feature>
+   <category-def name="org.moflon.devtools" label="Moflon DevTools"/>
+</site>

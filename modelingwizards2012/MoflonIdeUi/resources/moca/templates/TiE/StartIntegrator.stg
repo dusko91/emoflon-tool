@@ -1,0 +1,28 @@
+group StartIntegrator;
+
+StartIntegrator(projects) ::= <<
+package org.moflon.tie;
+
+import org.apache.log4j.BasicConfigurator;
+import org.eclipse.emf.ecore.EPackage;
+import org.moflon.integrator.IntegratorApp;
+<projects: {project | import <project>.<project; format="firstToUpper">Package;<\n>}>
+
+public class StartIntegrator {
+
+    public static void main(String[] args) throws Exception {
+
+         // Set up logging
+         BasicConfigurator.configure();
+
+         // Register projects
+         <projects: {project | <\n>//Register <project>
+EPackage package<project; format="firstToUpper"> = <project; format="firstToUpper">Package.eINSTANCE;
+package<project; format="firstToUpper">.getName();<\n>}>     
+         // Start integrator
+         IntegratorApp.startIntegrator(args);
+
+    }
+
+}
+>>

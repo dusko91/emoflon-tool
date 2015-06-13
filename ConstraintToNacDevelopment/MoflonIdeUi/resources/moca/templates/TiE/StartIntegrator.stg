@@ -1,0 +1,28 @@
+group StartIntegrator;
+
+StartIntegrator(projects) ::= <<
+package org.moflon.tie;
+
+import org.moflon.util.eMoflonEMFUtil;
+import org.apache.log4j.BasicConfigurator;
+import org.moflon.integrator.IntegratorApp;
+import MoflonBreakpoints.MoflonBreakpointsPackage;
+
+<projects: {project | import <project>.<project; format="firstToUpper">Package;<\n>}>
+
+public class StartIntegrator {
+
+    public static void main(String[] args) throws Exception {
+
+         // Set up logging
+         BasicConfigurator.configure();
+
+         // Register packages
+         eMoflonEMFUtil.init(MoflonBreakpointsPackage.eINSTANCE);
+         <projects: {project | eMoflonEMFUtil.init(<project; format="firstToUpper">Package.eINSTANCE);<\n>}>
+         
+         // Start integrator
+         IntegratorApp.startIntegrator(args);
+    }
+}
+>>
