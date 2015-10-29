@@ -20,13 +20,14 @@ Export-Package:
  org.moflon.tgg.mosl,
  org.moflon.tgg.mosl.formatting,
  org.moflon.tgg.mosl.generator,
+ org.moflon.tgg.mosl.parser.antlr,
+ org.moflon.tgg.mosl.parser.antlr.internal,
+ org.moflon.tgg.mosl.resources,
  org.moflon.tgg.mosl.scoping,
- org.moflon.tgg.mosl.validation,
+ org.moflon.tgg.mosl.serializer,
  org.moflon.tgg.mosl.services,
  org.moflon.tgg.mosl.tgg,
  org.moflon.tgg.mosl.tgg.impl,
  org.moflon.tgg.mosl.tgg.util,
- org.moflon.tgg.mosl.serializer,
- org.moflon.tgg.mosl.parser.antlr,
- org.moflon.tgg.mosl.parser.antlr.internal
+ org.moflon.tgg.mosl.validation
 
