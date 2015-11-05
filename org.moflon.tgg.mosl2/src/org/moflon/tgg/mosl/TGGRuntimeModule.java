@@ -4,6 +4,7 @@
 package org.moflon.tgg.mosl;
 
 import org.eclipse.xtext.scoping.IScopeProvider;
+import org.moflon.tgg.mosl.scoping.TGGImportedNamespaceAwareLocalScopeProvider;
 import org.moflon.tgg.mosl.scoping.TGGScopeProvider;
 
 import com.google.inject.Binder;
@@ -16,6 +17,13 @@ public class TGGRuntimeModule extends org.moflon.tgg.mosl.AbstractTGGRuntimeModu
 	@Override
 	public Class<? extends IScopeProvider> bindIScopeProvider() {
 		return TGGScopeProvider.class;
+	}
+	
+	@Override
+	public void configureIScopeProviderDelegate(com.google.inject.Binder binder){
+		binder.bind(org.eclipse.xtext.scoping.IScopeProvider.class).annotatedWith(com.google.inject.name.Names.
+				named(org.eclipse.xtext.scoping.impl.AbstractDeclarativeScopeProvider.NAMED_DELEGATE)).
+			to(TGGImportedNamespaceAwareLocalScopeProvider.class);
 	}
 	
 //	@Override

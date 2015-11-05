@@ -10,7 +10,8 @@ generate tgg "http://www.moflon.org/ide/tgg/mosl/TGG"
 
 TripleGraphGrammar:
 	(schema = Schema)?
-  	(rules += Rule)?
+//  	(rules += Rule)?
+  	(rules += Rule)*
 ;
 
 SpecFile:
@@ -94,7 +95,7 @@ Adornment:
 ;
 
 Param:
-	name = ID ':' type = [ecore::EDataType | QualifiedName]
+	name=ID':'type=[ecore::EDataType|QualifiedName]
 ;
 
 ParamValue:
@@ -125,6 +126,7 @@ Operator:
 // Auxiliaries
 
 Import:
+//	'import' importedEPackage=[ecore::EPackage|QualifiedName] '.*'
 	'import' importedNamespace = QualifiedNameWithWildcard
 ;
 
