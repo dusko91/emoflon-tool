@@ -21,6 +21,15 @@ import org.eclipse.emf.ecore.EClass
 import org.moflon.tgg.mosl.tgg.CorrVariablePattern
 import org.moflon.tgg.mosl.tgg.TypeExtension
 import org.eclipse.xtext.resource.IEObjectDescription
+import org.moflon.tgg.mosl.resources.TGGXMIHelper
+import org.moflon.tgg.mosl.tgg.Param
+import org.eclipse.emf.ecore.EcorePackage
+import org.eclipse.emf.ecore.util.EcoreUtil
+import java.util.Collection
+import org.eclipse.emf.ecore.EDataType
+import org.eclipse.emf.common.util.BasicEList
+import org.eclipse.emf.common.util.URI
+import org.moflon.tgg.mosl.tgg.TripleGraphGrammar
 
 /**
  * This class contains custom scoping description.
@@ -60,8 +69,68 @@ class TGGScopeProvider extends AbstractDeclarativeScopeProvider {
 		
 		if (is_trg_of_corr_type(context, reference))
 			return trg_of_corr_type_must_be_a_trg_type(context)
+			
+		if (is_type_of_param(context, reference))
+			return type_of_param_must_be_edatatype(context)
+			
+			
+		if (is_src_types_of_schema(context, reference) && TGGXMIHelper.serializing)
+			return types_of_schema_must_be_imported(context)
+		
+		if (is_trg_types_of_schema(context, reference) && TGGXMIHelper.serializing)
+			return types_of_schema_must_be_imported(context)
+			
+			
+//		if(is_type_of_corr_ov(context, reference) && TGGXMIHelper.serializing)
+//			return type_of_corr_ov_must_be_a_corr_type(context)
 
 		super.getScope(context, reference)
+	}
+	
+	def type_of_corr_ov_must_be_a_corr_type(EObject context) {
+		var rule = context.eContainer as Rule
+		var tgg = rule.eContainer as TripleGraphGrammar
+		var schema = tgg.schema as Schema
+		return Scopes.scopeFor(schema.correspondenceTypes)
+	}
+	
+	def types_of_schema_must_be_imported(EObject context) {
+		var schema = context as Schema
+		var packages = new BasicEList<EPackage>()
+		var importURIs = TGGXMIHelper.getSchemaImportURIs(schema)
+		
+		for (URI uri : importURIs) {
+			var importResource = schema.eResource().getResourceSet().getResource(uri, true)
+			var xmiRes = importResource.getContents()
+			for (EObject eObject : xmiRes) {
+				if (eObject instanceof EPackage) {
+					packages.add(eObject as EPackage)
+				}
+			}
+		}
+		return Scopes.scopeFor(packages)
+	}
+	
+	def type_of_param_must_be_edatatype(EObject object) {
+		var eClassifiers = EcorePackage.eINSTANCE.getEClassifiers()
+		var edata = (EcoreUtil.getObjectsByType(eClassifiers, EcorePackage.Literals.EDATA_TYPE) as Object) as Collection<EDataType>
+		return Scopes.scopeFor(edata)
+	}
+	
+	def is_type_of_corr_ov(EObject context, EReference reference) {
+		context instanceof CorrVariablePattern && reference == TggPackage.Literals.CORR_VARIABLE_PATTERN__TYPE
+	}
+	
+	def is_type_of_param(EObject context, EReference reference) {
+		context instanceof Param && reference == TggPackage.Literals.PARAM__TYPE
+	}
+	
+	def is_trg_types_of_schema(EObject context, EReference reference) {
+		context instanceof Schema && reference == TggPackage.Literals.SCHEMA__TARGET_TYPES
+	}
+	
+	def is_src_types_of_schema(EObject context, EReference reference) {
+		context instanceof Schema && reference == TggPackage.Literals.SCHEMA__SOURCE_TYPES
 	}
 
 	def is_trg_of_corr_ov(EObject context, EReference reference) {
@@ -108,13 +177,33 @@ class TGGScopeProvider extends AbstractDeclarativeScopeProvider {
 		return new FilteringScope(allCandidates, [c | is_equal_or_super_type_of_ov(typeDef.target, c)])
 	}
 	
+//	def determineTypeDef(EObject context){
+//		var corrOv = context as CorrVariablePattern
+//		var type = corrOv.type
+//		if(!(type instanceof CorrTypeDef))
+//			type = (type as TypeExtension).super as CorrTypeDef	
+//		
+//		return type as CorrTypeDef
+//	}
+	
 	def determineTypeDef(EObject context){
 		var corrOv = context as CorrVariablePattern
 		var type = corrOv.type
-		if(!(type instanceof CorrTypeDef))
-			type = (type as TypeExtension).super as CorrTypeDef	
-		
-		return type as CorrTypeDef
+		if(type instanceof CorrTypeDef)
+			return type as CorrTypeDef
+		else if(type instanceof TypeExtension)
+			return determineTypeDefFromExtension(type) as CorrTypeDef
+		else
+			throw new IllegalStateException("This should never be the case!")
+	}
+	
+	def determineTypeDefFromExtension(TypeExtension typeExtension) {
+		if(typeExtension.super instanceof CorrTypeDef)
+			return typeExtension.super as CorrTypeDef
+		else if(typeExtension.super instanceof TypeExtension)
+			return determineTypeDefFromExtension(typeExtension.super as TypeExtension)
+		else
+			throw new IllegalStateException("This should never be the case!") 
 	}
 	
 	def src_of_corr_ov_must_be_in_src_domain(EObject context) {
