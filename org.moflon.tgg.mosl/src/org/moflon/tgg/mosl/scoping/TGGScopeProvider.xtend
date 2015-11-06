@@ -1,34 +1,32 @@
 package org.moflon.tgg.mosl.scoping
 
+import java.util.Collection
 import java.util.List
+import org.eclipse.emf.ecore.EClass
 import org.eclipse.emf.ecore.EClassifier
+import org.eclipse.emf.ecore.EDataType
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EPackage
 import org.eclipse.emf.ecore.EReference
+import org.eclipse.emf.ecore.EcorePackage
+import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xtext.EcoreUtil2
+import org.eclipse.xtext.resource.IEObjectDescription
+import org.eclipse.xtext.scoping.IScope
 import org.eclipse.xtext.scoping.Scopes
 import org.eclipse.xtext.scoping.impl.AbstractDeclarativeScopeProvider
+import org.eclipse.xtext.scoping.impl.FilteringScope
 import org.moflon.tgg.mosl.tgg.CorrTypeDef
+import org.moflon.tgg.mosl.tgg.CorrVariablePattern
 import org.moflon.tgg.mosl.tgg.LinkVariablePattern
 import org.moflon.tgg.mosl.tgg.ObjectVariablePattern
+import org.moflon.tgg.mosl.tgg.Param
 import org.moflon.tgg.mosl.tgg.ParamValue
 import org.moflon.tgg.mosl.tgg.Rule
 import org.moflon.tgg.mosl.tgg.Schema
 import org.moflon.tgg.mosl.tgg.TggPackage
-import org.eclipse.xtext.scoping.IScope
-import org.eclipse.xtext.scoping.impl.FilteringScope
-import org.eclipse.emf.ecore.EClass
-import org.moflon.tgg.mosl.tgg.CorrVariablePattern
 import org.moflon.tgg.mosl.tgg.TypeExtension
-import org.eclipse.xtext.resource.IEObjectDescription
-import org.moflon.tgg.mosl.tgg.Param
-import org.eclipse.emf.ecore.EcorePackage
-import org.eclipse.emf.ecore.util.EcoreUtil
-import java.util.Collection
-import org.eclipse.emf.ecore.EDataType
-import org.eclipse.emf.common.util.BasicEList
-import org.eclipse.emf.common.util.URI
-import org.moflon.tgg.mosl.tgg.TripleGraphGrammar
+import org.moflon.tgg.mosl.tgg.TripleGraphGrammarFile
 
 /**
  * This class contains custom scoping description.
@@ -88,7 +86,7 @@ class TGGScopeProvider extends AbstractDeclarativeScopeProvider {
 	
 	def type_of_corr_ov_must_be_a_corr_type(EObject context) {
 		var rule = context.eContainer as Rule
-		var tgg = rule.eContainer as TripleGraphGrammar
+		var tgg = rule.eContainer as TripleGraphGrammarFile
 		var schema = tgg.schema as Schema
 		return Scopes.scopeFor(schema.correspondenceTypes)
 	}
