@@ -46,6 +46,12 @@
            id="org.moflon.tgg.mosl.addRemoveMOSLTGGNature"
            name="Add/RemoveMOSL TGG Nature">
      </command>
+     <command
+           categoryId="org.moflon.ide.ui.commands.MainCategory"
+           defaultHandler="org.moflon.tgg.mosl.builder.MOSLTGGConversionHelper"
+           id="org.moflon.tgg.mosl.convertToMOSLTGG"
+           name="Convert to MOSL TGG">
+     </command>
   </extension>
   <extension
         point="org.eclipse.ui.menus">
@@ -98,6 +104,15 @@
                  </iterate>
               </with>
            </visibleWhen>
+        </command>
+     </menuContribution>
+     <menuContribution
+           locationURI="popup:org.moflon.ide.ui.moflon?after=moflonGroupTie">
+        <command
+              commandId="org.moflon.tgg.mosl.convertToMOSLTGG"
+              label="Convert to MOSL TGG"
+              style="push">
+           
         </command>
      </menuContribution>
   </extension>
