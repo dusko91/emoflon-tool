@@ -112,6 +112,22 @@
               commandId="org.moflon.tgg.mosl.convertToMOSLTGG"
               label="Convert to MOSL TGG"
               style="push">
+           <visibleWhen
+                 checkEnabled="false">
+              <and>
+                 <count
+                       value="1">
+                 </count>
+                 <iterate ifEmpty="false">
+            
+            <test property="org.eclipse.core.resources.name"
+                     value="*.tgg.xmi"/>
+            <instanceof
+                  value="org.eclipse.core.resources.IFile">
+            </instanceof>
+        </iterate>    
+              </and>
+           </visibleWhen>
            
         </command>
      </menuContribution>
