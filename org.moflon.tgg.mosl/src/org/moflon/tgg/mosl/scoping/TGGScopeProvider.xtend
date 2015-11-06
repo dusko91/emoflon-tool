@@ -21,7 +21,6 @@ import org.eclipse.emf.ecore.EClass
 import org.moflon.tgg.mosl.tgg.CorrVariablePattern
 import org.moflon.tgg.mosl.tgg.TypeExtension
 import org.eclipse.xtext.resource.IEObjectDescription
-import org.moflon.tgg.mosl.resources.TGGXMIHelper
 import org.moflon.tgg.mosl.tgg.Param
 import org.eclipse.emf.ecore.EcorePackage
 import org.eclipse.emf.ecore.util.EcoreUtil
@@ -74,11 +73,11 @@ class TGGScopeProvider extends AbstractDeclarativeScopeProvider {
 			return type_of_param_must_be_edatatype(context)
 			
 			
-		if (is_src_types_of_schema(context, reference) && TGGXMIHelper.serializing)
-			return types_of_schema_must_be_imported(context)
-		
-		if (is_trg_types_of_schema(context, reference) && TGGXMIHelper.serializing)
-			return types_of_schema_must_be_imported(context)
+//		if (is_src_types_of_schema(context, reference) && TGGXMIHelper.serializing)
+//			return types_of_schema_must_be_imported(context)
+//		
+//		if (is_trg_types_of_schema(context, reference) && TGGXMIHelper.serializing)
+//			return types_of_schema_must_be_imported(context)
 			
 			
 //		if(is_type_of_corr_ov(context, reference) && TGGXMIHelper.serializing)
@@ -94,22 +93,22 @@ class TGGScopeProvider extends AbstractDeclarativeScopeProvider {
 		return Scopes.scopeFor(schema.correspondenceTypes)
 	}
 	
-	def types_of_schema_must_be_imported(EObject context) {
-		var schema = context as Schema
-		var packages = new BasicEList<EPackage>()
-		var importURIs = TGGXMIHelper.getSchemaImportURIs(schema)
-		
-		for (URI uri : importURIs) {
-			var importResource = schema.eResource().getResourceSet().getResource(uri, true)
-			var xmiRes = importResource.getContents()
-			for (EObject eObject : xmiRes) {
-				if (eObject instanceof EPackage) {
-					packages.add(eObject as EPackage)
-				}
-			}
-		}
-		return Scopes.scopeFor(packages)
-	}
+//	def types_of_schema_must_be_imported(EObject context) {
+//		var schema = context as Schema
+//		var packages = new BasicEList<EPackage>()
+//		var importURIs = TGGXMIHelper.getSchemaImportURIs(schema)
+//		
+//		for (URI uri : importURIs) {
+//			var importResource = schema.eResource().getResourceSet().getResource(uri, true)
+//			var xmiRes = importResource.getContents()
+//			for (EObject eObject : xmiRes) {
+//				if (eObject instanceof EPackage) {
+//					packages.add(eObject as EPackage)
+//				}
+//			}
+//		}
+//		return Scopes.scopeFor(packages)
+//	}
 	
 	def type_of_param_must_be_edatatype(EObject object) {
 		var eClassifiers = EcorePackage.eINSTANCE.getEClassifiers()

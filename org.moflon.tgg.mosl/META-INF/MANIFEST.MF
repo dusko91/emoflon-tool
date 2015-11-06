@@ -14,7 +14,10 @@ Require-Bundle: org.eclipse.xtext;visibility:=reexport,
  org.antlr.runtime,
  org.eclipse.xtext.common.types,
  org.objectweb.asm;bundle-version="[5.0.1,6.0.0)";resolution:=optional,
- SDMLanguage
+ SDMLanguage,
+ org.eclipse.core.resources,
+ org.eclipse.core.runtime,
+ org.eclipse.ui
 Import-Package: org.apache.log4j
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: 
@@ -23,7 +26,6 @@ Export-Package:
  org.moflon.tgg.mosl.generator,
  org.moflon.tgg.mosl.parser.antlr,
  org.moflon.tgg.mosl.parser.antlr.internal,
- org.moflon.tgg.mosl.resources,
  org.moflon.tgg.mosl.scoping,
  org.moflon.tgg.mosl.serializer,
  org.moflon.tgg.mosl.services,
