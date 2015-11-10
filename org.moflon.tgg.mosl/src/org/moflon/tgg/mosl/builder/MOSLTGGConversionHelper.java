@@ -103,25 +103,25 @@ public class MOSLTGGConversionHelper extends AbstractHandler {
 					 * Approach #1:	Generates Single tgg-File
 					 ************************************************************/
 					
-//					IFile tggFile = (IFile)file;
-//					String projName = tggFile.getProject().getFullPath().toString() + "/";
-//					URI tggFileURI = URI.createPlatformResourceURI(projName + "XtextInstances/dsl/" + projName + 
-//							tggFile.getName().substring(0, tggFile.getName().lastIndexOf(".xmi")), true);
-//
-//					XtextResourceSet resourceSet = new XtextResourceSet();
-//					Resource tgg = resourceSet.createResource(URI.createPlatformResourceURI(tggFile.getFullPath().toString(), true));
-//					tgg.load(null);
-//					EcoreUtil.resolveAll(resourceSet);
-//
-//					XtextResource xtextResource = (XtextResource) resourceSet.createResource(tggFileURI);
-//					xtextResource.getContents().add(tgg.getContents().get(0));
-//					EcoreUtil.resolveAll(xtextResource);		
-//					
-//					SaveOptions.Builder options = SaveOptions.newBuilder();
-//					options.format();
-//					options.noValidation();
-//					
-//					xtextResource.save(options.getOptions().toOptionsMap());
+					IFile tggFile = (IFile)file;
+					String projName = tggFile.getProject().getFullPath().toString() + "/";
+					URI tggFileURI = URI.createPlatformResourceURI(projName + "XtextInstances/dsl/" + projName + 
+							tggFile.getName().substring(0, tggFile.getName().lastIndexOf(".xmi")), true);
+
+					XtextResourceSet resourceSet = new XtextResourceSet();
+					Resource tgg = resourceSet.createResource(URI.createPlatformResourceURI(tggFile.getFullPath().toString(), true));
+					tgg.load(null);
+					EcoreUtil.resolveAll(resourceSet);
+
+					XtextResource xtextResource = (XtextResource) resourceSet.createResource(tggFileURI);
+					xtextResource.getContents().add(tgg.getContents().get(0));
+					EcoreUtil.resolveAll(xtextResource);		
+					
+					SaveOptions.Builder options = SaveOptions.newBuilder();
+					options.format();
+					options.noValidation();
+					
+					xtextResource.save(options.getOptions().toOptionsMap());
 					
 					/************************************************************
 					 * End of Approach #1.
@@ -132,15 +132,14 @@ public class MOSLTGGConversionHelper extends AbstractHandler {
 					 *				Rule.schema for TripleGraphGrammarFile.schema->Schema'LearningBoxToDictionaryIntegration'
 					 *			Semantic Object: TripleGraphGrammarFile.rules[0]->Rule'BoxToDictionaryRule'
 					 ************************************************************/
-					
 //					IFile tggFile = (IFile)file;
-//					XtextResourceSet resourceSet = new XtextResourceSet();
+//					ResourceSet resourceSet = new ResourceSetImpl();
 //					
-//					Resource tgg = resourceSet.createResource(URI.createPlatformResourceURI(tggFile.getFullPath().toString(), true));
-//					tgg.load(null);
+//					XMIResource tggXMI = (XMIResource) resourceSet.createResource(URI.createPlatformResourceURI(tggFile.getFullPath().toString(), true));
+//					tggXMI.load(null);
 //					EcoreUtil.resolveAll(resourceSet);
 //					
-//					TripleGraphGrammarFile tggRootXMI = (TripleGraphGrammarFile) tgg.getContents().get(0);
+//					TripleGraphGrammarFile tggRootXMI = (TripleGraphGrammarFile) tggXMI.getContents().get(0);
 //					
 //					// Create: Schema.tgg
 //					Schema schema = tggRootXMI.getSchema();
@@ -151,17 +150,11 @@ public class MOSLTGGConversionHelper extends AbstractHandler {
 //							"Schema.tgg", true);
 //					
 //					TripleGraphGrammarFile tggRootDSL = TggFactoryImpl.init().createTripleGraphGrammarFile();
-//					
 //					tggRootDSL.setSchema(schema);
-//					XtextResource xtextResource = (XtextResource) resourceSet.createResource(tggFileURI);
-//					xtextResource.getContents().add(tggRootDSL);
-//					EcoreUtil.resolveAll(xtextResource);
 //					
-//					SaveOptions.Builder options = SaveOptions.newBuilder();
-//					options.format();
-//					options.noValidation();
-//					xtextResource.save(options.getOptions().toOptionsMap());
-//					
+//					XtextResourceSet xtextResourceSet = new XtextResourceSet();
+//					XtextResource xtextResource = (XtextResource) xtextResourceSet.createResource(tggFileURI);
+//					xtextResource.getContents().add(tggRootDSL);					
 //
 //					// Create: All *Rule.tgg
 //					EList<Rule> rules = tggRootXMI.getRules();
@@ -173,71 +166,26 @@ public class MOSLTGGConversionHelper extends AbstractHandler {
 //						tggRootDSL = TggFactoryImpl.init().createTripleGraphGrammarFile();
 //
 //
-//						tggRootDSL.getRules().clear();;
+//						tggRootDSL.getRules().clear();
 //						tggRootDSL.getRules().add(rule);
 //						
-//						xtextResource = (XtextResource) resourceSet.createResource(tggFileURI);
+//						xtextResource = (XtextResource) xtextResourceSet.createResource(tggFileURI);
 //						xtextResource.getContents().add(tggRootDSL);
-//						
-//						EcoreUtil.resolveAll(xtextResource);
-//						xtextResource.save(options.getOptions().toOptionsMap());
+//					}
+//					
+//					EList<Resource> resources = xtextResourceSet.getResources();
+//					SaveOptions.Builder options = SaveOptions.newBuilder();
+//					options.format();
+//					options.noValidation();
+//
+//					for (int i = 0; i < resources.size(); i++) {
+//						EcoreUtil.resolveAll(resourceSet);
+//						EcoreUtil.resolveAll(xtextResourceSet);
+//						((XtextResource) resources.get(i)).save(options.getOptions().toOptionsMap());
 //					}
 					/************************************************************
 					 * End of Approach #2.
 					 ************************************************************/
-					/************************************************************
-					 * Approach #3:	Generates Separate tgg-Files using Seperate ResourceSets
-					 ************************************************************/
-					IFile tggFile = (IFile)file;
-					ResourceSet resourceSet = new ResourceSetImpl();
-					
-					XMIResource tggXMI = (XMIResource) resourceSet.createResource(URI.createPlatformResourceURI(tggFile.getFullPath().toString(), true));
-					tggXMI.load(null);
-					EcoreUtil.resolveAll(resourceSet);
-					
-					TripleGraphGrammarFile tggRootXMI = (TripleGraphGrammarFile) tggXMI.getContents().get(0);
-					
-					// Create: Schema.tgg
-					Schema schema = tggRootXMI.getSchema();
-					String tggIntName = schema.getName()+"/";
-					String projName = tggFile.getProject().getFullPath().toString();
-					
-					URI tggFileURI = URI.createPlatformResourceURI(projName + "/XtextInstances/dsl/" + tggIntName + 
-							"Schema.tgg", true);
-					
-					TripleGraphGrammarFile tggRootDSL = TggFactoryImpl.init().createTripleGraphGrammarFile();
-					tggRootDSL.setSchema(schema);
-					
-					XtextResourceSet xtextResourceSet = new XtextResourceSet();
-					XtextResource xtextResource = (XtextResource) xtextResourceSet.createResource(tggFileURI);
-					xtextResource.getContents().add(tggRootDSL);
-					
-
-					// Create: All *Rule.tgg
-					EList<Rule> rules = tggRootXMI.getRules();
-					Rule rule;
-					while(!rules.isEmpty()){
-						rule = rules.get(0);
-						tggFileURI = URI.createPlatformResourceURI(projName + "/XtextInstances/dsl/" + tggIntName + 
-								rule.getName() + ".tgg", true);
-						tggRootDSL = TggFactoryImpl.init().createTripleGraphGrammarFile();
-
-
-						tggRootDSL.getRules().clear();
-						tggRootDSL.getRules().add(rule);
-						
-						xtextResource = (XtextResource) xtextResourceSet.createResource(tggFileURI);
-						xtextResource.getContents().add(tggRootDSL);
-					}
-					EList<Resource> resources = xtextResourceSet.getResources();
-					SaveOptions.Builder options = SaveOptions.newBuilder();
-					options.format();
-					options.noValidation();
-
-					EcoreUtil.resolveAll(xtextResourceSet);
-					for (int i = 0; i < resources.size(); i++) {
-						((XtextResource) resources.get(i)).save(options.getOptions().toOptionsMap());
-					}
 					
 					//TODO Invoke TGG backward transformation to get the mosl tgg model
 					
