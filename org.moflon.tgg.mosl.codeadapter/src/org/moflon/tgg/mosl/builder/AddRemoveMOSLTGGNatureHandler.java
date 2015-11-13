@@ -43,7 +43,7 @@ public class AddRemoveMOSLTGGNatureHandler extends AbstractHandler {
 		IProjectDescription description = project.getDescription();
 		String[] natures = description.getNatureIds();
 
-		for (int i = 0; i < natures.length; ++i) {
+		for (int i = 0; i < natures.length; ++i) {			
 			if (MOSLTGGNature.NATURE_ID.equals(natures[i])) {
 				// Remove the nature
 				String[] newNatures = new String[natures.length - 1];

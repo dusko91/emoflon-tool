@@ -11,8 +11,15 @@ import org.moflon.tgg.mosl.codeadapter.CodeadapterPackage;
 
 public class CodeadapterTrafo extends DebugSynchronizationHelper{
 
+   public CodeadapterTrafo(String pathToProject)
+   {
+	   super(CodeadapterPackage.eINSTANCE, pathToProject);
+   }
+   
    public CodeadapterTrafo()
    {
+//	   CodeadapterPackage.eINSTANCE.toString();
+//	   System.out.println(CodeadapterPackage.eINSTANCE);
       super(CodeadapterPackage.eINSTANCE, ".");
    }
 

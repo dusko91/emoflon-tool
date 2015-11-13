@@ -1,5 +1,6 @@
 package org.moflon.tgg.mosl.builder;
 
+import java.io.File;
 import java.io.IOException;
 
 import org.eclipse.core.commands.AbstractHandler;
@@ -23,11 +24,13 @@ import org.eclipse.ui.handlers.HandlerUtil;
 import org.eclipse.xtext.resource.SaveOptions;
 import org.eclipse.xtext.resource.XtextResource;
 import org.eclipse.xtext.resource.XtextResourceSet;
+import org.moflon.tgg.mosl.codeadapter.CodeadapterPackage;
 import org.moflon.tgg.mosl.tgg.Rule;
 import org.moflon.tgg.mosl.tgg.Schema;
 import org.moflon.tgg.mosl.tgg.TggFactory;
 import org.moflon.tgg.mosl.tgg.TripleGraphGrammarFile;
 import org.moflon.tgg.mosl.tgg.impl.TggFactoryImpl;
+import org.moflon.tie.CodeadapterTrafo;
 
 
 public class MOSLTGGConversionHelper extends AbstractHandler {
@@ -75,11 +78,13 @@ public class MOSLTGGConversionHelper extends AbstractHandler {
 				Resource xmiResource = resourceSet.createResource(xmiURI);
 				xmiResource.getContents().add(tggRoot);
 				xmiResource.save(null);
-				
+							
 				
 				//TODO Add everything to form a single container
 				
-				//TODO Invoke TGG forward transformation to produce TGG model
+				//TODO Invoke TGG forward transformation to produce TGG model				
+				
+				CodeadapterTrafo helper = new CodeadapterTrafo();
 				
 				//TODO Persist TGG model in /model folder of current project according to naming convention
 			}

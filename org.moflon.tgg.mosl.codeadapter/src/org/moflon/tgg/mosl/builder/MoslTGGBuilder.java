@@ -49,7 +49,7 @@ public class MoslTGGBuilder extends IncrementalProjectBuilder {
 		}
 	}
 
-	public static final String BUILDER_ID = "org.moflon.tgg.mosl.mosltggbuilder";
+	public static final String BUILDER_ID = "org.moflon.tgg.mosl.codeadapter.mosltggbuilder";
 
 	/*
 	 * (non-Javadoc)

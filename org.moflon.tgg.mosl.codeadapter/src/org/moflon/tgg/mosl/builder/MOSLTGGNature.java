@@ -11,7 +11,7 @@ public class MOSLTGGNature implements IProjectNature {
 	/**
 	 * ID of this project nature
 	 */
-	public static final String NATURE_ID = "org.moflon.tgg.mosl.moslTGGNature";
+	public static final String NATURE_ID = "org.moflon.tgg.mosl.codeadapter.moslTGGNature";
 
 	private IProject project;
 

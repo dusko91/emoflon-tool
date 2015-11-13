@@ -10,6 +10,8 @@
        genModel = "model/generated/TGG.genmodel" /> 
 	
   </extension>
+
+<!--
   <extension
         id="mosltggbuilder"
         name="MOSL TGG Builder"
@@ -133,6 +135,6 @@
      </menuContribution>
   </extension>
 
-
+-->
 
 </plugin>
