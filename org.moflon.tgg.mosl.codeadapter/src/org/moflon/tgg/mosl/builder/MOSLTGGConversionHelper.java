@@ -2,12 +2,14 @@ package org.moflon.tgg.mosl.builder;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.emf.common.util.BasicEList;
 import org.eclipse.emf.common.util.EList;
@@ -24,6 +26,9 @@ import org.eclipse.ui.handlers.HandlerUtil;
 import org.eclipse.xtext.resource.SaveOptions;
 import org.eclipse.xtext.resource.XtextResource;
 import org.eclipse.xtext.resource.XtextResourceSet;
+import org.moflon.core.utilities.MoflonUtilitiesActivator;
+import org.moflon.tgg.algorithm.synchronization.SynchronizationHelper;
+import org.moflon.tgg.language.TripleGraphGrammar;
 import org.moflon.tgg.mosl.codeadapter.CodeadapterPackage;
 import org.moflon.tgg.mosl.tgg.Rule;
 import org.moflon.tgg.mosl.tgg.Schema;
@@ -39,21 +44,22 @@ public class MOSLTGGConversionHelper extends AbstractHandler {
 	public static void generateTGGModel(IResource resource) {
 		
 		try {
-			if(resource.getProjectRelativePath().equals(resource.getProject().getProjectRelativePath().append("/src/org/moflon/tgg/mosl"))){
+			IProject project = resource.getProject();
+			if(resource.getProjectRelativePath().equals(project.getProjectRelativePath().append("/src/org/moflon/tgg/mosl"))){
 				IFolder moslFolder = IFolder.class.cast(resource);
 				XtextResourceSet resourceSet = new XtextResourceSet();
 
 				IFile schemaFile = moslFolder.getFile("Schema.tgg");
-				Resource schema = resourceSet.createResource(URI.createPlatformResourceURI(schemaFile.getFullPath().toString(), true));
-				schema.load(null);
+				Resource schemaResource = resourceSet.createResource(URI.createPlatformResourceURI(schemaFile.getFullPath().toString(), true));
+				schemaResource.load(null);
 				
 				EcoreUtil.resolveAll(resourceSet);
-				TripleGraphGrammarFile tggRoot = (TripleGraphGrammarFile) schema.getContents().get(0);				
+				TripleGraphGrammarFile xtextParsedTGG = (TripleGraphGrammarFile) schemaResource.getContents().get(0);				
 				
 				//TODO Load all rules
 				
 				IFolder moslRulesFolder = moslFolder.getFolder("rules");
-				EList<Rule> rules = new BasicEList<Rule>((tggRoot).getRules());
+				EList<Rule> rules = new BasicEList<Rule>((xtextParsedTGG).getRules());
 				IFile ruleFile;
 				Resource ruleRes;
 				EObject rule;
@@ -71,22 +77,35 @@ public class MOSLTGGConversionHelper extends AbstractHandler {
 						}
 					}
 				}
-				tggRoot.getRules().addAll(rules);
-
-				URI xmiURI = URI.createPlatformResourceURI(moslFolder.getProject().getFullPath().toString() + 
-						"/XtextInstances/xmi/" + tggRoot.getSchema().getName() + ".tgg.xmi", true);
-				Resource xmiResource = resourceSet.createResource(xmiURI);
-				xmiResource.getContents().add(tggRoot);
-				xmiResource.save(null);
-							
 				
 				//TODO Add everything to form a single container
+				xtextParsedTGG.getRules().addAll(rules);
+
+				//Save intermediate result of Xtext parsing
+				URI xmiURI = URI.createPlatformResourceURI(project.getFullPath().toString() + 
+						"/XtextInstances/xmi/" + xtextParsedTGG.getSchema().getName() + ".tgg.xmi", true);
+				Resource xmiResource = resourceSet.createResource(xmiURI);
+				xmiResource.getContents().add(xtextParsedTGG);
+				xmiResource.save(null);					
 				
-				//TODO Invoke TGG forward transformation to produce TGG model				
+				//TODO Invoke TGG forward transformation to produce TGG model		
+				String pathToThisPlugin = MoflonUtilitiesActivator.getPathRelToPlugIn("/", MOSLTGGPlugin.getDefault().getPluginId()).getFile();
 				
-				CodeadapterTrafo helper = new CodeadapterTrafo();
+				CodeadapterTrafo helper = new CodeadapterTrafo(pathToThisPlugin);
+				helper.getResourceSet().getResources().add(xtextParsedTGG.eResource());
+				helper.setSrc(xtextParsedTGG);
+				helper.integrateForward();
+				TripleGraphGrammar tgg = (TripleGraphGrammar) helper.getTrg();
+				
 				
 				//TODO Persist TGG model in /model folder of current project according to naming convention
+				//Later we will persist tgg AND .ecore
+				URI pretggXmiURI = URI.createPlatformResourceURI(project.getFullPath().toString() + 
+						"/model/" + xtextParsedTGG.getSchema().getName() + "._pre._tgg.xmi", true);
+				Resource pretggXmiResource = resourceSet.createResource(pretggXmiURI);
+				pretggXmiResource.getContents().add(tgg);
+				pretggXmiResource.save(null);
+				
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
