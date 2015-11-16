@@ -47,7 +47,7 @@ CorrTypeDef:
 
 Rule:
 	imports += Import*	
-	(abstract ?= 'abstract')? 'rule' name = ID ('extends' supertypes += [Rule])? ' with ' schema = [Schema | QualifiedName]
+	(abstractRule ?= 'abstract')? 'rule' name = ID ('extends' supertypes += [Rule])? ' with ' schema = [Schema | QualifiedName]
 		
 	('source' '{'
 		sourcePatterns += ObjectVariablePattern* 
