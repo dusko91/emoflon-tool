@@ -80,7 +80,11 @@ AttrCondDef:
 ;
 
 Adornment:
-	('B' | 'F') ('|' ('B' | 'F'))* 
+	value = AdornmentValue
+;
+
+AdornmentValue:
+	('B' | 'F' ) ('|' ('B' | 'F'))*
 ;
 
 Param:
