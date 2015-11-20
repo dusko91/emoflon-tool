@@ -15,6 +15,7 @@ import org.eclipse.emf.common.util.BasicEList;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
@@ -28,8 +29,15 @@ import org.eclipse.xtext.resource.XtextResource;
 import org.eclipse.xtext.resource.XtextResourceSet;
 import org.moflon.core.utilities.MoflonUtilitiesActivator;
 import org.moflon.tgg.algorithm.synchronization.SynchronizationHelper;
+import org.moflon.tgg.language.Domain;
+import org.moflon.tgg.language.DomainType;
 import org.moflon.tgg.language.TripleGraphGrammar;
 import org.moflon.tgg.mosl.codeadapter.CodeadapterPackage;
+import org.moflon.tgg.mosl.codeadapter.CorrVariablePatternToTGGObjectVariable;
+import org.moflon.tgg.mosl.codeadapter.LinkVariablePatternToTGGLinkVariable;
+import org.moflon.tgg.mosl.codeadapter.ObjectVariablePatternToTGGObjectVariable;
+import org.moflon.tgg.mosl.codeadapter.TripleGraphGrammarFileToTripleGraphGrammar;
+import org.moflon.tgg.mosl.tgg.LinkVariablePattern;
 import org.moflon.tgg.mosl.tgg.Rule;
 import org.moflon.tgg.mosl.tgg.Schema;
 import org.moflon.tgg.mosl.tgg.TggFactory;
@@ -95,7 +103,39 @@ public class MOSLTGGConversionHelper extends AbstractHandler {
 				helper.getResourceSet().getResources().add(xtextParsedTGG.eResource());
 				helper.setSrc(xtextParsedTGG);
 				helper.integrateForward();
+				
 				TripleGraphGrammar tgg = (TripleGraphGrammar) helper.getTrg();
+				
+				
+				// Post Process for Forward Transformation, will be moved to separate Method
+				for (EObject corr : helper.getCorr().getCorrespondences()) {
+					if(corr instanceof TripleGraphGrammarFileToTripleGraphGrammar){
+						TripleGraphGrammarFileToTripleGraphGrammar tggCorr = (TripleGraphGrammarFileToTripleGraphGrammar) corr;
+						
+						for (Domain domain : tgg.getDomain()) {
+							if(domain.getType() == DomainType.SOURCE){
+								EPackage sourceType = tggCorr.getSource().getSchema().getSourceTypes().get(0);
+								domain.getMetamodel().setOutermostPackage(sourceType);
+								domain.getMetamodel().setName(sourceType.getName());
+							}
+							if(domain.getType() == DomainType.TARGET){
+								EPackage targetType = tggCorr.getSource().getSchema().getTargetTypes().get(0);
+								domain.getMetamodel().setOutermostPackage(targetType);
+								domain.getMetamodel().setName(targetType.getName());
+							}
+						}
+					}
+					
+					if(corr instanceof ObjectVariablePatternToTGGObjectVariable){
+						ObjectVariablePatternToTGGObjectVariable ovCorr = (ObjectVariablePatternToTGGObjectVariable) corr;
+						ovCorr.getTarget().setType(ovCorr.getSource().getType());
+					}
+
+					if(corr instanceof LinkVariablePatternToTGGLinkVariable){
+						LinkVariablePatternToTGGLinkVariable lvCorr = (LinkVariablePatternToTGGLinkVariable) corr;
+						lvCorr.getTarget().setType(lvCorr.getSource().getType());
+					}
+				}
 				
 				
 				//TODO Persist TGG model in /model folder of current project according to naming convention
