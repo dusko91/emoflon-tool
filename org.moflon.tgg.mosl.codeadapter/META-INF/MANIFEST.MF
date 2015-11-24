@@ -24,9 +24,10 @@ Require-Bundle: org.eclipse.emf.ecore,
  org.eclipse.core.commands,
  org.eclipse.jface,
  org.eclipse.ui.workbench,
- org.eclipse.core.resources
+ org.eclipse.core.resources,
+ org.moflon.tgg.tggproject
 Bundle-ManifestVersion: 2
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
-Bundle-Vendor: TU Darmstadt
 Bundle-Activator: org.moflon.tgg.mosl.builder.MOSLTGGPlugin
+Bundle-Vendor: TU Darmstadt

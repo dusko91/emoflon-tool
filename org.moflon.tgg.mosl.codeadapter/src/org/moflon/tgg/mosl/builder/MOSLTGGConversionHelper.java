@@ -43,6 +43,7 @@ import org.moflon.tgg.mosl.tgg.Schema;
 import org.moflon.tgg.mosl.tgg.TggFactory;
 import org.moflon.tgg.mosl.tgg.TripleGraphGrammarFile;
 import org.moflon.tgg.mosl.tgg.impl.TggFactoryImpl;
+import org.moflon.tgg.tggproject.TGGProject;
 import org.moflon.tie.CodeadapterTrafo;
 
 
@@ -104,7 +105,9 @@ public class MOSLTGGConversionHelper extends AbstractHandler {
 				helper.setSrc(xtextParsedTGG);
 				helper.integrateForward();
 				
-				TripleGraphGrammar tgg = (TripleGraphGrammar) helper.getTrg();
+				TGGProject tggProject = (TGGProject) helper.getTrg();
+				TripleGraphGrammar tgg = tggProject.getTgg();
+				EPackage corrPackage = tggProject.getCorrPackage();
 				
 				
 				// Post Process for Forward Transformation, will be moved to separate Method
@@ -138,13 +141,21 @@ public class MOSLTGGConversionHelper extends AbstractHandler {
 				}
 				
 				
-				//TODO Persist TGG model in /model folder of current project according to naming convention
-				//Later we will persist tgg AND .ecore
+				//Persist TGG model in /model folder of current project according to naming convention
+				
+				URI preEcoreXmiURI = URI.createPlatformResourceURI(project.getFullPath().toString() + 
+						"/model/" + xtextParsedTGG.getSchema().getName() + "._pre.ecore", true);
+				Resource preEcoreResource = resourceSet.createResource(preEcoreXmiURI);
+				preEcoreResource.getContents().add(corrPackage);
+				preEcoreResource.save(null);
+				
 				URI pretggXmiURI = URI.createPlatformResourceURI(project.getFullPath().toString() + 
 						"/model/" + xtextParsedTGG.getSchema().getName() + "._pre._tgg.xmi", true);
 				Resource pretggXmiResource = resourceSet.createResource(pretggXmiURI);
 				pretggXmiResource.getContents().add(tgg);
 				pretggXmiResource.save(null);
+				
+				
 				
 			}
 		} catch (Exception e) {
