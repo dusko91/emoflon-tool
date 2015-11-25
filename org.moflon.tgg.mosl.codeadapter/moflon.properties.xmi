@@ -10,7 +10,7 @@
   <metaModelProject MetaModelProjectName="org.moflon.tgg.mosl.specification"/>
   <replaceGenModel/>
   <sdmCodegeneratorHandlerId value="DEMOCLES_REVERSE_NAVI"/>
-  <tGGBuildMode/>
+  <tGGBuildMode buildMode="FORWARD_AND_BACKWARD"/>
   <importMappings key="tgg" value="org.moflon.tgg.mosl.tgg"/>
   <additionalUsedGenPackages value="platform:/resource/org.moflon.tgg.mosl/model/generated/TGG.genmodel"/>
 </MoflonPropertyContainer:MoflonPropertiesContainer>
