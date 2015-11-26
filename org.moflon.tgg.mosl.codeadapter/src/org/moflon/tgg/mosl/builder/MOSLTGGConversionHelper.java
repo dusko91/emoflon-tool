@@ -1,9 +1,6 @@
 package org.moflon.tgg.mosl.builder;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.URL;
-
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
@@ -17,10 +14,7 @@ import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
-import org.eclipse.emf.ecore.resource.ResourceSet;
-import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.util.EcoreUtil;
-import org.eclipse.emf.ecore.xmi.XMIResource;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.handlers.HandlerUtil;
@@ -28,21 +22,9 @@ import org.eclipse.xtext.resource.SaveOptions;
 import org.eclipse.xtext.resource.XtextResource;
 import org.eclipse.xtext.resource.XtextResourceSet;
 import org.moflon.core.utilities.MoflonUtilitiesActivator;
-import org.moflon.tgg.algorithm.synchronization.SynchronizationHelper;
-import org.moflon.tgg.language.Domain;
-import org.moflon.tgg.language.DomainType;
 import org.moflon.tgg.language.TripleGraphGrammar;
-import org.moflon.tgg.mosl.codeadapter.CodeadapterPackage;
-import org.moflon.tgg.mosl.codeadapter.CorrVariablePatternToTGGObjectVariable;
-import org.moflon.tgg.mosl.codeadapter.LinkVariablePatternToTGGLinkVariable;
-import org.moflon.tgg.mosl.codeadapter.ObjectVariablePatternToTGGObjectVariable;
-import org.moflon.tgg.mosl.codeadapter.TripleGraphGrammarFileToTripleGraphGrammar;
-import org.moflon.tgg.mosl.tgg.LinkVariablePattern;
 import org.moflon.tgg.mosl.tgg.Rule;
-import org.moflon.tgg.mosl.tgg.Schema;
-import org.moflon.tgg.mosl.tgg.TggFactory;
 import org.moflon.tgg.mosl.tgg.TripleGraphGrammarFile;
-import org.moflon.tgg.mosl.tgg.impl.TggFactoryImpl;
 import org.moflon.tgg.tggproject.TGGProject;
 import org.moflon.tie.CodeadapterTrafo;
 
@@ -109,37 +91,7 @@ public class MOSLTGGConversionHelper extends AbstractHandler {
 				TripleGraphGrammar tgg = tggProject.getTgg();
 				EPackage corrPackage = tggProject.getCorrPackage();
 				
-				
-				// Post Process for Forward Transformation, will be moved to separate Method
-				for (EObject corr : helper.getCorr().getCorrespondences()) {
-					if(corr instanceof TripleGraphGrammarFileToTripleGraphGrammar){
-						TripleGraphGrammarFileToTripleGraphGrammar tggCorr = (TripleGraphGrammarFileToTripleGraphGrammar) corr;
-						
-						for (Domain domain : tgg.getDomain()) {
-							if(domain.getType() == DomainType.SOURCE){
-								EPackage sourceType = tggCorr.getSource().getSchema().getSourceTypes().get(0);
-								domain.getMetamodel().setOutermostPackage(sourceType);
-								domain.getMetamodel().setName(sourceType.getName());
-							}
-							if(domain.getType() == DomainType.TARGET){
-								EPackage targetType = tggCorr.getSource().getSchema().getTargetTypes().get(0);
-								domain.getMetamodel().setOutermostPackage(targetType);
-								domain.getMetamodel().setName(targetType.getName());
-							}
-						}
-					}
-					
-					if(corr instanceof ObjectVariablePatternToTGGObjectVariable){
-						ObjectVariablePatternToTGGObjectVariable ovCorr = (ObjectVariablePatternToTGGObjectVariable) corr;
-						ovCorr.getTarget().setType(ovCorr.getSource().getType());
-					}
-
-					if(corr instanceof LinkVariablePatternToTGGLinkVariable){
-						LinkVariablePatternToTGGLinkVariable lvCorr = (LinkVariablePatternToTGGLinkVariable) corr;
-						lvCorr.getTarget().setType(lvCorr.getSource().getType());
-					}
-				}
-				
+				helper.postProcessForward(corrPackage);				
 				
 				//Persist TGG model in /model folder of current project according to naming convention
 				

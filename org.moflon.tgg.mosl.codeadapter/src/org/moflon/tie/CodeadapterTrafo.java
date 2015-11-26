@@ -3,10 +3,27 @@ package org.moflon.tie;
 import java.io.IOException;
 import org.apache.log4j.BasicConfigurator;
 import org.moflon.ide.debug.DebugSynchronizationHelper;
-
+import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EObject;
-
+import org.eclipse.emf.ecore.EPackage;
+import org.eclipse.emf.ecore.EReference;
+import org.eclipse.emf.ecore.EcoreFactory;
+import org.moflon.tgg.language.Domain;
+import org.moflon.tgg.language.DomainType;
+import org.moflon.tgg.language.TripleGraphGrammar;
 import org.moflon.tgg.mosl.codeadapter.CodeadapterPackage;
+import org.moflon.tgg.mosl.codeadapter.CorrVariablePatternToTGGObjectVariable;
+import org.moflon.tgg.mosl.codeadapter.LinkVariablePatternToTGGLinkVariable;
+import org.moflon.tgg.mosl.codeadapter.ObjectVariablePatternToTGGObjectVariable;
+import org.moflon.tgg.mosl.codeadapter.TripleGraphGrammarFileToTripleGraphGrammar;
+import org.moflon.tgg.mosl.tgg.CorrType;
+import org.moflon.tgg.mosl.tgg.CorrTypeDef;
+import org.moflon.tgg.mosl.tgg.TripleGraphGrammarFile;
+import org.moflon.tgg.runtime.RuntimePackage;
+import org.moflon.tgg.tggproject.TGGProject;
+
+import SDMLanguage.patterns.LinkVariable;
 
 
 public class CodeadapterTrafo extends DebugSynchronizationHelper{
@@ -29,6 +46,7 @@ public class CodeadapterTrafo extends DebugSynchronizationHelper{
 
 		// Forward Transformation
         CodeadapterTrafo helper = new CodeadapterTrafo();
+        helper.setVerbose(true);
 		helper.performForward("instances/fwd.src.xmi");
 		
 		// Backward Transformation
@@ -85,6 +103,96 @@ public class CodeadapterTrafo extends DebugSynchronizationHelper{
 			System.err.println("Unable to load " + target + ", "
 					+ iae.getMessage());
 			return;
+		}
+	}
+	
+	
+	public void postProcessForward(EPackage corrPackage){		
+		TripleGraphGrammarFile tggFile = (TripleGraphGrammarFile) getSrc();
+		TripleGraphGrammar tgg = ((TGGProject) getTrg()).getTgg();
+		
+		for (EClassifier classifier : corrPackage.getEClassifiers()) {
+			if (classifier instanceof EClass) {
+				EClass corr = (EClass) classifier;
+				for (CorrType corrType : tggFile.getSchema().getCorrespondenceTypes()) {
+					if(corrType instanceof CorrTypeDef && corrType.getName().equals(corr.getName())){
+						CorrTypeDef corrTypeDef = (CorrTypeDef) corrType;
+						EReference ref = EcoreFactory.eINSTANCE.createEReference();
+						ref.setName("source");
+						ref.setLowerBound(1);
+						ref.setEType(corrTypeDef.getSource());
+						corr.getEStructuralFeatures().add(ref);
+						
+						ref = EcoreFactory.eINSTANCE.createEReference();
+						ref.setName("target");
+						ref.setLowerBound(1);
+						ref.setEType(corrTypeDef.getTarget());
+						corr.getEStructuralFeatures().add(ref);
+					}
+				}
+				corr.getESuperTypes().add(RuntimePackage.Literals.ABSTRACT_CORRESPONDENCE);
+			}
+		}
+		
+		for (EPackage pkg : corrPackage.getESubpackages()) {
+			if (pkg.getName().equals("Rules")) {
+				for (EClassifier classifier : pkg.getEClassifiers()) {
+					if (classifier instanceof EClass) {
+						EClass rule = (EClass) classifier;
+						rule.getESuperTypes().add(RuntimePackage.Literals.ABSTRACT_RULE);
+					}
+				}
+			}
+		}		
+		
+		for (EObject corr : getCorr().getCorrespondences()) {
+			if(corr instanceof TripleGraphGrammarFileToTripleGraphGrammar){
+				TripleGraphGrammarFileToTripleGraphGrammar tggCorr = (TripleGraphGrammarFileToTripleGraphGrammar) corr;
+				
+				for (Domain domain : tgg.getDomain()) {
+					if(domain.getType() == DomainType.SOURCE){
+						EPackage sourceType = tggCorr.getSource().getSchema().getSourceTypes().get(0);
+						domain.getMetamodel().setOutermostPackage(sourceType);
+						domain.getMetamodel().setName(sourceType.getName());
+					}
+					if(domain.getType() == DomainType.TARGET){
+						EPackage targetType = tggCorr.getSource().getSchema().getTargetTypes().get(0);
+						domain.getMetamodel().setOutermostPackage(targetType);
+						domain.getMetamodel().setName(targetType.getName());
+					}
+				}
+			}
+			
+			if(corr instanceof ObjectVariablePatternToTGGObjectVariable){
+				ObjectVariablePatternToTGGObjectVariable ovCorr = (ObjectVariablePatternToTGGObjectVariable) corr;
+				ovCorr.getTarget().setType(ovCorr.getSource().getType());
+			}
+
+			if(corr instanceof LinkVariablePatternToTGGLinkVariable){
+				LinkVariablePatternToTGGLinkVariable lvCorr = (LinkVariablePatternToTGGLinkVariable) corr;
+				lvCorr.getTarget().setType(lvCorr.getSource().getType());
+			}
+			
+			if(corr instanceof CorrVariablePatternToTGGObjectVariable){
+				CorrVariablePatternToTGGObjectVariable cvCorr = (CorrVariablePatternToTGGObjectVariable) corr;
+				String corrTypeName = cvCorr.getSource().getType().getName();
+				
+				for (EClassifier classifier : corrPackage.getEClassifiers()) {
+					if (classifier.getName().equals(corrTypeName)) {
+						EClass absCorr = (EClass) classifier;
+						cvCorr.getTarget().setType(absCorr);
+						
+						for (LinkVariable lv : cvCorr.getTarget().getOutgoingLink()) {
+							if (lv.getName().equals("source")) {
+								lv.setType((EReference) absCorr.getEStructuralFeature("source"));
+							}
+							if (lv.getName().equals("target")) {
+								lv.setType((EReference) absCorr.getEStructuralFeature("target"));
+							}
+						}
+					}
+				}
+			}
 		}
 	}
 }
