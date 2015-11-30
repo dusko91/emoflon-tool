@@ -11,6 +11,7 @@ import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EcoreFactory;
 import org.moflon.tgg.language.Domain;
 import org.moflon.tgg.language.DomainType;
+import org.moflon.tgg.language.TGGLinkVariable;
 import org.moflon.tgg.language.TripleGraphGrammar;
 import org.moflon.tgg.mosl.codeadapter.CodeadapterPackage;
 import org.moflon.tgg.mosl.codeadapter.CorrVariablePatternToTGGObjectVariable;
@@ -170,26 +171,23 @@ public class CodeadapterTrafo extends DebugSynchronizationHelper{
 
 			if(corr instanceof LinkVariablePatternToTGGLinkVariable){
 				LinkVariablePatternToTGGLinkVariable lvCorr = (LinkVariablePatternToTGGLinkVariable) corr;
-				lvCorr.getTarget().setType(lvCorr.getSource().getType());
+				TGGLinkVariable tggLV = lvCorr.getTarget();
+				EReference lvType = lvCorr.getSource().getType();
+				
+				tggLV.setType(lvType);
+				tggLV.setName(lvType.getName());
 			}
 			
 			if(corr instanceof CorrVariablePatternToTGGObjectVariable){
 				CorrVariablePatternToTGGObjectVariable cvCorr = (CorrVariablePatternToTGGObjectVariable) corr;
-				String corrTypeName = cvCorr.getSource().getType().getName();
+				EClass absCorr = (EClass) cvCorr.getTarget().getType();
 				
-				for (EClassifier classifier : corrPackage.getEClassifiers()) {
-					if (classifier.getName().equals(corrTypeName)) {
-						EClass absCorr = (EClass) classifier;
-						cvCorr.getTarget().setType(absCorr);
-						
-						for (LinkVariable lv : cvCorr.getTarget().getOutgoingLink()) {
-							if (lv.getName().equals("source")) {
-								lv.setType((EReference) absCorr.getEStructuralFeature("source"));
-							}
-							if (lv.getName().equals("target")) {
-								lv.setType((EReference) absCorr.getEStructuralFeature("target"));
-							}
-						}
+				for (LinkVariable lv : cvCorr.getTarget().getOutgoingLink()) {
+					if (lv.getName().equals("source")) {
+						lv.setType((EReference) absCorr.getEStructuralFeature("source"));
+					}
+					if (lv.getName().equals("target")) {
+						lv.setType((EReference) absCorr.getEStructuralFeature("target"));
 					}
 				}
 			}
