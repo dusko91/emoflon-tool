@@ -8,6 +8,7 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EcoreFactory;
+import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.moflon.tgg.algorithm.synchronization.SynchronizationHelper;
 import org.moflon.tgg.language.Domain;
 import org.moflon.tgg.language.DomainType;
@@ -20,6 +21,7 @@ import org.moflon.tgg.mosl.codeadapter.ObjectVariablePatternToTGGObjectVariable;
 import org.moflon.tgg.mosl.codeadapter.TripleGraphGrammarFileToTripleGraphGrammar;
 import org.moflon.tgg.mosl.tgg.CorrType;
 import org.moflon.tgg.mosl.tgg.CorrTypeDef;
+import org.moflon.tgg.mosl.tgg.CorrVariablePattern;
 import org.moflon.tgg.mosl.tgg.TripleGraphGrammarFile;
 import org.moflon.tgg.runtime.RuntimePackage;
 import org.moflon.tgg.tggproject.TGGProject;
@@ -32,6 +34,11 @@ public class CodeadapterTrafo extends SynchronizationHelper{
    public CodeadapterTrafo(String pathToProject)
    {
 	   super(CodeadapterPackage.eINSTANCE, pathToProject);
+   }
+   
+   public CodeadapterTrafo(String pathToProject, ResourceSet set)
+   {
+	   super(CodeadapterPackage.eINSTANCE, pathToProject, set);
    }
    
    public CodeadapterTrafo()
@@ -111,6 +118,7 @@ public class CodeadapterTrafo extends SynchronizationHelper{
 	public void postProcessForward(EPackage corrPackage){		
 		TripleGraphGrammarFile tggFile = (TripleGraphGrammarFile) getSrc();
 		TripleGraphGrammar tgg = ((TGGProject) getTrg()).getTgg();
+
 		
 		for (EClassifier classifier : corrPackage.getEClassifiers()) {
 			if (classifier instanceof EClass) {
@@ -161,6 +169,10 @@ public class CodeadapterTrafo extends SynchronizationHelper{
 						domain.getMetamodel().setOutermostPackage(targetType);
 						domain.getMetamodel().setName(targetType.getName());
 					}
+					if(domain.getType() == DomainType.CORRESPONDENCE){
+						domain.getMetamodel().setOutermostPackage(corrPackage);
+						domain.getMetamodel().setName(corrPackage.getName());
+					}
 				}
 			}
 			
@@ -180,7 +192,10 @@ public class CodeadapterTrafo extends SynchronizationHelper{
 			
 			if(corr instanceof CorrVariablePatternToTGGObjectVariable){
 				CorrVariablePatternToTGGObjectVariable cvCorr = (CorrVariablePatternToTGGObjectVariable) corr;
-				EClass absCorr = (EClass) cvCorr.getTarget().getType();
+				CorrVariablePattern corrVarPattern = cvCorr.getSource();
+				
+				EClass absCorr = (EClass) corrPackage.getEClassifier(corrVarPattern.getType().getName());
+				cvCorr.getTarget().setType(absCorr);
 				
 				for (LinkVariable lv : cvCorr.getTarget().getOutgoingLink()) {
 					if (lv.getName().equals("source")) {

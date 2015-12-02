@@ -22,6 +22,7 @@ import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.ecore.xmi.XMLResource;
 import org.eclipse.emf.ecore.xmi.impl.URIHandlerImpl;
@@ -32,10 +33,12 @@ import org.eclipse.xtext.resource.SaveOptions;
 import org.eclipse.xtext.resource.XtextResource;
 import org.eclipse.xtext.resource.XtextResourceSet;
 import org.moflon.core.utilities.MoflonUtilitiesActivator;
+import org.moflon.core.utilities.eMoflonEMFUtil;
 import org.moflon.tgg.language.TripleGraphGrammar;
 import org.moflon.tgg.mosl.tgg.Rule;
 import org.moflon.tgg.mosl.tgg.TripleGraphGrammarFile;
 import org.moflon.tgg.tggproject.TGGProject;
+import org.moflon.tgg.tggproject.TggprojectFactory;
 import org.moflon.tie.CodeadapterTrafo;
 
 
@@ -168,17 +171,36 @@ public class MOSLTGGConversionHelper extends AbstractHandler {
 					 ************************************************************/
 					
 					IFile tggFile = (IFile)file;
-					String projName = tggFile.getProject().getFullPath().toString() + "/";
-					URI tggFileURI = URI.createPlatformResourceURI(projName + "XtextInstances/dsl/" + projName + 
-							tggFile.getName().substring(0, tggFile.getName().lastIndexOf(".xmi")), true);
+					
 
-					XtextResourceSet resourceSet = new XtextResourceSet();
-					Resource tgg = resourceSet.createResource(URI.createPlatformResourceURI(tggFile.getFullPath().toString(), true));
-					tgg.load(null);
+					ResourceSet resourceSet =  eMoflonEMFUtil.createDefaultResourceSet();
+			
+					Resource tggEcoreResource = resourceSet.createResource(URI.createPlatformResourceURI(tggFile.getFullPath().toString().replace(".tgg.xmi", ".ecore"), true));
+					tggEcoreResource.load(null);	
+					
+					Resource tggModelResource = resourceSet.createResource(URI.createPlatformResourceURI(tggFile.getFullPath().toString(), true));
+					tggModelResource.load(null);
+					
 					EcoreUtil.resolveAll(resourceSet);
+					
+					TGGProject tggProject = TggprojectFactory.eINSTANCE.createTGGProject();
+					tggProject.setCorrPackage((EPackage) tggEcoreResource.getContents().get(0));
+					tggProject.setTgg((TripleGraphGrammar) tggModelResource.getContents().get(0));
+					Resource tggProjectResource = resourceSet.createResource(URI.createURI("TGGProject"));
+					tggProjectResource.getContents().add(tggProject);
+					
+					String pathToThisPlugin = MoflonUtilitiesActivator.getPathRelToPlugIn("/", MOSLTGGPlugin.getDefault().getPluginId()).getFile();			
+					CodeadapterTrafo helper = new CodeadapterTrafo(pathToThisPlugin, resourceSet);
+					
+					helper.setTrg(tggProject);
+					helper.integrateBackward();
 
-					XtextResource xtextResource = (XtextResource) resourceSet.createResource(tggFileURI);
-					xtextResource.getContents().add(tgg.getContents().get(0));
+					String projName = tggFile.getProject().getFullPath().toString() + "/";
+					URI tggFileURI = URI.createPlatformResourceURI(projName + "src/org/moflon/mosl/bwd/Schema.tgg", true);
+					
+					XtextResourceSet xtextResourceSet = new XtextResourceSet();
+					XtextResource xtextResource = (XtextResource) xtextResourceSet.createResource(tggFileURI);
+					xtextResource.getContents().add(helper.getSrc());
 					EcoreUtil.resolveAll(xtextResource);		
 					
 					SaveOptions.Builder options = SaveOptions.newBuilder();
