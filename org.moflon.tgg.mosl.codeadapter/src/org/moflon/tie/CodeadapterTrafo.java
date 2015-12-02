@@ -2,13 +2,13 @@ package org.moflon.tie;
 
 import java.io.IOException;
 import org.apache.log4j.BasicConfigurator;
-import org.moflon.ide.debug.DebugSynchronizationHelper;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EcoreFactory;
+import org.moflon.tgg.algorithm.synchronization.SynchronizationHelper;
 import org.moflon.tgg.language.Domain;
 import org.moflon.tgg.language.DomainType;
 import org.moflon.tgg.language.TGGLinkVariable;
@@ -27,7 +27,7 @@ import org.moflon.tgg.tggproject.TGGProject;
 import SDMLanguage.patterns.LinkVariable;
 
 
-public class CodeadapterTrafo extends DebugSynchronizationHelper{
+public class CodeadapterTrafo extends SynchronizationHelper{
 
    public CodeadapterTrafo(String pathToProject)
    {

@@ -2,16 +2,15 @@ package org.moflon.tie;
 
 import java.io.IOException;
 import org.apache.log4j.BasicConfigurator;
-import org.moflon.ide.debug.DebugSynchronizationHelper;
 
 
 import org.moflon.tgg.algorithm.modelgenerator.ModelGenerator;
 import org.moflon.tgg.algorithm.modelgenerator.controller.*;
-
+import org.moflon.tgg.algorithm.synchronization.SynchronizationHelper;
 import org.moflon.tgg.mosl.codeadapter.CodeadapterPackage;
 
 
-public class CodeadapterModelGen extends DebugSynchronizationHelper{
+public class CodeadapterModelGen extends SynchronizationHelper{
 
    public CodeadapterModelGen()
    {
