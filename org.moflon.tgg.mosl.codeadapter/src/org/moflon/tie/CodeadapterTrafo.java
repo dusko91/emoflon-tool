@@ -2,6 +2,7 @@ package org.moflon.tie;
 
 import java.io.IOException;
 import org.apache.log4j.BasicConfigurator;
+import org.eclipse.emf.common.util.BasicEList;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EObject;
@@ -22,6 +23,11 @@ import org.moflon.tgg.mosl.codeadapter.TripleGraphGrammarFileToTripleGraphGramma
 import org.moflon.tgg.mosl.tgg.CorrType;
 import org.moflon.tgg.mosl.tgg.CorrTypeDef;
 import org.moflon.tgg.mosl.tgg.CorrVariablePattern;
+import org.moflon.tgg.mosl.tgg.Import;
+import org.moflon.tgg.mosl.tgg.Rule;
+import org.moflon.tgg.mosl.tgg.Schema;
+import org.moflon.tgg.mosl.tgg.TggFactory;
+import org.moflon.tgg.mosl.tgg.TggPackage;
 import org.moflon.tgg.mosl.tgg.TripleGraphGrammarFile;
 import org.moflon.tgg.runtime.RuntimePackage;
 import org.moflon.tgg.tggproject.TGGProject;
@@ -208,4 +214,99 @@ public class CodeadapterTrafo extends SynchronizationHelper{
 			}
 		}
 	}
+
+	public void postProcessBackward() {
+		TripleGraphGrammarFile tggFile = (TripleGraphGrammarFile) getSrc();
+		Schema moslSchema = tggFile.getSchema();
+		TripleGraphGrammar tgg = ((TGGProject) getTrg()).getTgg();
+		
+		Import importedNS = TggFactory.eINSTANCE.createImport();
+		importedNS.setImportedNamespace("ecore.*");
+		moslSchema.getImports().add(importedNS);
+		
+		for (Domain domain : tgg.getDomain()) {
+			if(domain.getType() == DomainType.SOURCE){
+				EPackage outermostPackage = domain.getMetamodel().getOutermostPackage();
+				importedNS = TggFactory.eINSTANCE.createImport();
+				importedNS.setImportedNamespace(outermostPackage.getNsPrefix()+".*");
+				moslSchema.getImports().add(importedNS);
+				
+				moslSchema.getSourceTypes().add(outermostPackage);
+			}
+			if(domain.getType() == DomainType.TARGET){
+				EPackage outermostPackage = domain.getMetamodel().getOutermostPackage();
+				importedNS = TggFactory.eINSTANCE.createImport();
+				importedNS.setImportedNamespace(outermostPackage.getNsPrefix()+".*");
+				moslSchema.getImports().add(importedNS);
+				
+				moslSchema.getTargetTypes().add(outermostPackage);
+			}
+			if(domain.getType() == DomainType.CORRESPONDENCE){
+				for (CorrType corrType : moslSchema.getCorrespondenceTypes()) {
+					if (corrType instanceof CorrTypeDef) {
+						CorrTypeDef corrTypeDef = (CorrTypeDef) corrType;
+						for (EClassifier classifier : domain.getMetamodel().getOutermostPackage().getEClassifiers()) {
+							if (classifier instanceof EClass && classifier.getName().equals(corrTypeDef.getName())) {
+								EClass corr = (EClass) classifier;
+								for (EReference ref : corr.getEAllReferences()) {
+									if (ref.getName().equals("source")) {
+										corrTypeDef.setSource((EClass) ref.getEType());
+									}
+									if (ref.getName().equals("target")) {
+										corrTypeDef.setTarget((EClass) ref.getEType());
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		
+		for (Rule rule : tggFile.getRules()) {
+			importedNS = TggFactory.eINSTANCE.createImport();
+			importedNS.setImportedNamespace(rule.getSchema().getName() +".*");
+			rule.getImports().add(importedNS);
+		}
+
+		for (EObject corr : getCorr().getCorrespondences()) {
+			
+			if(corr instanceof ObjectVariablePatternToTGGObjectVariable){
+				ObjectVariablePatternToTGGObjectVariable ovCorr = (ObjectVariablePatternToTGGObjectVariable) corr;
+				ovCorr.getSource().setType((EClass) ovCorr.getTarget().getType());
+			}
+
+			if(corr instanceof LinkVariablePatternToTGGLinkVariable){
+				LinkVariablePatternToTGGLinkVariable lvCorr = (LinkVariablePatternToTGGLinkVariable) corr;
+				lvCorr.getSource().setType(lvCorr.getTarget().getType());
+			}
+			
+			if(corr instanceof CorrVariablePatternToTGGObjectVariable){
+				CorrVariablePatternToTGGObjectVariable cvCorr = (CorrVariablePatternToTGGObjectVariable) corr;
+				for (CorrType corrType : moslSchema.getCorrespondenceTypes()) {
+					if(corrType.getName().equals(cvCorr.getTarget().getType().getName())) {
+						cvCorr.getSource().setType(corrType);
+					}
+				}
+			}
+		}
+	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
