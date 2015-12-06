@@ -117,7 +117,7 @@ class TGGFormatter extends AbstractFormatter2 {
 		attrconddef.regionFor.keyword("gen:").prepend[newLine]
 		attrconddef.regionFor.keyword("}").surround[newLine]
 		for (Param params : attrconddef.getParams()) {
-			params.regionFor.feature(PARAM__NAME).append[noSpace]
+			params.regionFor.feature(PARAM__INDEX).append[noSpace]
 			params.regionFor.feature(PARAM__TYPE).surround[noSpace]
 		}
 	}
@@ -137,17 +137,25 @@ class TGGFormatter extends AbstractFormatter2 {
 	def dispatch void format(ObjectVariablePattern objectvariablepattern, extension IFormattableDocument document) {
 		objectvariablepattern.surround[newLine]
 		objectvariablepattern.surround[indent]
-		objectvariablepattern.interior[indent]
+		objectvariablepattern.interior[indent]		
+//		objectvariablepattern.regionFor.keyword("{").prepend[oneSpace]
 		objectvariablepattern.regionFor.feature(OBJECT_VARIABLE_PATTERN__NAME).surround[noSpace]
-		objectvariablepattern.regionFor.feature(OBJECT_VARIABLE_PATTERN__TYPE).surround[noSpace]
+		objectvariablepattern.regionFor.feature(OBJECT_VARIABLE_PATTERN__TYPE).prepend[noSpace]
 		
 //		format(objectvariablepattern.getOp(), document);
-//		for (LinkVariablePattern linkVariablePatterns : objectvariablepattern.getLinkVariablePatterns()) {
-//			format(linkVariablePatterns, document);
-//		}
+		for (LinkVariablePattern linkVariablePatterns : objectvariablepattern.getLinkVariablePatterns()) {
+			format(linkVariablePatterns, document);
+		}
 	}
 
 	def dispatch void format(LinkVariablePattern linkvariablepattern, extension IFormattableDocument document) {
+		linkvariablepattern.surround[newLine]
+//		linkvariablepattern.surround[indent]
+//		linkvariablepattern.interior[indent]
+		
+		linkvariablepattern.regionFor.keyword("-").surround[noSpace]
+		linkvariablepattern.regionFor.keyword("->").surround[noSpace]
+		
 		// TODO: format HiddenRegions around keywords, attributes, cross references, etc. 
 //		format(linkvariablepattern.getOp(), document);
 	}

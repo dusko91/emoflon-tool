@@ -8,6 +8,7 @@ generate tgg "http://www.moflon.org/ide/tgg/mosl/TGG"
 TripleGraphGrammarFile:
 	(schema = Schema)?
   	(rules += Rule)*
+  	(lib = AttrCondDefLib)?
 ;
 
 Schema:
@@ -74,22 +75,24 @@ AttrCond:
 AttrCondDef:
 	name = ID '(' (params += Param (',' params += Param)*)? ')' '{'
 		'sync:'
-			allowedSyncAdornments += Adornment (',' allowedAdornments += Adornment)*
+			allowedSyncAdornments += Adornment (',' allowedSyncAdornments += Adornment)*
 		'gen:'
-			(allowedGenAdornments += Adornment (',' allowedAdornments += Adornment )*)?
+			(allowedGenAdornments += Adornment (',' allowedGenAdornments += Adornment )*)?
 	'}'
+;
+AttrCondDefLib:
+	'library' name = QualifiedName
+	('{'
+		attributeCondDefs += AttrCondDef*
+	'}')?
 ;
 
 Adornment:
-	value = AdornmentValue
-;
-
-AdornmentValue:
-	('B' | 'F' ) ('|' ('B' | 'F'))*
+	value = ID
 ;
 
 Param:
-	name = ID ':' type = [ecore::EDataType | QualifiedName]
+	index = INT ':' type = [ecore::EDataType | QualifiedName]
 ;
 
 ParamValue:

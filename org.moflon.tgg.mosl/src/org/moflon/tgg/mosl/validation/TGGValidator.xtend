@@ -3,7 +3,10 @@
  */
 package org.moflon.tgg.mosl.validation
 
-//import org.eclipse.xtext.validation.Check
+import org.moflon.tgg.mosl.tgg.Adornment
+import org.moflon.tgg.mosl.tgg.TggPackage
+import org.eclipse.xtext.validation.Check
+
 
 /**
  * This class contains custom validation rules. 
@@ -12,8 +15,8 @@ package org.moflon.tgg.mosl.validation
  */
 class TGGValidator extends AbstractTGGValidator {
 
-//  public static val INVALID_NAME = 'invalidName'
-//
+  public static val INVALID_ADORNMENT = 'invalidAdornmentValue'
+
 //	@Check
 //	def checkGreetingStartsWithCapital(Greeting greeting) {
 //		if (!Character.isUpperCase(greeting.name.charAt(0))) {
@@ -22,4 +25,13 @@ class TGGValidator extends AbstractTGGValidator {
 //					INVALID_NAME)
 //		}
 //	}
+
+	@Check
+	def checkAdornmentValue(Adornment adornment){
+		for (character : adornment.value.toCharArray) {
+			if(character.compareTo('B')!=0 && character.compareTo('F')!=0){
+				error("Adornment value may only contain capital letters B or F", TggPackage.Literals.ADORNMENT__VALUE, org.moflon.tgg.mosl.validation.TGGValidator.INVALID_ADORNMENT);
+			}
+		}
+	}
 }
