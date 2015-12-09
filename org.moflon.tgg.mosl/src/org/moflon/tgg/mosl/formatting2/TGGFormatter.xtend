@@ -25,6 +25,7 @@ import org.moflon.tgg.mosl.tgg.CorrTypeDef
 import org.eclipse.emf.ecore.EPackage
 import org.eclipse.xtext.formatting2.regionaccess.ITextRegionExtensions
 import org.eclipse.emf.ecore.EObject
+import org.moflon.tgg.mosl.tgg.AttrCondDefLibrary
 
 class TGGFormatter extends AbstractFormatter2 {
 	
@@ -34,6 +35,13 @@ class TGGFormatter extends AbstractFormatter2 {
 		format(triplegraphgrammarfile.getSchema(), document);
 		for (Rule rules : triplegraphgrammarfile.getRules()) {
 			format(rules, document);
+		}
+		format(triplegraphgrammarfile.library, document);
+	}
+	def dispatch void format(AttrCondDefLibrary library, extension IFormattableDocument document) {
+//		library.regionFor.keyword("library").append[newLine]
+		for (AttrCondDef attrCondDef : library.attributeCondDefs) {
+			format(attrCondDef, document);
 		}
 	}
 

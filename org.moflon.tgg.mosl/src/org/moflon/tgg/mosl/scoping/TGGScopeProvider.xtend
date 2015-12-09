@@ -27,6 +27,12 @@ import org.moflon.tgg.mosl.tgg.Schema
 import org.moflon.tgg.mosl.tgg.TggPackage
 import org.moflon.tgg.mosl.tgg.TypeExtension
 import org.moflon.tgg.mosl.tgg.TripleGraphGrammarFile
+import org.moflon.tgg.mosl.tgg.AttrCond
+import org.eclipse.emf.common.util.BasicEList
+import org.moflon.tgg.mosl.tgg.AttrCondDef
+import org.eclipse.emf.ecore.impl.EReferenceImpl
+import org.eclipse.emf.ecore.EcoreFactory
+import org.moflon.tgg.mosl.tgg.AttributeVariable
 
 /**
  * This class contains custom scoping description.
@@ -70,16 +76,6 @@ class TGGScopeProvider extends AbstractDeclarativeScopeProvider {
 		if (is_type_of_param(context, reference))
 			return type_of_param_must_be_edatatype(context)
 			
-			
-//		if (is_src_types_of_schema(context, reference) && TGGXMIHelper.serializing)
-//			return types_of_schema_must_be_imported(context)
-//		
-//		if (is_trg_types_of_schema(context, reference) && TGGXMIHelper.serializing)
-//			return types_of_schema_must_be_imported(context)
-			
-			
-//		if(is_type_of_corr_ov(context, reference) && TGGXMIHelper.serializing)
-//			return type_of_corr_ov_must_be_a_corr_type(context)
 
 		super.getScope(context, reference)
 	}
@@ -91,22 +87,6 @@ class TGGScopeProvider extends AbstractDeclarativeScopeProvider {
 		return Scopes.scopeFor(schema.correspondenceTypes)
 	}
 	
-//	def types_of_schema_must_be_imported(EObject context) {
-//		var schema = context as Schema
-//		var packages = new BasicEList<EPackage>()
-//		var importURIs = TGGXMIHelper.getSchemaImportURIs(schema)
-//		
-//		for (URI uri : importURIs) {
-//			var importResource = schema.eResource().getResourceSet().getResource(uri, true)
-//			var xmiRes = importResource.getContents()
-//			for (EObject eObject : xmiRes) {
-//				if (eObject instanceof EPackage) {
-//					packages.add(eObject as EPackage)
-//				}
-//			}
-//		}
-//		return Scopes.scopeFor(packages)
-//	}
 	
 	def type_of_param_must_be_edatatype(EObject object) {
 		var eClassifiers = EcorePackage.eINSTANCE.getEClassifiers()
@@ -148,7 +128,8 @@ class TGGScopeProvider extends AbstractDeclarativeScopeProvider {
 	}
 
 	def is_attr_cond(EObject context, EReference reference) {
-		context instanceof ParamValue && reference == TggPackage.Literals.PARAM_VALUE__TYPE
+//		context instanceof ParamValue && reference == TggPackage.Literals.PARAM_VALUE__TYPE
+		context instanceof AttributeVariable && reference == TggPackage.Literals.ATTRIBUTE_VARIABLE__ATTRIBUTE
 	}
 
 	def is_type_of_lv(EObject context, EReference reference) {
@@ -263,7 +244,8 @@ class TGGScopeProvider extends AbstractDeclarativeScopeProvider {
 	}
 
 	def attr_in_cond_must_be_an_attr_of_the_ref_ov(EObject context) {
-		var paramVal = context as ParamValue
+//		var paramVal = context as ParamValue
+		var paramVal = context as AttributeVariable
 		var ovPattern = paramVal.objectVar as ObjectVariablePattern
 		return Scopes.scopeFor(ovPattern.type.EAllAttributes)
 	}
@@ -272,5 +254,15 @@ class TGGScopeProvider extends AbstractDeclarativeScopeProvider {
 		var lvPattern = context as LinkVariablePattern
 		var ovPattern = lvPattern.eContainer as ObjectVariablePattern
 		return Scopes.scopeFor(ovPattern.type.EAllReferences)
+		
+//		if(lvPattern.eContainer instanceof ObjectVariablePattern){
+//			var ovPattern = lvPattern.eContainer as ObjectVariablePattern
+//			return Scopes.scopeFor(ovPattern.type.EAllReferences)
+//		}
+//		
+//		if(lvPattern.eContainer instanceof CorrVariablePattern){
+//			var cvPattern = lvPattern.eContainer as CorrVariablePattern
+//			return Scopes.scopeFor((cvPattern.type as CorrTypeDef).eClass.EAllReferences)
+//		}
 	}
 }

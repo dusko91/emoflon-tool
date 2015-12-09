@@ -6,7 +6,7 @@ package org.moflon.tgg.mosl.validation
 import org.moflon.tgg.mosl.tgg.Adornment
 import org.moflon.tgg.mosl.tgg.TggPackage
 import org.eclipse.xtext.validation.Check
-
+import org.moflon.tgg.mosl.tgg.ParamValue
 
 /**
  * This class contains custom validation rules. 
@@ -16,15 +16,6 @@ import org.eclipse.xtext.validation.Check
 class TGGValidator extends AbstractTGGValidator {
 
   public static val INVALID_ADORNMENT = 'invalidAdornmentValue'
-
-//	@Check
-//	def checkGreetingStartsWithCapital(Greeting greeting) {
-//		if (!Character.isUpperCase(greeting.name.charAt(0))) {
-//			warning('Name should start with a capital', 
-//					MyDslPackage.Literals.GREETING__NAME,
-//					INVALID_NAME)
-//		}
-//	}
 
 	@Check
 	def checkAdornmentValue(Adornment adornment){

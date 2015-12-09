@@ -8,7 +8,7 @@ generate tgg "http://www.moflon.org/ide/tgg/mosl/TGG"
 TripleGraphGrammarFile:
 	(schema = Schema)?
   	(rules += Rule)*
-  	(lib = AttrCondDefLib)?
+  	(library = AttrCondDefLibrary)?
 ;
 
 Schema:
@@ -33,7 +33,7 @@ Schema:
 ;
 
 CorrType:
-	(CorrTypeDef | TypeExtension)	
+	(CorrTypeDef | TypeExtension)
 ;
 
 TypeExtension:
@@ -80,7 +80,7 @@ AttrCondDef:
 			(allowedGenAdornments += Adornment (',' allowedGenAdornments += Adornment )*)?
 	'}'
 ;
-AttrCondDefLib:
+AttrCondDefLibrary:
 	'library' name = QualifiedName
 	('{'
 		attributeCondDefs += AttrCondDef*
@@ -96,8 +96,26 @@ Param:
 ;
 
 ParamValue:
-	objectVar = [ObjectVariablePattern] '.' type = [ecore::EAttribute]
+	(AttributeVariable | LocalVariable | Literal)
 ;
+
+AttributeVariable:
+	objectVar = [ObjectVariablePattern] '.' attribute = [ecore::EAttribute]
+;
+
+LocalVariable:
+	name = ID
+;
+
+Literal:
+	value = LiteralValue
+;
+
+LiteralValue:
+	(STRING | INT | DECIMAL)
+;
+
+terminal DECIMAL: INT '.' INT;
 
 CorrVariablePattern:
 	(op = Operator)? name = ID ' : ' type = [CorrType | QualifiedName] '{'
