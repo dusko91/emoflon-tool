@@ -121,9 +121,10 @@ public class CodeadapterTrafo extends SynchronizationHelper{
 	}
 	
 	
-	public void postProcessForward(EPackage corrPackage){		
+	public void postProcessForward(){
 		TripleGraphGrammarFile tggFile = (TripleGraphGrammarFile) getSrc();
-		TripleGraphGrammar tgg = ((TGGProject) getTrg()).getTgg();
+		TGGProject tggProject = (TGGProject) getTrg();
+		EPackage corrPackage = tggProject.getCorrPackage();
 
 		
 		for (EClassifier classifier : corrPackage.getEClassifiers()) {
@@ -164,7 +165,7 @@ public class CodeadapterTrafo extends SynchronizationHelper{
 			if(corr instanceof TripleGraphGrammarFileToTripleGraphGrammar){
 				TripleGraphGrammarFileToTripleGraphGrammar tggCorr = (TripleGraphGrammarFileToTripleGraphGrammar) corr;
 				
-				for (Domain domain : tgg.getDomain()) {
+				for (Domain domain : tggProject.getTgg().getDomain()) {
 					if(domain.getType() == DomainType.SOURCE){
 						EPackage sourceType = tggCorr.getSource().getSchema().getSourceTypes().get(0);
 						domain.getMetamodel().setOutermostPackage(sourceType);
