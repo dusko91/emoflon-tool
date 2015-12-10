@@ -126,8 +126,34 @@ CorrVariablePattern:
 
 ObjectVariablePattern:
 	(op = Operator)? name = ID ' : ' type = [ecore::EClass | QualifiedName] ('{'
+		attributeAssignments += AttributeAssignment*
+		attributeConstraints += AttributeConstraint*
 		linkVariablePatterns += LinkVariablePattern*
 	'}')? 
+;
+
+AttributeConstraint:
+	attribute = AttributeVariable op=ComparisonOperator valueExp = Expression
+;
+
+ComparisonOperator:
+	(' == ' | ' != ' | ' <= ' | ' >= ' | ' > ' | ' < ')
+;
+
+AttributeAssignment:
+	attribute = AttributeVariable op=' := ' valueExp = Expression
+;
+
+Expression:
+	(LiteralExpression | AttributeVariable)
+;
+
+LiteralExpression:
+	value = LiteralExpressionValue
+;
+
+LiteralExpressionValue:
+	(ID | STRING | INT | DECIMAL)
 ;
 
 LinkVariablePattern:
