@@ -126,6 +126,7 @@ public class MOSLTGGConversionHelper extends AbstractHandler {
 					rules.add(rule);
 					// Copy used AttrCondDefs from Library
 					for (AttrCond attrCond : rule.getAttrConditions()) {
+//						attrCond.getAllowedSyncAdornments().addAll(attrCond.getName().getAllowedSyncAdornments());
 						if (!usedAttrCondDefs.contains(attrCond.getName()) && !xtextParsedTGG.getSchema().getAttributeCondDefs().contains(attrCond.getName())) {
 							usedAttrCondDefs.add(attrCond.getName());
 						}
@@ -188,7 +189,7 @@ public class MOSLTGGConversionHelper extends AbstractHandler {
 					TripleGraphGrammarFile tggModel = (TripleGraphGrammarFile) helper.getSrc();
 					String projectPath = tggFile.getProject().getFullPath().toString();
 					
-//					saveXtextTGGModelToXMI(tggModel, projectPath);
+					saveXtextTGGModelToXMI(tggModel, projectPath);
 					saveXtextTGGModelToTGGFile(tggModel, projectPath);
 					
 					

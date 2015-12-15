@@ -3,6 +3,7 @@ package org.moflon.tie;
 import java.io.IOException;
 import org.apache.log4j.BasicConfigurator;
 import org.eclipse.emf.common.util.BasicEList;
+import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EObject;
@@ -15,19 +16,29 @@ import org.moflon.tgg.language.Domain;
 import org.moflon.tgg.language.DomainType;
 import org.moflon.tgg.language.TGGLinkVariable;
 import org.moflon.tgg.language.TripleGraphGrammar;
+import org.moflon.tgg.language.csp.AttributeVariable;
+import org.moflon.tgg.language.csp.Literal;
+import org.moflon.tgg.language.csp.LocalVariable;
+import org.moflon.tgg.language.csp.Variable;
+import org.moflon.tgg.mosl.codeadapter.AttrCondToTGGConstraint;
+import org.moflon.tgg.mosl.codeadapter.AttributeAssignmentToAttributeAssignment;
+import org.moflon.tgg.mosl.codeadapter.AttributeExpressionToAttributeValueExpression;
 import org.moflon.tgg.mosl.codeadapter.CodeadapterPackage;
 import org.moflon.tgg.mosl.codeadapter.CorrVariablePatternToTGGObjectVariable;
 import org.moflon.tgg.mosl.codeadapter.LinkVariablePatternToTGGLinkVariable;
 import org.moflon.tgg.mosl.codeadapter.ObjectVariablePatternToTGGObjectVariable;
+import org.moflon.tgg.mosl.codeadapter.ParamValueToVariable;
 import org.moflon.tgg.mosl.codeadapter.TripleGraphGrammarFileToTripleGraphGrammar;
+import org.moflon.tgg.mosl.tgg.AttrCond;
 import org.moflon.tgg.mosl.tgg.CorrType;
 import org.moflon.tgg.mosl.tgg.CorrTypeDef;
 import org.moflon.tgg.mosl.tgg.CorrVariablePattern;
 import org.moflon.tgg.mosl.tgg.Import;
+import org.moflon.tgg.mosl.tgg.ObjectVariablePattern;
+import org.moflon.tgg.mosl.tgg.ParamValue;
 import org.moflon.tgg.mosl.tgg.Rule;
 import org.moflon.tgg.mosl.tgg.Schema;
 import org.moflon.tgg.mosl.tgg.TggFactory;
-import org.moflon.tgg.mosl.tgg.TggPackage;
 import org.moflon.tgg.mosl.tgg.TripleGraphGrammarFile;
 import org.moflon.tgg.runtime.RuntimePackage;
 import org.moflon.tgg.tggproject.TGGProject;
@@ -182,6 +193,47 @@ public class CodeadapterTrafo extends SynchronizationHelper{
 					}
 				}
 			}
+			// Inline Assignments / Constraints
+			if(corr instanceof AttributeAssignmentToAttributeAssignment){
+				AttributeAssignmentToAttributeAssignment attrCorr = (AttributeAssignmentToAttributeAssignment) corr;
+				attrCorr.getTarget().setAttribute(attrCorr.getSource().getAttribute());
+			}
+			if(corr instanceof AttributeExpressionToAttributeValueExpression){
+				AttributeExpressionToAttributeValueExpression attrExpCorr = (AttributeExpressionToAttributeValueExpression) corr;
+				attrExpCorr.getTarget().setAttribute(attrExpCorr.getSource().getAttribute());
+			}
+
+			// CSP PostProcessing
+			if(corr instanceof AttrCondToTGGConstraint){
+				AttrCondToTGGConstraint cspCorr = (AttrCondToTGGConstraint) corr;
+				
+				EList<Variable> trgVariables = new BasicEList<Variable>();
+				
+				for (ParamValue paramVal : cspCorr.getSource().getValues()) {
+					for (Variable var : cspCorr.getTarget().getVariables()) {
+						if(var instanceof AttributeVariable && paramVal instanceof org.moflon.tgg.mosl.tgg.AttributeVariable){
+							org.moflon.tgg.mosl.tgg.AttributeVariable srcAttr = (org.moflon.tgg.mosl.tgg.AttributeVariable) paramVal;
+							AttributeVariable trgAttr = (AttributeVariable) var;
+							if(srcAttr.getAttribute().equals(trgAttr.getAttribute())) trgVariables.add(trgAttr);
+						}
+						if(var instanceof LocalVariable && paramVal instanceof org.moflon.tgg.mosl.tgg.LocalVariable){
+							org.moflon.tgg.mosl.tgg.LocalVariable srcAttr = (org.moflon.tgg.mosl.tgg.LocalVariable) paramVal;
+							LocalVariable trgAttr = (LocalVariable) var;
+							if(srcAttr.getName().equals(trgAttr.getName())) trgVariables.add(trgAttr);
+						}
+						if(var instanceof Literal && paramVal instanceof org.moflon.tgg.mosl.tgg.Literal){
+							org.moflon.tgg.mosl.tgg.Literal srcAttr = (org.moflon.tgg.mosl.tgg.Literal) paramVal;
+							Literal trgAttr = (Literal) var;
+							if(srcAttr.getValue().equals(trgAttr.getValue())) trgVariables.add(trgAttr);
+						}
+					}
+				}
+				
+				cspCorr.getTarget().getVariables().clear();
+				cspCorr.getTarget().getVariables().addAll(trgVariables);
+				
+			}
+			
 			
 			if(corr instanceof ObjectVariablePatternToTGGObjectVariable){
 				ObjectVariablePatternToTGGObjectVariable ovCorr = (ObjectVariablePatternToTGGObjectVariable) corr;
@@ -272,6 +324,36 @@ public class CodeadapterTrafo extends SynchronizationHelper{
 		}
 
 		for (EObject corr : getCorr().getCorrespondences()) {
+
+			// Inline Assignments / Constraints
+			if(corr instanceof AttributeAssignmentToAttributeAssignment){
+				AttributeAssignmentToAttributeAssignment attrCorr = (AttributeAssignmentToAttributeAssignment) corr;
+				attrCorr.getSource().setAttribute(attrCorr.getTarget().getAttribute());
+			}
+			if(corr instanceof AttributeExpressionToAttributeValueExpression){
+				AttributeExpressionToAttributeValueExpression attrExpCorr = (AttributeExpressionToAttributeValueExpression) corr;
+				attrExpCorr.getSource().setAttribute(attrExpCorr.getTarget().getAttribute());
+			}
+			
+			// CSP PostProcessing
+			if(corr instanceof ParamValueToVariable){
+				ParamValueToVariable cspCorr = (ParamValueToVariable) corr;
+				
+				if (cspCorr.getTarget() instanceof AttributeVariable) {
+					AttributeVariable trgAttr = (AttributeVariable) cspCorr.getTarget();
+					org.moflon.tgg.mosl.tgg.AttributeVariable srcAttr = (org.moflon.tgg.mosl.tgg.AttributeVariable) cspCorr.getSource();
+					
+					Rule rule = (Rule) srcAttr.eContainer().eContainer();
+					String ovName = trgAttr.getObjectVariable();
+
+					for (ObjectVariablePattern ov : rule.getSourcePatterns()) {
+						if(ov.getName().equals(ovName)) srcAttr.setObjectVar(ov);
+					}
+					for (ObjectVariablePattern ov : rule.getTargetPatterns()) {
+						if(ov.getName().equals(ovName)) srcAttr.setObjectVar(ov);
+					}
+				}
+			}
 			
 			if(corr instanceof ObjectVariablePatternToTGGObjectVariable){
 				ObjectVariablePatternToTGGObjectVariable ovCorr = (ObjectVariablePatternToTGGObjectVariable) corr;
