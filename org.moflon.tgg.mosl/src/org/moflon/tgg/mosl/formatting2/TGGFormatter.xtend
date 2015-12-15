@@ -30,6 +30,7 @@ import org.moflon.tgg.mosl.tgg.Adornment
 import org.moflon.tgg.mosl.tgg.AttributeConstraint
 import org.moflon.tgg.mosl.tgg.AttributeAssignment
 import org.moflon.tgg.mosl.tgg.LocalVariable
+import org.moflon.tgg.mosl.tgg.Using
 
 class TGGFormatter extends AbstractFormatter2 {
 	
@@ -65,6 +66,9 @@ class TGGFormatter extends AbstractFormatter2 {
 		for (Import imports : schema.getImports()) {
 			imports.append[newLine]
 		}
+		for (Using using : schema.getUsing()) {
+			using.append[newLine]
+		}
 		for (CorrType correspondenceTypes : schema.getCorrespondenceTypes()) {
 			format(correspondenceTypes, document);
 		}
@@ -84,6 +88,9 @@ class TGGFormatter extends AbstractFormatter2 {
 		
 		for (Import imports : rule.getImports()) {
 			imports.append[newLine]
+		}
+		for (Using using : rule.getUsing()) {
+			using.append[newLine]
 		}
 		for (ObjectVariablePattern sourcePatterns : rule.getSourcePatterns()) {
 			format(sourcePatterns, document);

@@ -13,6 +13,7 @@ TripleGraphGrammarFile:
 
 Schema:
 	imports += Import*	
+	using += Using*	
 	'schema' name = ID
 		
 	('source' '{'
@@ -49,6 +50,7 @@ CorrTypeDef:
 
 Rule:
 	imports += Import*	
+	using += Using*	
 	(abstractRule ?= 'abstract')? 'rule' name = ID ('extends' supertypes += [Rule])? ' with ' schema = [Schema | QualifiedName]
 		
 	('source' '{'
@@ -182,7 +184,11 @@ Operator:
 // Auxiliaries
 
 Import:
-	'import' importedNamespace = QualifiedNameWithWildcard
+	'import' name=STRING
+;
+
+Using:
+	'using' importedNamespace = QualifiedNameWithWildcard
 ;
 
 QualifiedNameWithWildcard:

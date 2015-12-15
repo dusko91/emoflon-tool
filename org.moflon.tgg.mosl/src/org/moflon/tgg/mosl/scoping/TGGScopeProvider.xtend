@@ -30,6 +30,8 @@ import org.moflon.tgg.mosl.tgg.TypeExtension
 import org.moflon.tgg.mosl.tgg.AttributeAssignment
 import org.moflon.tgg.mosl.tgg.AttributeConstraint
 import org.moflon.tgg.mosl.tgg.AttributeExpression
+import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl
+import org.eclipse.emf.common.util.URI
 
 /**
  * This class contains custom scoping description.
@@ -91,8 +93,22 @@ class TGGScopeProvider extends AbstractDeclarativeScopeProvider {
 		if (is_type_of_param(context, reference))
 			return type_of_param_must_be_edatatype(context)
 			
+		if(is_source_or_target_type_of_schema(context, reference))
+			return potential_packages(context)
+			
 
 		super.getScope(context, reference)
+	}
+	
+	def potential_packages(EObject context) {
+		val set = new ResourceSetImpl()
+		var schema = context as Schema
+		var resources = schema.imports.map[u | set.getResource(URI.createURI(u.name), true)]
+		return Scopes.scopeFor(resources.map[r | r.contents.get(0)])
+	}
+	
+	def is_source_or_target_type_of_schema(EObject context, EReference reference) {
+		context instanceof Schema && (reference == TggPackage.Literals.SCHEMA__SOURCE_TYPES || reference == TggPackage.Literals.SCHEMA__TARGET_TYPES)
 	}
 	
 	def type_of_corr_ov_must_be_a_corr_type(EObject context) {
