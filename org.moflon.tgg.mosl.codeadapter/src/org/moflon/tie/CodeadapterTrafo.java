@@ -40,6 +40,7 @@ import org.moflon.tgg.mosl.tgg.Rule;
 import org.moflon.tgg.mosl.tgg.Schema;
 import org.moflon.tgg.mosl.tgg.TggFactory;
 import org.moflon.tgg.mosl.tgg.TripleGraphGrammarFile;
+import org.moflon.tgg.mosl.tgg.Using;
 import org.moflon.tgg.runtime.RuntimePackage;
 import org.moflon.tgg.tggproject.TGGProject;
 
@@ -214,7 +215,7 @@ public class CodeadapterTrafo extends SynchronizationHelper{
 						if(var instanceof AttributeVariable && paramVal instanceof org.moflon.tgg.mosl.tgg.AttributeVariable){
 							org.moflon.tgg.mosl.tgg.AttributeVariable srcAttr = (org.moflon.tgg.mosl.tgg.AttributeVariable) paramVal;
 							AttributeVariable trgAttr = (AttributeVariable) var;
-							if(srcAttr.getAttribute().equals(trgAttr.getAttribute())) trgVariables.add(trgAttr);
+							if(srcAttr.getAttribute().equals(trgAttr.getAttribute()) && srcAttr.getObjectVar().getName().equals(trgAttr.getObjectVariable())) trgVariables.add(trgAttr);
 						}
 						if(var instanceof LocalVariable && paramVal instanceof org.moflon.tgg.mosl.tgg.LocalVariable){
 							org.moflon.tgg.mosl.tgg.LocalVariable srcAttr = (org.moflon.tgg.mosl.tgg.LocalVariable) paramVal;
@@ -273,24 +274,25 @@ public class CodeadapterTrafo extends SynchronizationHelper{
 		Schema moslSchema = tggFile.getSchema();
 		TripleGraphGrammar tgg = ((TGGProject) getTrg()).getTgg();
 		
-		Import importedNS = TggFactory.eINSTANCE.createImport();
-		importedNS.setImportedNamespace("ecore.*");
-		moslSchema.getImports().add(importedNS);
+		Import importName;
+		Using using = TggFactory.eINSTANCE.createUsing();
+		using.setImportedNamespace("ecore.*");
+		moslSchema.getUsing().add(using);
 		
 		for (Domain domain : tgg.getDomain()) {
 			if(domain.getType() == DomainType.SOURCE){
 				EPackage outermostPackage = domain.getMetamodel().getOutermostPackage();
-				importedNS = TggFactory.eINSTANCE.createImport();
-				importedNS.setImportedNamespace(outermostPackage.getNsPrefix()+".*");
-				moslSchema.getImports().add(importedNS);
+				importName = TggFactory.eINSTANCE.createImport();
+				importName.setName("platform:/resource/"+outermostPackage.getNsPrefix()+"/model/"+outermostPackage.getNsPrefix()+".ecore");
+				moslSchema.getImports().add(importName);
 				
 				moslSchema.getSourceTypes().add(outermostPackage);
 			}
 			if(domain.getType() == DomainType.TARGET){
 				EPackage outermostPackage = domain.getMetamodel().getOutermostPackage();
-				importedNS = TggFactory.eINSTANCE.createImport();
-				importedNS.setImportedNamespace(outermostPackage.getNsPrefix()+".*");
-				moslSchema.getImports().add(importedNS);
+				importName = TggFactory.eINSTANCE.createImport();
+				importName.setName("platform:/resource/"+outermostPackage.getNsPrefix()+"/model/"+outermostPackage.getNsPrefix()+".ecore");
+				moslSchema.getImports().add(importName);
 				
 				moslSchema.getTargetTypes().add(outermostPackage);
 			}
@@ -318,9 +320,9 @@ public class CodeadapterTrafo extends SynchronizationHelper{
 		
 		
 		for (Rule rule : tggFile.getRules()) {
-			importedNS = TggFactory.eINSTANCE.createImport();
-			importedNS.setImportedNamespace(rule.getSchema().getName() +".*");
-			rule.getImports().add(importedNS);
+			using = TggFactory.eINSTANCE.createUsing();
+			using.setImportedNamespace(rule.getSchema().getName() +".*");
+			rule.getUsing().add(using);
 		}
 
 		for (EObject corr : getCorr().getCorrespondences()) {
