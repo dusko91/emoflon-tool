@@ -16,23 +16,20 @@ import org.eclipse.xtext.scoping.IScope
 import org.eclipse.xtext.scoping.Scopes
 import org.eclipse.xtext.scoping.impl.AbstractDeclarativeScopeProvider
 import org.eclipse.xtext.scoping.impl.FilteringScope
+import org.moflon.tgg.mosl.tgg.AttributeVariable
 import org.moflon.tgg.mosl.tgg.CorrTypeDef
 import org.moflon.tgg.mosl.tgg.CorrVariablePattern
 import org.moflon.tgg.mosl.tgg.LinkVariablePattern
 import org.moflon.tgg.mosl.tgg.ObjectVariablePattern
 import org.moflon.tgg.mosl.tgg.Param
-import org.moflon.tgg.mosl.tgg.ParamValue
 import org.moflon.tgg.mosl.tgg.Rule
 import org.moflon.tgg.mosl.tgg.Schema
 import org.moflon.tgg.mosl.tgg.TggPackage
-import org.moflon.tgg.mosl.tgg.TypeExtension
 import org.moflon.tgg.mosl.tgg.TripleGraphGrammarFile
-import org.moflon.tgg.mosl.tgg.AttrCond
-import org.eclipse.emf.common.util.BasicEList
-import org.moflon.tgg.mosl.tgg.AttrCondDef
-import org.eclipse.emf.ecore.impl.EReferenceImpl
-import org.eclipse.emf.ecore.EcoreFactory
-import org.moflon.tgg.mosl.tgg.AttributeVariable
+import org.moflon.tgg.mosl.tgg.TypeExtension
+import org.moflon.tgg.mosl.tgg.AttributeAssignment
+import org.moflon.tgg.mosl.tgg.AttributeConstraint
+import org.moflon.tgg.mosl.tgg.AttributeExpression
 
 /**
  * This class contains custom scoping description.
@@ -46,6 +43,24 @@ class TGGScopeProvider extends AbstractDeclarativeScopeProvider {
 	override getScope(EObject context, EReference reference) {
 		
 		/* Scopes in Rule */
+		
+		if(context instanceof AttributeAssignment && reference == TggPackage.Literals.ATTRIBUTE_ASSIGNMENT__ATTRIBUTE) {
+			var attr = context as AttributeAssignment
+			var ovPattern = attr.eContainer as ObjectVariablePattern
+			return Scopes.scopeFor(ovPattern.type.EAllAttributes)
+		}
+		if(context instanceof AttributeConstraint && reference == TggPackage.Literals.ATTRIBUTE_CONSTRAINT__ATTRIBUTE) {
+			var attr = context as AttributeConstraint
+			var ovPattern = attr.eContainer as ObjectVariablePattern
+			return Scopes.scopeFor(ovPattern.type.EAllAttributes)
+		}
+		
+		if(context instanceof AttributeExpression && reference == TggPackage.Literals.ATTRIBUTE_EXPRESSION__ATTRIBUTE) {
+			var paramVal = context as AttributeExpression
+			var ovPattern = paramVal.objectVar as ObjectVariablePattern
+			return Scopes.scopeFor(ovPattern.type.EAllAttributes)
+		}
+		
 		
 		if (is_type_of_lv(context, reference)) 
 			return type_of_lv_must_be_a_reference_of_enclosing_ov(context)
@@ -128,7 +143,6 @@ class TGGScopeProvider extends AbstractDeclarativeScopeProvider {
 	}
 
 	def is_attr_cond(EObject context, EReference reference) {
-//		context instanceof ParamValue && reference == TggPackage.Literals.PARAM_VALUE__TYPE
 		context instanceof AttributeVariable && reference == TggPackage.Literals.ATTRIBUTE_VARIABLE__ATTRIBUTE
 	}
 
@@ -154,15 +168,6 @@ class TGGScopeProvider extends AbstractDeclarativeScopeProvider {
 		var IScope allCandidates = Scopes.scopeFor(rule.targetPatterns)		
 		return new FilteringScope(allCandidates, [c | is_equal_or_super_type_of_ov(typeDef.target, c)])
 	}
-	
-//	def determineTypeDef(EObject context){
-//		var corrOv = context as CorrVariablePattern
-//		var type = corrOv.type
-//		if(!(type instanceof CorrTypeDef))
-//			type = (type as TypeExtension).super as CorrTypeDef	
-//		
-//		return type as CorrTypeDef
-//	}
 	
 	def determineTypeDef(EObject context){
 		var corrOv = context as CorrVariablePattern
@@ -244,7 +249,6 @@ class TGGScopeProvider extends AbstractDeclarativeScopeProvider {
 	}
 
 	def attr_in_cond_must_be_an_attr_of_the_ref_ov(EObject context) {
-//		var paramVal = context as ParamValue
 		var paramVal = context as AttributeVariable
 		var ovPattern = paramVal.objectVar as ObjectVariablePattern
 		return Scopes.scopeFor(ovPattern.type.EAllAttributes)
@@ -254,15 +258,5 @@ class TGGScopeProvider extends AbstractDeclarativeScopeProvider {
 		var lvPattern = context as LinkVariablePattern
 		var ovPattern = lvPattern.eContainer as ObjectVariablePattern
 		return Scopes.scopeFor(ovPattern.type.EAllReferences)
-		
-//		if(lvPattern.eContainer instanceof ObjectVariablePattern){
-//			var ovPattern = lvPattern.eContainer as ObjectVariablePattern
-//			return Scopes.scopeFor(ovPattern.type.EAllReferences)
-//		}
-//		
-//		if(lvPattern.eContainer instanceof CorrVariablePattern){
-//			var cvPattern = lvPattern.eContainer as CorrVariablePattern
-//			return Scopes.scopeFor((cvPattern.type as CorrTypeDef).eClass.EAllReferences)
-//		}
 	}
 }

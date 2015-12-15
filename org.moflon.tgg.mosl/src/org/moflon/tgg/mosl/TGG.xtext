@@ -69,8 +69,17 @@ Rule:
 ;
 
 AttrCond:
-	name = [AttrCondDef] '(' (values += ParamValue (',' values += ParamValue)*)? ')' 
+	name = [AttrCondDef] '(' (values += ParamValue (',' values += ParamValue)*)? ')'
 ;
+
+//AttrCond:
+//	name = [AttrCondDef] '(' (values += ParamValue (',' values += ParamValue)*)? ')' ( '{'
+//		'sync:'
+//			(allowedSyncAdornments += [Adornment] (',' allowedSyncAdornments += [Adornment] )*)?
+//		'gen:'
+//			(allowedGenAdornments += [Adornment] (',' allowedGenAdornments += [Adornment] )*)?
+//	'}')?
+//;
 
 AttrCondDef:
 	name = ID '(' (params += Param (',' params += Param)*)? ')' '{'
@@ -92,7 +101,8 @@ Adornment:
 ;
 
 Param:
-	index = INT ':' type = [ecore::EDataType | QualifiedName]
+//	index = INT ':' type = [ecore::EDataType | QualifiedName]
+	index = INT ':' (type = ID)?
 ;
 
 ParamValue:
@@ -100,7 +110,7 @@ ParamValue:
 ;
 
 AttributeVariable:
-	objectVar = [ObjectVariablePattern] '.' attribute = [ecore::EAttribute]
+	objectVar = [ObjectVariablePattern] '.' attribute = ID
 ;
 
 LocalVariable:
@@ -133,7 +143,7 @@ ObjectVariablePattern:
 ;
 
 AttributeConstraint:
-	attribute = AttributeVariable op=ComparisonOperator valueExp = Expression
+	attribute = [ecore::EAttribute] op=ComparisonOperator valueExp = Expression
 ;
 
 ComparisonOperator:
@@ -141,11 +151,16 @@ ComparisonOperator:
 ;
 
 AttributeAssignment:
-	attribute = AttributeVariable op=' := ' valueExp = Expression
+//	attribute = AttributeVariable op=' := ' valueExp = Expression
+	attribute = [ecore::EAttribute] op=' := ' valueExp = Expression
 ;
 
 Expression:
-	(LiteralExpression | AttributeVariable)
+	(LiteralExpression | AttributeExpression)
+;
+
+AttributeExpression:
+	objectVar = [ObjectVariablePattern] '.' attribute = [ecore::EAttribute]
 ;
 
 LiteralExpression:

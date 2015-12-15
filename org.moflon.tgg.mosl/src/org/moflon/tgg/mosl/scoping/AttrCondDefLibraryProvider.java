@@ -29,23 +29,23 @@ public class AttrCondDefLibraryProvider {
 			"setDefaultNumber", "stringToDouble", "stringToInt", "multiply", "divide", 
 			"add", "sub", "max", "smallerOrEqual"};
 
-	private static EDataType[][] paramTypes = {
-			{EcorePackage.Literals.EJAVA_OBJECT, EcorePackage.Literals.EJAVA_OBJECT},						// 0. eq
-			{EcorePackage.Literals.ESTRING , EcorePackage.Literals.ESTRING, EcorePackage.Literals.ESTRING},	// 1. addPrefix
-			{EcorePackage.Literals.ESTRING , EcorePackage.Literals.ESTRING, EcorePackage.Literals.ESTRING},	// 2. addSuffix
-			{EcorePackage.Literals.ESTRING , EcorePackage.Literals.ESTRING, EcorePackage.Literals.ESTRING, EcorePackage.Literals.ESTRING},	// 3. concat
-			{EcorePackage.Literals.ESTRING , EcorePackage.Literals.ESTRING},	// 4. setDefaultString
+	private static String[][] paramTypes = {
+			{"null","null"},						// 0. eq
+			{"EString", "EString", "EString"},		// 1. addPrefix
+			{"EString", "EString", "EString"},		// 2. addSuffix
+			{"EString", "EString", "EString", "EString"},	// 3. concat
+			{"EString", "EString"},				// 4. setDefaultString
 			
-			{EcorePackage.Literals.EDOUBLE , EcorePackage.Literals.EDOUBLE},	// 5. setDefaultNumber
-			{EcorePackage.Literals.ESTRING , EcorePackage.Literals.EDOUBLE},	// 6. stringToDouble
-			{EcorePackage.Literals.ESTRING , EcorePackage.Literals.EINT},		// 7. stringToInt
-			{EcorePackage.Literals.EDOUBLE , EcorePackage.Literals.EDOUBLE, EcorePackage.Literals.EDOUBLE},	// 8. multiply
-			{EcorePackage.Literals.EDOUBLE , EcorePackage.Literals.EDOUBLE, EcorePackage.Literals.EDOUBLE},	// 9. divide
+			{"Number", "Number"},			// 5. setDefaultNumber
+			{"EString", "EDouble"},			// 6. stringToDouble
+			{"EString", "EInt"},			// 7. stringToInt
+			{"Number", "Number", "Number"},	// 8. multiply
+			{"Number", "Number", "Number"},	// 9. divide
 			
-			{EcorePackage.Literals.EDOUBLE , EcorePackage.Literals.EDOUBLE, EcorePackage.Literals.EDOUBLE},	// 10. add
-			{EcorePackage.Literals.EDOUBLE , EcorePackage.Literals.EDOUBLE, EcorePackage.Literals.EDOUBLE},	// 11. sub
-			{EcorePackage.Literals.EDOUBLE , EcorePackage.Literals.EDOUBLE, EcorePackage.Literals.EDOUBLE},	// 12. max
-			{EcorePackage.Literals.EDOUBLE , EcorePackage.Literals.EDOUBLE}		// 13. smallerOrEqual
+			{"Number", "Number", "Number"},	// 10. add
+			{"Number", "Number", "Number"},	// 11. sub
+			{"Number", "Number", "Number"},	// 12. max
+			{"Number", "Number"}			// 13. smallerOrEqual
 	};
 	
 	private static String[][] syncAdornments = {
@@ -126,7 +126,7 @@ public class AttrCondDefLibraryProvider {
 //		xmiResource.save(null);
 	}
 
-	private static AttrCondDef createAttrCondDef(String name, EDataType[] paramTypes, String[] syncAdornments, String[] genAdornments) {
+	private static AttrCondDef createAttrCondDef(String name, String[] paramTypes, String[] syncAdornments, String[] genAdornments) {
 		TggFactory tggFactory = TggPackage.eINSTANCE.getTggFactory();
 		AttrCondDef attrCondDef = tggFactory.createAttrCondDef();
 		attrCondDef.setName(name);
@@ -135,7 +135,12 @@ public class AttrCondDefLibraryProvider {
 		for (int i = 0; i < paramTypes.length; i++) {
 			param = tggFactory.createParam();
 			param.setIndex(i);
-			param.setType(paramTypes[i]);
+			if(paramTypes[i].isEmpty()){
+				System.out.println("paramTypes[i].isEmpty()");
+			}
+			else{
+				param.setType(paramTypes[i]);
+			}
 			attrCondDef.getParams().add(param);
 		}
 		

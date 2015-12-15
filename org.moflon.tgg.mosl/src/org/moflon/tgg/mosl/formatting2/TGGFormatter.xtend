@@ -26,6 +26,10 @@ import org.eclipse.emf.ecore.EPackage
 import org.eclipse.xtext.formatting2.regionaccess.ITextRegionExtensions
 import org.eclipse.emf.ecore.EObject
 import org.moflon.tgg.mosl.tgg.AttrCondDefLibrary
+import org.moflon.tgg.mosl.tgg.Adornment
+import org.moflon.tgg.mosl.tgg.AttributeConstraint
+import org.moflon.tgg.mosl.tgg.AttributeAssignment
+import org.moflon.tgg.mosl.tgg.LocalVariable
 
 class TGGFormatter extends AbstractFormatter2 {
 	
@@ -108,11 +112,25 @@ class TGGFormatter extends AbstractFormatter2 {
 	def dispatch void format(AttrCond attrcond, extension IFormattableDocument document) {
 		attrcond.surround[newLine]
 		attrcond.regionFor.feature(ATTR_COND__NAME).prepend[newLine]
-		attrcond.regionFor.keyword("(").surround[noSpace]
+//		attrcond.regionFor.keyword("(").surround[noSpace]
 		attrcond.surround[indent]
-		for (ParamValue values : attrcond.getValues()) {
-			values.append[noSpace]
-			values.regionFor.keyword(".").surround[noSpace]
+		var values = attrcond.getValues()
+		for (ParamValue value : values) {
+			if (values.indexOf(value) != 0) {
+				if (value instanceof LocalVariable) {
+					value.prepend[space = " ^"]
+				} else {
+					value.prepend[oneSpace]
+				}
+			} else {
+				if (value instanceof LocalVariable) {
+					value.prepend[space = "^"]
+				} else {
+					value.prepend[noSpace]
+				}
+			}
+			value.append[noSpace]
+			value.regionFor.keyword(".").surround[noSpace]
 		}
 	}
 
@@ -127,6 +145,15 @@ class TGGFormatter extends AbstractFormatter2 {
 		for (Param params : attrconddef.getParams()) {
 			params.regionFor.feature(PARAM__INDEX).append[noSpace]
 			params.regionFor.feature(PARAM__TYPE).surround[noSpace]
+		}
+		
+		
+		for (Adornment adornment : attrconddef.getAllowedSyncAdornments()) {
+//			attrconddef.getAllowedSyncAdornments().indexOf(adornment)
+			adornment.regionFor.feature(ADORNMENT__VALUE).append[noSpace]
+		}
+		for (Adornment adornment : attrconddef.getAllowedGenAdornments()) {
+			adornment.regionFor.feature(ADORNMENT__VALUE).append[noSpace]
 		}
 	}
 
@@ -150,7 +177,13 @@ class TGGFormatter extends AbstractFormatter2 {
 		objectvariablepattern.regionFor.feature(OBJECT_VARIABLE_PATTERN__NAME).surround[noSpace]
 		objectvariablepattern.regionFor.feature(OBJECT_VARIABLE_PATTERN__TYPE).prepend[noSpace]
 		
-//		format(objectvariablepattern.getOp(), document);
+		for (AttributeAssignment assignment : objectvariablepattern.getAttributeAssignments()) {
+			assignment.surround[newLine]
+			assignment.regionFor.feature(ATTRIBUTE_ASSIGNMENT__OP).surround[noSpace]
+		}
+//		for (AttributeConstraint constraint : objectvariablepattern.getAttributeConstraints()) {
+//			
+//		}
 		for (LinkVariablePattern linkVariablePatterns : objectvariablepattern.getLinkVariablePatterns()) {
 			format(linkVariablePatterns, document);
 		}
