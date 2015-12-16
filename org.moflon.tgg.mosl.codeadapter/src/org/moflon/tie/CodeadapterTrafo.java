@@ -344,9 +344,15 @@ public class CodeadapterTrafo extends SynchronizationHelper{
 				AttributeAssignmentToAttributeAssignment attrCorr = (AttributeAssignmentToAttributeAssignment) corr;
 				attrCorr.getSource().setAttribute(attrCorr.getTarget().getAttribute());
 			}
+			if(corr instanceof AttributeConstraintToConstraint){
+				AttributeConstraintToConstraint attrCorr = (AttributeConstraintToConstraint) corr;
+				ComparisonExpression compExp = (ComparisonExpression) attrCorr.getTarget().getConstraintExpression();
+				attrCorr.getSource().setAttribute(((AttributeValueExpression) compExp.getLeftExpression()).getAttribute());
+			}
 			if(corr instanceof ExpressionToExpression){
 				ExpressionToExpression attrExpCorr = (ExpressionToExpression) corr;
 				if(attrExpCorr.getTarget() instanceof AttributeValueExpression){
+					System.out.println("Reached");
 					((AttributeExpression) attrExpCorr.getSource()).setAttribute(((AttributeValueExpression) attrExpCorr.getTarget()).getAttribute());
 				}
 			}
