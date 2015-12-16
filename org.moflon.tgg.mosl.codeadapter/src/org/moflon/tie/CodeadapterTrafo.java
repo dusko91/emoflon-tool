@@ -22,14 +22,16 @@ import org.moflon.tgg.language.csp.LocalVariable;
 import org.moflon.tgg.language.csp.Variable;
 import org.moflon.tgg.mosl.codeadapter.AttrCondToTGGConstraint;
 import org.moflon.tgg.mosl.codeadapter.AttributeAssignmentToAttributeAssignment;
-import org.moflon.tgg.mosl.codeadapter.AttributeExpressionToAttributeValueExpression;
+import org.moflon.tgg.mosl.codeadapter.AttributeConstraintToConstraint;
 import org.moflon.tgg.mosl.codeadapter.CodeadapterPackage;
 import org.moflon.tgg.mosl.codeadapter.CorrVariablePatternToTGGObjectVariable;
+import org.moflon.tgg.mosl.codeadapter.ExpressionToExpression;
 import org.moflon.tgg.mosl.codeadapter.LinkVariablePatternToTGGLinkVariable;
 import org.moflon.tgg.mosl.codeadapter.ObjectVariablePatternToTGGObjectVariable;
 import org.moflon.tgg.mosl.codeadapter.ParamValueToVariable;
 import org.moflon.tgg.mosl.codeadapter.TripleGraphGrammarFileToTripleGraphGrammar;
 import org.moflon.tgg.mosl.tgg.AttrCond;
+import org.moflon.tgg.mosl.tgg.AttributeExpression;
 import org.moflon.tgg.mosl.tgg.CorrType;
 import org.moflon.tgg.mosl.tgg.CorrTypeDef;
 import org.moflon.tgg.mosl.tgg.CorrVariablePattern;
@@ -44,7 +46,9 @@ import org.moflon.tgg.mosl.tgg.Using;
 import org.moflon.tgg.runtime.RuntimePackage;
 import org.moflon.tgg.tggproject.TGGProject;
 
+import SDMLanguage.expressions.ComparisonExpression;
 import SDMLanguage.patterns.LinkVariable;
+import SDMLanguage.patterns.patternExpressions.AttributeValueExpression;
 
 
 public class CodeadapterTrafo extends SynchronizationHelper{
@@ -199,9 +203,17 @@ public class CodeadapterTrafo extends SynchronizationHelper{
 				AttributeAssignmentToAttributeAssignment attrCorr = (AttributeAssignmentToAttributeAssignment) corr;
 				attrCorr.getTarget().setAttribute(attrCorr.getSource().getAttribute());
 			}
-			if(corr instanceof AttributeExpressionToAttributeValueExpression){
-				AttributeExpressionToAttributeValueExpression attrExpCorr = (AttributeExpressionToAttributeValueExpression) corr;
-				attrExpCorr.getTarget().setAttribute(attrExpCorr.getSource().getAttribute());
+			if(corr instanceof AttributeConstraintToConstraint){
+				AttributeConstraintToConstraint attrCorr = (AttributeConstraintToConstraint) corr;
+				ComparisonExpression compExp = (ComparisonExpression) attrCorr.getTarget().getConstraintExpression();
+				
+				((AttributeValueExpression) compExp.getLeftExpression()).setAttribute(attrCorr.getSource().getAttribute());
+			}
+			if(corr instanceof ExpressionToExpression){
+				ExpressionToExpression attrExpCorr = (ExpressionToExpression) corr;
+				if(attrExpCorr.getTarget() instanceof AttributeValueExpression){
+					((AttributeValueExpression) attrExpCorr.getTarget()).setAttribute(((AttributeExpression) attrExpCorr.getSource()).getAttribute());
+				}
 			}
 
 			// CSP PostProcessing
@@ -332,9 +344,11 @@ public class CodeadapterTrafo extends SynchronizationHelper{
 				AttributeAssignmentToAttributeAssignment attrCorr = (AttributeAssignmentToAttributeAssignment) corr;
 				attrCorr.getSource().setAttribute(attrCorr.getTarget().getAttribute());
 			}
-			if(corr instanceof AttributeExpressionToAttributeValueExpression){
-				AttributeExpressionToAttributeValueExpression attrExpCorr = (AttributeExpressionToAttributeValueExpression) corr;
-				attrExpCorr.getSource().setAttribute(attrExpCorr.getTarget().getAttribute());
+			if(corr instanceof ExpressionToExpression){
+				ExpressionToExpression attrExpCorr = (ExpressionToExpression) corr;
+				if(attrExpCorr.getTarget() instanceof AttributeValueExpression){
+					((AttributeExpression) attrExpCorr.getSource()).setAttribute(((AttributeValueExpression) attrExpCorr.getTarget()).getAttribute());
+				}
 			}
 			
 			// CSP PostProcessing
