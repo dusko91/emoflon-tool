@@ -119,7 +119,6 @@ class TGGFormatter extends AbstractFormatter2 {
 	def dispatch void format(AttrCond attrcond, extension IFormattableDocument document) {
 		attrcond.surround[newLine]
 		attrcond.regionFor.feature(ATTR_COND__NAME).prepend[newLine]
-//		attrcond.regionFor.keyword("(").surround[noSpace]
 		attrcond.surround[indent]
 		var values = attrcond.getValues()
 		for (ParamValue value : values) {
@@ -188,9 +187,10 @@ class TGGFormatter extends AbstractFormatter2 {
 			assignment.surround[newLine]
 			assignment.regionFor.feature(ATTRIBUTE_ASSIGNMENT__OP).surround[noSpace]
 		}
-//		for (AttributeConstraint constraint : objectvariablepattern.getAttributeConstraints()) {
-//			
-//		}
+		for (AttributeConstraint constraint : objectvariablepattern.getAttributeConstraints()) {
+			constraint.surround[newLine]
+			constraint.regionFor.feature(ATTRIBUTE_CONSTRAINT__OP).surround[noSpace]
+		}
 		for (LinkVariablePattern linkVariablePatterns : objectvariablepattern.getLinkVariablePatterns()) {
 			format(linkVariablePatterns, document);
 		}
