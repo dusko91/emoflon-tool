@@ -45,7 +45,7 @@ class TGGScopeProvider extends AbstractDeclarativeScopeProvider {
 	override getScope(EObject context, EReference reference) {
 		
 		/* Scopes in Rule */
-		
+		try{
 		if(context instanceof AttributeAssignment && reference == TggPackage.Literals.ATTRIBUTE_ASSIGNMENT__ATTRIBUTE) {
 			var attr = context as AttributeAssignment
 			var ovPattern = attr.eContainer as ObjectVariablePattern
@@ -95,7 +95,9 @@ class TGGScopeProvider extends AbstractDeclarativeScopeProvider {
 			
 		if(is_source_or_target_type_of_schema(context, reference))
 			return potential_packages(context)
-			
+		} catch(IllegalStateException ies){
+			// Specific handling didn't work so delegate to base class
+		}
 
 		super.getScope(context, reference)
 	}
@@ -193,7 +195,7 @@ class TGGScopeProvider extends AbstractDeclarativeScopeProvider {
 		else if(type instanceof TypeExtension)
 			return determineTypeDefFromExtension(type) as CorrTypeDef
 		else
-			throw new IllegalStateException("This should never be the case!")
+			throw new IllegalStateException("Unable to determine type def from " + type)
 	}
 	
 	def determineTypeDefFromExtension(TypeExtension typeExtension) {
