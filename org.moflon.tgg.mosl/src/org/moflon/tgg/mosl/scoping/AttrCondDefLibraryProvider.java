@@ -30,9 +30,9 @@ public class AttrCondDefLibraryProvider {
 			"add", "sub", "max", "smallerOrEqual"};
 
 	private static String[][] paramTypes = {
-			{"null","null"},						// 0. eq
-			{"EString", "EString", "EString"},		// 1. addPrefix
-			{"EString", "EString", "EString"},		// 2. addSuffix
+			{"",""},							// 0. eq
+			{"EString", "EString", "EString"},	// 1. addPrefix
+			{"EString", "EString", "EString"},	// 2. addSuffix
 			{"EString", "EString", "EString", "EString"},	// 3. concat
 			{"EString", "EString"},				// 4. setDefaultString
 			
@@ -136,6 +136,7 @@ public class AttrCondDefLibraryProvider {
 			param = tggFactory.createParam();
 			param.setIndex(i);
 			if(paramTypes[i].isEmpty()){
+				param.setType(paramTypes[i]);
 				System.out.println("paramTypes[i].isEmpty()");
 			}
 			else{

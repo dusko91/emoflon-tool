@@ -44,7 +44,6 @@ class TGGFormatter extends AbstractFormatter2 {
 		format(triplegraphgrammarfile.library, document);
 	}
 	def dispatch void format(AttrCondDefLibrary library, extension IFormattableDocument document) {
-//		library.regionFor.keyword("library").append[newLine]
 		for (AttrCondDef attrCondDef : library.attributeCondDefs) {
 			format(attrCondDef, document);
 		}
@@ -152,10 +151,7 @@ class TGGFormatter extends AbstractFormatter2 {
 			params.regionFor.feature(PARAM__INDEX).append[noSpace]
 			params.regionFor.feature(PARAM__TYPE).surround[noSpace]
 		}
-		
-		
 		for (Adornment adornment : attrconddef.getAllowedSyncAdornments()) {
-//			attrconddef.getAllowedSyncAdornments().indexOf(adornment)
 			adornment.regionFor.feature(ADORNMENT__VALUE).append[noSpace]
 		}
 		for (Adornment adornment : attrconddef.getAllowedGenAdornments()) {
@@ -178,8 +174,7 @@ class TGGFormatter extends AbstractFormatter2 {
 	def dispatch void format(ObjectVariablePattern objectvariablepattern, extension IFormattableDocument document) {
 		objectvariablepattern.surround[newLine]
 		objectvariablepattern.surround[indent]
-		objectvariablepattern.interior[indent]		
-//		objectvariablepattern.regionFor.keyword("{").prepend[oneSpace]
+		objectvariablepattern.interior[indent]
 		objectvariablepattern.regionFor.feature(OBJECT_VARIABLE_PATTERN__NAME).surround[noSpace]
 		objectvariablepattern.regionFor.feature(OBJECT_VARIABLE_PATTERN__TYPE).prepend[noSpace]
 		
@@ -198,13 +193,8 @@ class TGGFormatter extends AbstractFormatter2 {
 
 	def dispatch void format(LinkVariablePattern linkvariablepattern, extension IFormattableDocument document) {
 		linkvariablepattern.surround[newLine]
-//		linkvariablepattern.surround[indent]
-//		linkvariablepattern.interior[indent]
 		
 		linkvariablepattern.regionFor.keyword("-").surround[noSpace]
 		linkvariablepattern.regionFor.keyword("->").surround[noSpace]
-		
-		// TODO: format HiddenRegions around keywords, attributes, cross references, etc. 
-//		format(linkvariablepattern.getOp(), document);
 	}
 }

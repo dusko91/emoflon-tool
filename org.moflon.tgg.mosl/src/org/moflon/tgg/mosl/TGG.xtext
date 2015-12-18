@@ -3,7 +3,6 @@ grammar org.moflon.tgg.mosl.TGG with org.eclipse.xtext.common.Terminals
 import "http://www.eclipse.org/emf/2002/Ecore" as ecore
 
 generate tgg "http://www.moflon.org/ide/tgg/mosl/TGG"
-//generate tgg "platform:/plugin/org.moflon.tgg.mosl/model/generated/TGG.ecore"
 
 TripleGraphGrammarFile:
 	(schema = Schema)?
@@ -74,15 +73,6 @@ AttrCond:
 	name = [AttrCondDef] '(' (values += ParamValue (',' values += ParamValue)*)? ')'
 ;
 
-//AttrCond:
-//	name = [AttrCondDef] '(' (values += ParamValue (',' values += ParamValue)*)? ')' ( '{'
-//		'sync:'
-//			(allowedSyncAdornments += [Adornment] (',' allowedSyncAdornments += [Adornment] )*)?
-//		'gen:'
-//			(allowedGenAdornments += [Adornment] (',' allowedGenAdornments += [Adornment] )*)?
-//	'}')?
-//;
-
 AttrCondDef:
 	name = ID '(' (params += Param (',' params += Param)*)? ')' '{'
 		'sync:'
@@ -103,8 +93,7 @@ Adornment:
 ;
 
 Param:
-//	index = INT ':' type = [ecore::EDataType | QualifiedName]
-	index = INT ':' (type = ID)?
+	index = INT ':' type = ParamType
 ;
 
 ParamValue:
@@ -122,12 +111,6 @@ LocalVariable:
 Literal:
 	value = LiteralValue
 ;
-
-LiteralValue:
-	(STRING | INT | DECIMAL)
-;
-
-terminal DECIMAL: INT '.' INT;
 
 CorrVariablePattern:
 	(op = Operator)? name = ID ' : ' type = [CorrType | QualifiedName] '{'
@@ -148,12 +131,7 @@ AttributeConstraint:
 	attribute = [ecore::EAttribute] op=ComparisonOperator valueExp = Expression
 ;
 
-ComparisonOperator:
-	(' == ' | ' != ' | ' <= ' | ' >= ' | ' > ' | ' < ')
-;
-
 AttributeAssignment:
-//	attribute = AttributeVariable op=' := ' valueExp = Expression
 	attribute = [ecore::EAttribute] op=' := ' valueExp = Expression
 ;
 
@@ -167,10 +145,6 @@ AttributeExpression:
 
 LiteralExpression:
 	value = LiteralExpressionValue
-;
-
-LiteralExpressionValue:
-	(ID | STRING | INT | DECIMAL)
 ;
 
 LinkVariablePattern:
@@ -189,6 +163,24 @@ Import:
 
 Using:
 	'using' importedNamespace = QualifiedNameWithWildcard
+;
+
+terminal DECIMAL: INT '.' INT;
+
+ComparisonOperator:
+	(' == ' | ' != ' | ' <= ' | ' >= ' | ' > ' | ' < ')
+;
+
+LiteralExpressionValue:
+	(ID | STRING | INT | DECIMAL)
+;
+
+LiteralValue:
+	(STRING | INT | DECIMAL)
+;
+
+ParamType returns ecore::EString:
+	(ID)?
 ;
 
 QualifiedNameWithWildcard:
