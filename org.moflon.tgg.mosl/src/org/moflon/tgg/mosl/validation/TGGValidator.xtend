@@ -7,6 +7,8 @@ import org.moflon.tgg.mosl.tgg.Adornment
 import org.moflon.tgg.mosl.tgg.TggPackage
 import org.eclipse.xtext.validation.Check
 import org.moflon.tgg.mosl.tgg.ParamValue
+import org.moflon.tgg.mosl.tgg.AttributeVariable
+import org.eclipse.emf.common.util.BasicEList
 
 /**
  * This class contains custom validation rules. 
@@ -16,6 +18,7 @@ import org.moflon.tgg.mosl.tgg.ParamValue
 class TGGValidator extends AbstractTGGValidator {
 
   public static val INVALID_ADORNMENT = 'invalidAdornmentValue'
+  public static val INVALID_ATTRIBUTE_VARIABLE = 'invalidAttributeVariableAttribute'
 
 	@Check
 	def checkAdornmentValue(Adornment adornment){
@@ -23,6 +26,17 @@ class TGGValidator extends AbstractTGGValidator {
 			if(character.compareTo('B')!=0 && character.compareTo('F')!=0){
 				error("Adornment value may only contain capital letters B or F", TggPackage.Literals.ADORNMENT__VALUE, org.moflon.tgg.mosl.validation.TGGValidator.INVALID_ADORNMENT);
 			}
+		}
+	}
+	
+	@Check
+	def checkAttributeVariable(AttributeVariable attrVar){
+		var attrNames = new BasicEList()
+		for (attr : attrVar.objectVar.type.EAllAttributes) {
+			attrNames.add(attr.name)
+		}
+		if (!attrNames.contains(attrVar.attribute)) {
+			error("EClass " + attrVar.objectVar.type.name + " does not contain EAttribute " + attrVar.attribute + ".", TggPackage.Literals.ATTRIBUTE_VARIABLE__ATTRIBUTE, org.moflon.tgg.mosl.validation.TGGValidator.INVALID_ATTRIBUTE_VARIABLE);
 		}
 	}
 }
