@@ -9,6 +9,11 @@ import org.eclipse.xtext.ui.editor.contentassist.ICompletionProposalAcceptor
 import org.eclipse.xtext.Assignment
 import org.eclipse.xtext.ui.editor.contentassist.ContentAssistContext
 import org.eclipse.xtext.RuleCall
+import org.moflon.tgg.mosl.tgg.AttributeVariable
+import org.eclipse.xtext.CrossReference
+import org.moflon.tgg.mosl.tgg.AttributeAssignment
+import org.moflon.tgg.mosl.tgg.ObjectVariablePattern
+import org.moflon.tgg.mosl.tgg.AttributeConstraint
 
 /**
  * See https://www.eclipse.org/Xtext/documentation/304_ide_concepts.html#content-assist
@@ -16,8 +21,8 @@ import org.eclipse.xtext.RuleCall
  */
 class TGGProposalProvider extends AbstractTGGProposalProvider {
 
-	override completeAttributeAssignment_Op(EObject model, Assignment assignment, ContentAssistContext context, ICompletionProposalAcceptor acceptor) {
-		super.completeAttributeAssignment_Op(model, assignment, context, acceptor)
+	override completeAttributeConstraint_Op(EObject model, Assignment assignment, ContentAssistContext context, ICompletionProposalAcceptor acceptor) {
+		super.completeAttributeConstraint_Op(model, assignment, context, acceptor)
 		
 		val comparisonOps = newArrayList(" == ", " != ", " <= ", " >= "," < ", " > ")
 		
@@ -25,5 +30,15 @@ class TGGProposalProvider extends AbstractTGGProposalProvider {
 			acceptor.accept(createCompletionProposal(opProposal, context))
 		}
 	}
-	
+	override completeAttributeVariable_Attribute(EObject model, Assignment assignment, ContentAssistContext context, ICompletionProposalAcceptor acceptor){
+		super.completeAttributeVariable_Attribute(model,assignment,context,acceptor);
+		
+		if (model instanceof AttributeVariable) {
+			var attrVar = model as AttributeVariable
+			
+			for (attr : attrVar.objectVar.type.EAllAttributes) {
+				acceptor.accept(createCompletionProposal(attr.name, context))
+			}
+		}
+	}
 }
