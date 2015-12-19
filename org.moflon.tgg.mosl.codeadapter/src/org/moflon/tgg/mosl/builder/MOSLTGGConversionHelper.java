@@ -153,10 +153,9 @@ public class MOSLTGGConversionHelper extends AbstractHandler {
 
 	private static TripleGraphGrammarFile createTGGFileAndLoadSchema(XtextResourceSet resourceSet, IFolder moslFolder) throws IOException {
 		IFile schemaFile = moslFolder.getFile("Schema.tgg");
-		XtextResource schemaResource = (XtextResource) resourceSet.createResource(URI.createPlatformPluginURI(schemaFile.getFullPath().toString(), false));
+		XtextResource schemaResource = (XtextResource) resourceSet.createResource(URI.createPlatformResourceURI(schemaFile.getFullPath().toString(), false));
 		schemaResource.load(null);
 		EcoreUtil.resolveAll(resourceSet);
-//		TripleGraphGrammarFile xtextParsedTGG = (TripleGraphGrammarFile) schemaResource.getContents().get(0);
 		return (TripleGraphGrammarFile) schemaResource.getContents().get(0);
 	}
 
