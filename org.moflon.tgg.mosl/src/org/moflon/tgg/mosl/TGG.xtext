@@ -13,7 +13,7 @@ TripleGraphGrammarFile:
 Schema:
 	imports += Import*	
 	using += Using*	
-	'schema' name = ID
+	'schema' name = QualifiedName
 		
 	('source' '{'
 		sourceTypes += [ecore::EPackage | QualifiedName]*
