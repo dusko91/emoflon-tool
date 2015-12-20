@@ -11,6 +11,7 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EcoreFactory;
 import org.eclipse.emf.ecore.resource.ResourceSet;
+import org.moflon.core.utilities.MoflonUtil;
 import org.moflon.tgg.algorithm.synchronization.SynchronizationHelper;
 import org.moflon.tgg.language.Domain;
 import org.moflon.tgg.language.DomainType;
@@ -141,7 +142,12 @@ public class CodeadapterTrafo extends SynchronizationHelper{
 		TripleGraphGrammarFile tggFile = (TripleGraphGrammarFile) getSrc();
 		TGGProject tggProject = (TGGProject) getTrg();
 		EPackage corrPackage = tggProject.getCorrPackage();
-
+		
+		//FIXME[Thomas]:  This can be done in the TGG rule, just didn't want to introduce conflicts
+		corrPackage.setName(MoflonUtil.lastSegmentOf(corrPackage.getNsPrefix()));
+		corrPackage.setNsURI("platform:/plugin/" + corrPackage.getNsPrefix() + "/model/" + MoflonUtil.lastCapitalizedSegmentOf(corrPackage.getNsPrefix()) + ".ecore");
+		corrPackage.getESubpackages().get(0).setNsURI(corrPackage.getNsURI() + "#//Rules");
+		//END_FIXME
 		
 		for (EClassifier classifier : corrPackage.getEClassifiers()) {
 			if (classifier instanceof EClass) {
