@@ -42,15 +42,15 @@ TypeExtension:
 
 CorrTypeDef:
 	name = ID '{'
-		'-src->' source = [ecore::EClass | QualifiedName]  
-		'-trg->' target = [ecore::EClass | QualifiedName]
+		'-@src->' source = [ecore::EClass | QualifiedName]  
+		'-@trg->' target = [ecore::EClass | QualifiedName]
 	'}'
 ;
 
 Rule:
 	imports += Import*	
 	using += Using*	
-	(abstractRule ?= 'abstract')? 'rule' name = ID ('extends' supertypes += [Rule])? ' with ' schema = [Schema | QualifiedName]
+	(abstractRule ?= 'abstract')? 'rule' name = ID ('extends' supertypes += [Rule])? ('complements' kernel = [Rule])? ' with ' schema = [Schema | QualifiedName]
 		
 	('source' '{'
 		sourcePatterns += ObjectVariablePattern* 
@@ -74,13 +74,14 @@ AttrCond:
 ;
 
 AttrCondDef:
-	name = ID '(' (params += Param (',' params += Param)*)? ')' '{'
+	(userDefined ?= 'userDefined')? name = ID '(' (params += Param (',' params += Param)*)? ')' '{'
 		'sync:'
 			allowedSyncAdornments += Adornment (',' allowedSyncAdornments += Adornment)*
 		'gen:'
 			(allowedGenAdornments += Adornment (',' allowedGenAdornments += Adornment )*)?
 	'}'
 ;
+
 AttrCondDefLibrary:
 	'library' name = QualifiedName
 	('{'
@@ -114,8 +115,8 @@ Literal:
 
 CorrVariablePattern:
 	(op = Operator)? name = ID ' : ' type = [CorrType | QualifiedName] '{'
-		'-src->' source = [ObjectVariablePattern]
-		'-trg->' target = [ObjectVariablePattern]
+		'-@src->' source = [ObjectVariablePattern]
+		'-@trg->' target = [ObjectVariablePattern]
 	'}' 
 ;
 

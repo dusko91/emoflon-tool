@@ -91,8 +91,6 @@ public class AttrCondDefLibraryProvider {
 	
 	public static EList<AttrCondDef> getAttrCondDefs() {
 		if(attrCondDefs == null){
-			TggFactory tggFactory = TggPackage.eINSTANCE.getTggFactory();
-			
 			attrCondDefs = new BasicEList<AttrCondDef>();
 			
 			for (int i = 0; i < names.length; i++) {
@@ -102,28 +100,31 @@ public class AttrCondDefLibraryProvider {
 			
 		return attrCondDefs;
 	}
+	
 
-
-	public static void syncAttrCondDefLibrary(XtextResourceSet resourceSet, String projectPath) throws IOException {
+	public static AttrCondDefLibrary getAttrCondDefLibrary() {
 		TggFactory tggFactory = TggPackage.eINSTANCE.getTggFactory();
 		
 		AttrCondDefLibrary attrCondDefLib = tggFactory.createAttrCondDefLibrary();
 		attrCondDefLib.setName("AttrCondDefLibrary");
 		attrCondDefLib.getAttributeCondDefs().addAll(getAttrCondDefs());
 		
-		TripleGraphGrammarFile tgg = tggFactory.createTripleGraphGrammarFile();
-		tgg.setLibrary(attrCondDefLib);
+		return attrCondDefLib;
+	}
+
+
+	public static AttrCondDefLibrary syncAttrCondDefLibrary(XtextResourceSet resourceSet, String projectPath) throws IOException {
+		TggFactory tggFactory = TggPackage.eINSTANCE.getTggFactory();
 		
-//		XtextResourceSet resourceSet = new XtextResourceSet();
+		TripleGraphGrammarFile tgg = tggFactory.createTripleGraphGrammarFile();
+		tgg.setLibrary(getAttrCondDefLibrary());
+		
 		URI uri = URI.createPlatformResourceURI(projectPath + "/src/org/moflon/tgg/mosl/csp/lib/AttrCondDefLibrary.tgg", true);
 		XtextResource resource = (XtextResource) resourceSet.createResource(uri);
 		resource.getContents().add(tgg);
 		resource.save(null);
 		
-//		uri = URI.createPlatformPluginURI(projectPath + "/lib/AttrCondDefLibrary.xmi", true);
-//		XMIResource xmiResource = (XMIResource) resourceSet.createResource(uri);
-//		xmiResource.getContents().add(tgg);
-//		xmiResource.save(null);
+		return tgg.getLibrary();
 	}
 
 	private static AttrCondDef createAttrCondDef(String name, String[] paramTypes, String[] syncAdornments, String[] genAdornments) {
@@ -135,13 +136,7 @@ public class AttrCondDefLibraryProvider {
 		for (int i = 0; i < paramTypes.length; i++) {
 			param = tggFactory.createParam();
 			param.setIndex(i);
-			if(paramTypes[i].isEmpty()){
-				param.setType(paramTypes[i]);
-				System.out.println("paramTypes[i].isEmpty()");
-			}
-			else{
-				param.setType(paramTypes[i]);
-			}
+			param.setType(paramTypes[i]);
 			attrCondDef.getParams().add(param);
 		}
 		

@@ -3,34 +3,31 @@
  */
 package org.moflon.tgg.mosl.formatting2;
 
-import com.google.inject.Inject;
-import org.eclipse.xtext.formatting2.AbstractFormatter2;
-import org.eclipse.xtext.formatting2.IFormattableDocument;
-import org.moflon.tgg.mosl.services.TGGGrammarAccess;
-import org.moflon.tgg.mosl.tgg.AttrCond;
-import org.moflon.tgg.mosl.tgg.AttrCondDef;
-import org.moflon.tgg.mosl.tgg.CorrType;
-import org.moflon.tgg.mosl.tgg.CorrVariablePattern;
-import org.moflon.tgg.mosl.tgg.Import;
-import org.moflon.tgg.mosl.tgg.LinkVariablePattern;
-import org.moflon.tgg.mosl.tgg.ObjectVariablePattern;
-import org.moflon.tgg.mosl.tgg.Param;
-import org.moflon.tgg.mosl.tgg.ParamValue;
-import org.moflon.tgg.mosl.tgg.Rule;
-import org.moflon.tgg.mosl.tgg.Schema;
-import org.moflon.tgg.mosl.tgg.TripleGraphGrammarFile;
+import com.google.inject.Inject
+import org.eclipse.xtext.formatting2.AbstractFormatter2
+import org.eclipse.xtext.formatting2.IFormattableDocument
+import org.moflon.tgg.mosl.services.TGGGrammarAccess
+import org.moflon.tgg.mosl.tgg.Adornment
+import org.moflon.tgg.mosl.tgg.AttrCond
+import org.moflon.tgg.mosl.tgg.AttrCondDef
+import org.moflon.tgg.mosl.tgg.AttrCondDefLibrary
+import org.moflon.tgg.mosl.tgg.AttributeAssignment
+import org.moflon.tgg.mosl.tgg.AttributeConstraint
+import org.moflon.tgg.mosl.tgg.CorrType
+import org.moflon.tgg.mosl.tgg.CorrTypeDef
+import org.moflon.tgg.mosl.tgg.CorrVariablePattern
+import org.moflon.tgg.mosl.tgg.Import
+import org.moflon.tgg.mosl.tgg.LinkVariablePattern
+import org.moflon.tgg.mosl.tgg.LocalVariable
+import org.moflon.tgg.mosl.tgg.ObjectVariablePattern
+import org.moflon.tgg.mosl.tgg.Param
+import org.moflon.tgg.mosl.tgg.ParamValue
+import org.moflon.tgg.mosl.tgg.Rule
+import org.moflon.tgg.mosl.tgg.Schema
+import org.moflon.tgg.mosl.tgg.TripleGraphGrammarFile
+import org.moflon.tgg.mosl.tgg.Using
 
 import static org.moflon.tgg.mosl.tgg.TggPackage.Literals.*
-import org.moflon.tgg.mosl.tgg.CorrTypeDef
-import org.eclipse.emf.ecore.EPackage
-import org.eclipse.xtext.formatting2.regionaccess.ITextRegionExtensions
-import org.eclipse.emf.ecore.EObject
-import org.moflon.tgg.mosl.tgg.AttrCondDefLibrary
-import org.moflon.tgg.mosl.tgg.Adornment
-import org.moflon.tgg.mosl.tgg.AttributeConstraint
-import org.moflon.tgg.mosl.tgg.AttributeAssignment
-import org.moflon.tgg.mosl.tgg.LocalVariable
-import org.moflon.tgg.mosl.tgg.Using
 
 class TGGFormatter extends AbstractFormatter2 {
 	
@@ -109,8 +106,8 @@ class TGGFormatter extends AbstractFormatter2 {
 		correspondenceType.surround[indent]
 		correspondenceType.interior[indent]
 		if(correspondenceType instanceof CorrTypeDef){
-			correspondenceType.regionFor.keyword("-src->").prepend[newLine].append[noSpace]
-			correspondenceType.regionFor.keyword("-trg->").prepend[newLine].append[noSpace]
+			correspondenceType.regionFor.keyword("-@src->").prepend[newLine].append[noSpace]
+			correspondenceType.regionFor.keyword("-@trg->").prepend[newLine].append[noSpace]
 			correspondenceType.regionFor.keyword("}").prepend[newLine]
 		}
 	}
@@ -166,8 +163,8 @@ class TGGFormatter extends AbstractFormatter2 {
 		corrvariablepattern.regionFor.feature(CORR_VARIABLE_PATTERN__NAME).surround[noSpace]
 		corrvariablepattern.regionFor.feature(CORR_VARIABLE_PATTERN__TYPE).prepend[noSpace]
 
-		corrvariablepattern.regionFor.keyword("-src->").prepend[newLine].append[noSpace]
-		corrvariablepattern.regionFor.keyword("-trg->").prepend[newLine].append[noSpace]
+		corrvariablepattern.regionFor.keyword("-@src->").prepend[newLine].append[noSpace]
+		corrvariablepattern.regionFor.keyword("-@trg->").prepend[newLine].append[noSpace]
 		corrvariablepattern.regionFor.keyword("}").prepend[newLine]
 	}
 
