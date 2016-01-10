@@ -33,24 +33,16 @@ Schema:
 ;
 
 CorrType:
-	(CorrTypeDef | TypeExtension)
-;
-
-TypeExtension:
-	name = ID 'extends' super=[CorrType]
-;
-
-CorrTypeDef:
-	name = ID '{'
+	name = ID (('extends' super=[CorrType]) | ('{'
 		'-@src->' source = [ecore::EClass | QualifiedName]  
 		'-@trg->' target = [ecore::EClass | QualifiedName]
-	'}'
+	'}'))
 ;
 
 Rule:
 	imports += Import*	
-	using += Using*	
-	(abstractRule ?= 'abstract')? 'rule' name = ID ('extends' supertypes += [Rule])? ('complements' kernel = [Rule])? ' with ' schema = [Schema | QualifiedName]
+	using += Using*
+	(abstractRule ?= 'abstract')? 'rule' name = ID ('extends' supertypes += [Rule] (',' supertypes += [Rule])*)? ('complements' kernel = [Rule])? ' with ' schema = [Schema | QualifiedName]
 		
 	('source' '{'
 		sourcePatterns += ObjectVariablePattern* 

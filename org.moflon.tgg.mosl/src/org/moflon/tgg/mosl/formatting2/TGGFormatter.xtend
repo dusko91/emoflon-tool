@@ -14,7 +14,6 @@ import org.moflon.tgg.mosl.tgg.AttrCondDefLibrary
 import org.moflon.tgg.mosl.tgg.AttributeAssignment
 import org.moflon.tgg.mosl.tgg.AttributeConstraint
 import org.moflon.tgg.mosl.tgg.CorrType
-import org.moflon.tgg.mosl.tgg.CorrTypeDef
 import org.moflon.tgg.mosl.tgg.CorrVariablePattern
 import org.moflon.tgg.mosl.tgg.Import
 import org.moflon.tgg.mosl.tgg.LinkVariablePattern
@@ -75,12 +74,17 @@ class TGGFormatter extends AbstractFormatter2 {
 
 	def dispatch void format(Rule rule, extension IFormattableDocument document) {
 		rule.append[newLines = 3]
-		rule.regionFor.keyword("rule").prepend[setNewLines(2);highPriority]
+		rule.regionFor.keyword("abstract").prepend[setNewLines(2);highPriority]
+		if (!rule.abstractRule) {
+			rule.regionFor.keyword("rule").prepend[setNewLines(2);highPriority]
+		}
 		rule.regionFor.keyword(" with ").surround[noSpace]
 		rule.regionFor.keyword("source").prepend[setNewLines(2)]
 		rule.regionFor.keyword("target").prepend[setNewLines(2)]
 		rule.regionFor.keyword("correspondence").prepend[setNewLines(2)]
 		rule.regionFor.keyword("attribute conditions").prepend[setNewLines(2)]
+		rule.regionFor.keyword(",").prepend[noSpace]
+		rule.regionFor.feature(RULE__KERNEL).append[noSpace]
 		
 		for (Import imports : rule.getImports()) {
 			imports.append[newLine]
@@ -105,7 +109,8 @@ class TGGFormatter extends AbstractFormatter2 {
 		correspondenceType.surround[newLine]
 		correspondenceType.surround[indent]
 		correspondenceType.interior[indent]
-		if(correspondenceType instanceof CorrTypeDef){
+//		if(correspondenceType instanceof CorrTypeDef){
+		if(correspondenceType instanceof CorrType){
 			correspondenceType.regionFor.keyword("-@src->").prepend[newLine].append[noSpace]
 			correspondenceType.regionFor.keyword("-@trg->").prepend[newLine].append[noSpace]
 			correspondenceType.regionFor.keyword("}").prepend[newLine]

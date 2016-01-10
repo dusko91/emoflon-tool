@@ -22,7 +22,6 @@ import org.moflon.tgg.mosl.tgg.AttributeAssignment
 import org.moflon.tgg.mosl.tgg.AttributeConstraint
 import org.moflon.tgg.mosl.tgg.AttributeExpression
 import org.moflon.tgg.mosl.tgg.AttributeVariable
-import org.moflon.tgg.mosl.tgg.CorrTypeDef
 import org.moflon.tgg.mosl.tgg.CorrVariablePattern
 import org.moflon.tgg.mosl.tgg.LinkVariablePattern
 import org.moflon.tgg.mosl.tgg.ObjectVariablePattern
@@ -31,7 +30,7 @@ import org.moflon.tgg.mosl.tgg.Rule
 import org.moflon.tgg.mosl.tgg.Schema
 import org.moflon.tgg.mosl.tgg.TggPackage
 import org.moflon.tgg.mosl.tgg.TripleGraphGrammarFile
-import org.moflon.tgg.mosl.tgg.TypeExtension
+import org.moflon.tgg.mosl.tgg.CorrType
 
 /**
  * This class contains custom scoping description.
@@ -204,11 +203,11 @@ class TGGScopeProvider extends AbstractDeclarativeScopeProvider {
 	}
 	
 	def is_trg_of_corr_type(EObject context, EReference reference) {
-		context instanceof CorrTypeDef && reference == TggPackage.Literals.CORR_TYPE_DEF__TARGET
+		context instanceof CorrType && reference == TggPackage.Literals.CORR_TYPE__TARGET
 	}
 
 	def is_src_of_corr_type(EObject context, EReference reference) {
-		context instanceof CorrTypeDef && reference == TggPackage.Literals.CORR_TYPE_DEF__SOURCE
+		context instanceof CorrType && reference == TggPackage.Literals.CORR_TYPE__SOURCE
 	}
 
 	def trg_of_corr_ov_must_be_in_trg_domain(EObject context) {
@@ -221,19 +220,19 @@ class TGGScopeProvider extends AbstractDeclarativeScopeProvider {
 	def determineTypeDef(EObject context){
 		var corrOv = context as CorrVariablePattern
 		var type = corrOv.type
-		if(type instanceof CorrTypeDef)
-			return type as CorrTypeDef
-		else if(type instanceof TypeExtension)
-			return determineTypeDefFromExtension(type) as CorrTypeDef
+		if(type.super == (null))
+			return type as CorrType
+		else if(type.super instanceof CorrType)
+			return determineTypeDefFromExtension(type) as CorrType
 		else
 			throw new IllegalStateException("Unable to determine type def from " + type)
 	}
 	
-	def determineTypeDefFromExtension(TypeExtension typeExtension) {
-		if(typeExtension.super instanceof CorrTypeDef)
-			return typeExtension.super as CorrTypeDef
-		else if(typeExtension.super instanceof TypeExtension)
-			return determineTypeDefFromExtension(typeExtension.super as TypeExtension)
+	def determineTypeDefFromExtension(CorrType typeExtension) {
+		if(typeExtension.getSuper.super == (null))
+			return typeExtension.super as CorrType
+		else if(typeExtension.getSuper.super instanceof CorrType)
+			return determineTypeDefFromExtension(typeExtension.super as CorrType)
 		else
 			throw new IllegalStateException("This should never be the case!") 
 	}
@@ -287,7 +286,7 @@ class TGGScopeProvider extends AbstractDeclarativeScopeProvider {
 	}
 
 	def handleCorrTypeDef(EObject context, (Schema)=>List<EPackage> types) {
-		var corrTypeDef = context as CorrTypeDef
+		var corrTypeDef = context as CorrType
 		var schema = corrTypeDef.eContainer as Schema
 		var sources = types.apply(schema)
 		return allTypes(sources, schema)
