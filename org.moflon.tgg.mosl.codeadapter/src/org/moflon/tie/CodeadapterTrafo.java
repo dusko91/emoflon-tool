@@ -2,6 +2,7 @@ package org.moflon.tie;
 
 import java.io.IOException;
 import org.apache.log4j.BasicConfigurator;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.emf.common.util.BasicEList;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EClass;
@@ -24,6 +25,7 @@ import org.moflon.tgg.mosl.codeadapter.AttrCondToTGGConstraint;
 import org.moflon.tgg.mosl.codeadapter.AttributeAssignmentToAttributeAssignment;
 import org.moflon.tgg.mosl.codeadapter.AttributeConstraintToConstraint;
 import org.moflon.tgg.mosl.codeadapter.CodeadapterPackage;
+import org.moflon.tgg.mosl.codeadapter.CorrTypeToEClass;
 import org.moflon.tgg.mosl.codeadapter.CorrVariablePatternToTGGObjectVariable;
 import org.moflon.tgg.mosl.codeadapter.ExpressionToExpression;
 import org.moflon.tgg.mosl.codeadapter.LinkVariablePatternToTGGLinkVariable;
@@ -31,7 +33,6 @@ import org.moflon.tgg.mosl.codeadapter.ObjectVariablePatternToTGGObjectVariable;
 import org.moflon.tgg.mosl.codeadapter.TripleGraphGrammarFileToTripleGraphGrammar;
 import org.moflon.tgg.mosl.tgg.AttributeExpression;
 import org.moflon.tgg.mosl.tgg.CorrType;
-import org.moflon.tgg.mosl.tgg.CorrTypeDef;
 import org.moflon.tgg.mosl.tgg.CorrVariablePattern;
 import org.moflon.tgg.mosl.tgg.Import;
 import org.moflon.tgg.mosl.tgg.ParamValue;
@@ -39,7 +40,6 @@ import org.moflon.tgg.mosl.tgg.Rule;
 import org.moflon.tgg.mosl.tgg.Schema;
 import org.moflon.tgg.mosl.tgg.TggFactory;
 import org.moflon.tgg.mosl.tgg.TripleGraphGrammarFile;
-import org.moflon.tgg.mosl.tgg.TypeExtension;
 import org.moflon.tgg.mosl.tgg.Using;
 import org.moflon.tgg.runtime.RuntimePackage;
 import org.moflon.tgg.tggproject.TGGProject;
@@ -137,39 +137,7 @@ public class CodeadapterTrafo extends SynchronizationHelper{
 		TripleGraphGrammarFile tggFile = (TripleGraphGrammarFile) getSrc();
 		TGGProject tggProject = (TGGProject) getTrg();
 		EPackage corrPackage = tggProject.getCorrPackage();
-		
-		for (EClassifier classifier : corrPackage.getEClassifiers()) {
-			if (classifier instanceof EClass) {
-				EClass corr = (EClass) classifier;
-				corr.getESuperTypes().add(RuntimePackage.Literals.ABSTRACT_CORRESPONDENCE);
-				for (CorrType corrType : tggFile.getSchema().getCorrespondenceTypes()) {
-					if(corrType instanceof CorrTypeDef && corrType.getName().equals(corr.getName())){
-						CorrTypeDef corrTypeDef = (CorrTypeDef) corrType;
-						EReference ref = EcoreFactory.eINSTANCE.createEReference();
-						ref.setName("source");
-						ref.setLowerBound(1);
-						ref.setEType(corrTypeDef.getSource());
-						corr.getEStructuralFeatures().add(ref);
-						
-						ref = EcoreFactory.eINSTANCE.createEReference();
-						ref.setName("target");
-						ref.setLowerBound(1);
-						ref.setEType(corrTypeDef.getTarget());
-						corr.getEStructuralFeatures().add(ref);
-					}
-					if(corrType instanceof TypeExtension && corrType.getName().equals(corr.getName())){
-						TypeExtension typeExtension = (TypeExtension) corrType;
-						for (EClassifier superClassifier : corrPackage.getEClassifiers()) {
-							if(superClassifier instanceof EClass && typeExtension.getSuper().getName().equals(superClassifier.getName())){
-								EClass superCorr = (EClass) superClassifier;
-								corr.getESuperTypes().add(superCorr);
-							}
-						}
-					}
-				}
-			}
-		}
-		
+				
 		for (EPackage pkg : corrPackage.getESubpackages()) {
 			if (pkg.getName().equals("Rules")) {
 				for (EClassifier classifier : pkg.getEClassifiers()) {
@@ -182,6 +150,37 @@ public class CodeadapterTrafo extends SynchronizationHelper{
 		}		
 		
 		for (EObject corr : getCorr().getCorrespondences()) {
+			
+			// postProcessForward_AbstractCorrespondenceSubClass(EObject corrTypeToEClassCorrespondence)
+			if (corr instanceof CorrTypeToEClass) {
+				CorrTypeToEClass corrTypeCorr = (CorrTypeToEClass) corr;
+				CorrType corrType = corrTypeCorr.getSource();
+				EClass absCorrSubClass = corrTypeCorr.getTarget();
+				
+				corrTypeCorr.getTarget().getESuperTypes().add(RuntimePackage.Literals.ABSTRACT_CORRESPONDENCE);
+				
+				for (EClassifier trgCorrType : corrPackage.getEClassifiers()) {
+					CorrType srcCorrType = corrTypeCorr.getSource().getSuper();
+					if (srcCorrType != null && trgCorrType.getName().equals(srcCorrType.getName())) {
+						corrTypeCorr.getTarget().getESuperTypes().add((EClass) trgCorrType);
+					}
+				}
+				if(corrType.getSuper() == null){
+					EReference ref = EcoreFactory.eINSTANCE.createEReference();
+					ref.setName("source");
+					ref.setLowerBound(1);
+					ref.setEType(corrType.getSource());
+					absCorrSubClass.getEStructuralFeatures().add(ref);
+					
+					ref = EcoreFactory.eINSTANCE.createEReference();
+					ref.setName("target");
+					ref.setLowerBound(1);
+					ref.setEType(corrType.getTarget());
+					absCorrSubClass.getEStructuralFeatures().add(ref);
+				}
+				
+			}
+			
 			if(corr instanceof TripleGraphGrammarFileToTripleGraphGrammar){
 				TripleGraphGrammarFileToTripleGraphGrammar tggCorr = (TripleGraphGrammarFileToTripleGraphGrammar) corr;
 				
@@ -299,7 +298,15 @@ public class CodeadapterTrafo extends SynchronizationHelper{
 			if(domain.getType() == DomainType.SOURCE){
 				EPackage outermostPackage = domain.getMetamodel().getOutermostPackage();
 				importName = TggFactory.eINSTANCE.createImport();
-				importName.setName("platform:/resource/"+outermostPackage.getNsPrefix()+"/model/"+outermostPackage.getNsPrefix()+".ecore");
+				String sourceImport = "/"+outermostPackage.getNsPrefix()+"/model/"+outermostPackage.getNsPrefix()+".ecore";
+				
+				if (ResourcesPlugin.getWorkspace().getRoot().findMember(sourceImport) != null) {
+					sourceImport = "platform:/resource" + sourceImport;
+				} else {
+					sourceImport = outermostPackage.getNsURI();
+				}
+				
+				importName.setName(sourceImport);
 				moslSchema.getImports().add(importName);
 				
 				moslSchema.getSourceTypes().add(outermostPackage);
@@ -307,30 +314,19 @@ public class CodeadapterTrafo extends SynchronizationHelper{
 			if(domain.getType() == DomainType.TARGET){
 				EPackage outermostPackage = domain.getMetamodel().getOutermostPackage();
 				importName = TggFactory.eINSTANCE.createImport();
-				importName.setName("platform:/resource/"+outermostPackage.getNsPrefix()+"/model/"+outermostPackage.getNsPrefix()+".ecore");
+
+				String targetImport = "/"+outermostPackage.getNsPrefix()+"/model/"+outermostPackage.getNsPrefix()+".ecore";
+
+				if (ResourcesPlugin.getWorkspace().getRoot().findMember(targetImport) != null) {
+					targetImport = "platform:/resource" + targetImport;
+				} else {
+					targetImport = outermostPackage.getNsURI();
+				}
+				
+				importName.setName(targetImport);
 				moslSchema.getImports().add(importName);
 				
 				moslSchema.getTargetTypes().add(outermostPackage);
-			}
-			if(domain.getType() == DomainType.CORRESPONDENCE){
-				for (CorrType corrType : moslSchema.getCorrespondenceTypes()) {
-					if (corrType instanceof CorrTypeDef) {
-						CorrTypeDef corrTypeDef = (CorrTypeDef) corrType;
-						for (EClassifier classifier : domain.getMetamodel().getOutermostPackage().getEClassifiers()) {
-							if (classifier instanceof EClass && classifier.getName().equals(corrTypeDef.getName())) {
-								EClass corr = (EClass) classifier;
-								for (EReference ref : corr.getEAllReferences()) {
-									if (ref.getName().equals("source")) {
-										corrTypeDef.setSource((EClass) ref.getEType());
-									}
-									if (ref.getName().equals("target")) {
-										corrTypeDef.setTarget((EClass) ref.getEType());
-									}
-								}
-							}
-						}
-					}
-				}
 			}
 		}
 		
@@ -344,6 +340,34 @@ public class CodeadapterTrafo extends SynchronizationHelper{
 		}
 
 		for (EObject corr : getCorr().getCorrespondences()) {
+			
+			// postProcessBackward_CorrType(EObject corrTypeToEClassCorrespondence)
+			if (corr instanceof CorrTypeToEClass) {
+				CorrTypeToEClass corrTypeCorr = (CorrTypeToEClass) corr;
+				
+				for (EClass trgSuperCorrType : corrTypeCorr.getTarget().getEAllSuperTypes()) {
+					for (EClassifier trgCorrType : corrTypeCorr.getTarget().getEPackage().getEClassifiers()) {
+						if(trgSuperCorrType.getName().equals(trgCorrType.getName())){
+							for (CorrType srcCorrType : moslSchema.getCorrespondenceTypes()) {
+								if (srcCorrType.getName().equals(trgSuperCorrType.getName())) {
+									corrTypeCorr.getSource().setSuper(srcCorrType);
+								}
+							}
+						}
+					}
+				}
+				if(corrTypeCorr.getSource().getSuper() == null){
+					for (EReference ref : corrTypeCorr.getTarget().getEAllReferences()) {
+						if (ref.getName().equals("source")) {
+							corrTypeCorr.getSource().setSource((EClass) ref.getEType());
+						}
+						if (ref.getName().equals("target")) {
+							corrTypeCorr.getSource().setTarget((EClass) ref.getEType());
+						}
+					}
+				}
+				
+			}
 
 			// Inline Assignments / Constraints
 			if(corr instanceof AttributeAssignmentToAttributeAssignment){
@@ -415,20 +439,3 @@ public class CodeadapterTrafo extends SynchronizationHelper{
 		}
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -17,7 +17,6 @@ import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
-import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.ecore.xmi.XMLResource;
 import org.eclipse.jface.viewers.ISelection;
@@ -27,7 +26,6 @@ import org.eclipse.xtext.resource.XtextResource;
 import org.eclipse.xtext.resource.XtextResourceSet;
 import org.moflon.core.utilities.MoflonUtil;
 import org.moflon.core.utilities.MoflonUtilitiesActivator;
-import org.moflon.core.utilities.eMoflonEMFUtil;
 import org.moflon.tgg.language.TripleGraphGrammar;
 import org.moflon.tgg.mosl.builder.MOSLTGGConversionHelper.MyURIHandler;
 import org.moflon.tgg.mosl.scoping.AttrCondDefLibraryProvider;
@@ -64,7 +62,7 @@ public class InternalTGGConversionHelper extends AbstractHandler {
 		    	   }
 		       }
 		       if(moslFolder.getProjectRelativePath().toString().equals("src/org/moflon/tgg/mosl")){
-		    	   if(tggFile.getName().endsWith("Integration.tgg") || tggFile.getName().equals("Schema.tgg")){
+		    	   if(tggFile.getName().equals(tggFile.getProject().getName()+".tgg") || tggFile.getName().equals("Schema.tgg")){
 		    		   String projectPath = tggFile.getProject().getFullPath().toString();
 		    		   XtextResourceSet resourceSet = new XtextResourceSet();
 		    		   AttrCondDefLibraryProvider.syncAttrCondDefLibrary(resourceSet, projectPath);
