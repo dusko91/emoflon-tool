@@ -206,9 +206,6 @@ public class MOSLTGGConversionHelper extends AbstractHandler
 
                helper.setTrg(tggProject);
                helper.integrateBackward();
-               
-               saveXtextTGGModelToXMI((TripleGraphGrammarFile) helper.getSrc(), tggFile.getProject().getFullPath().toString());
-               
                helper.postProcessBackward();
 
                TripleGraphGrammarFile tggModel = (TripleGraphGrammarFile) helper.getSrc();

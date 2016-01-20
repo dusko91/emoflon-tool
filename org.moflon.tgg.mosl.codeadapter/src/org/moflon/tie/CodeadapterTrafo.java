@@ -1,6 +1,9 @@
 package org.moflon.tie;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.log4j.BasicConfigurator;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.emf.common.util.BasicEList;
@@ -290,9 +293,9 @@ public class CodeadapterTrafo extends SynchronizationHelper{
 		TripleGraphGrammar tgg = ((TGGProject) getTrg()).getTgg();
 		
 		Import importName;
+		List<String> addedImports = new ArrayList<String>();
+		
 		Using using = TggFactory.eINSTANCE.createUsing();
-		using.setImportedNamespace("ecore.*");
-		moslSchema.getUsing().add(using);
 		
 		for (Domain domain : tgg.getDomain()) {
 			if(domain.getType() == DomainType.SOURCE){
@@ -306,6 +309,7 @@ public class CodeadapterTrafo extends SynchronizationHelper{
 					sourceImport = outermostPackage.getNsURI();
 				}
 				
+				addedImports.add(outermostPackage.getNsURI());
 				importName.setName(sourceImport);
 				moslSchema.getImports().add(importName);
 				
@@ -322,7 +326,8 @@ public class CodeadapterTrafo extends SynchronizationHelper{
 				} else {
 					targetImport = outermostPackage.getNsURI();
 				}
-				
+
+				addedImports.add(outermostPackage.getNsURI());
 				importName.setName(targetImport);
 				moslSchema.getImports().add(importName);
 				
@@ -420,6 +425,16 @@ public class CodeadapterTrafo extends SynchronizationHelper{
 			
 			if(corr instanceof ObjectVariablePatternToTGGObjectVariable){
 				ObjectVariablePatternToTGGObjectVariable ovCorr = (ObjectVariablePatternToTGGObjectVariable) corr;
+				EClass targetType = (EClass) ovCorr.getTarget().getType();
+				
+				String ePackageNsURI = targetType.getEPackage().getNsURI();
+				if (!addedImports.contains(ePackageNsURI)) {
+					addedImports.add(ePackageNsURI);
+					importName = TggFactory.eINSTANCE.createImport();
+					importName.setName(ePackageNsURI);
+					moslSchema.getImports().add(importName);
+				}
+				
 				ovCorr.getSource().setType((EClass) ovCorr.getTarget().getType());
 			}
 
