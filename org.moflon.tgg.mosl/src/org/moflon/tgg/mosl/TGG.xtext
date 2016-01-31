@@ -102,7 +102,7 @@ LocalVariable:
 ;
 
 Literal:
-	value = LiteralValue
+	value = STRING
 ;
 
 CorrVariablePattern:
@@ -137,7 +137,7 @@ AttributeExpression:
 ;
 
 LiteralExpression:
-	value = LiteralExpressionValue
+	value = STRING
 ;
 
 LinkVariablePattern:
