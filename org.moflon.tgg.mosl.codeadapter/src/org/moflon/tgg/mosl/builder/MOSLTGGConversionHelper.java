@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
@@ -170,7 +171,7 @@ public class MOSLTGGConversionHelper extends AbstractHandler
       return null;
    }
 
-   private static TripleGraphGrammarFile createTGGFileAndLoadSchema(XtextResourceSet resourceSet, IFolder moslFolder) throws IOException
+   private static TripleGraphGrammarFile createTGGFileAndLoadSchema(XtextResourceSet resourceSet, IFolder moslFolder) throws IOException, CoreException
    {
       IFile schemaFile = moslFolder.getFile("Schema.tgg");
       
@@ -180,6 +181,18 @@ public class MOSLTGGConversionHelper extends AbstractHandler
           EcoreUtil.resolveAll(resourceSet);
           return (TripleGraphGrammarFile) schemaResource.getContents().get(0);
       } else {
+    	  for (IResource iResource : moslFolder.members()) {
+        	  if (iResource instanceof IFile) {
+        		  schemaFile = (IFile) iResource;
+        		  if (schemaFile.getFileExtension().equals("tgg")) {
+        			  XtextResource schemaResource = (XtextResource) resourceSet.createResource(URI.createPlatformResourceURI(schemaFile.getFullPath().toString(), false));
+        	          schemaResource.load(null);
+        	          EcoreUtil.resolveAll(resourceSet);
+        	          TripleGraphGrammarFile tgg = (TripleGraphGrammarFile) schemaResource.getContents().get(0);
+        	          if(tgg.getSchema() != null) return tgg;
+        		  }
+        	  }
+          }
     	  return null;
       }
    }
@@ -229,13 +242,22 @@ public class MOSLTGGConversionHelper extends AbstractHandler
    {
       TripleGraphGrammar tgg = tggProject.getTgg();
       EPackage corrPackage = tggProject.getCorrPackage();
+      
+      String file = StringUtils.substringAfterLast(saveTargetName, ".");
+      
+      if(file.isEmpty()) {
+    	  file = StringUtils.capitalize(saveTargetName);
+      }
+      else {
+    	  file = StringUtils.capitalize(file);
+      }
 
-      URI preEcoreXmiURI = URI.createPlatformPluginURI(saveTargetName + "/" + MoflonUtil.getDefaultPathToFileInProject(saveTargetName, ".pre.ecore"), false);
+      URI preEcoreXmiURI = URI.createPlatformPluginURI(saveTargetName + "/" + MoflonUtil.getDefaultPathToFileInProject(file, ".pre.ecore"), false);
       Resource preEcoreResource = resourceSet.createResource(preEcoreXmiURI);
       preEcoreResource.getContents().add(corrPackage);
       preEcoreResource.save(options);
 
-      URI pretggXmiURI = URI.createPlatformPluginURI(saveTargetName + "/" + MoflonUtil.getDefaultPathToFileInProject(saveTargetName, ".pre.tgg.xmi"), false);
+      URI pretggXmiURI = URI.createPlatformPluginURI(saveTargetName + "/" + MoflonUtil.getDefaultPathToFileInProject(file, ".pre.tgg.xmi"), false);
       Resource pretggXmiResource = resourceSet.createResource(pretggXmiURI);
       pretggXmiResource.getContents().add(tgg);
       pretggXmiResource.save(options);
