@@ -34,6 +34,7 @@ import org.moflon.tgg.mosl.tgg.AttrCondDef;
 import org.moflon.tgg.mosl.tgg.Rule;
 import org.moflon.tgg.mosl.tgg.TripleGraphGrammarFile;
 import org.moflon.tgg.tggproject.TGGProject;
+import org.moflon.tie.CodeadapterPostProcessForwardHelper;
 import org.moflon.tie.CodeadapterTrafo;
 
 public class InternalTGGConversionHelper extends AbstractHandler {
@@ -77,8 +78,6 @@ public class InternalTGGConversionHelper extends AbstractHandler {
 			           Map<Object, Object> options = new HashMap<Object, Object>();
 			           options.put(XMLResource.OPTION_URI_HANDLER, new MyURIHandler());
 			
-			           saveTGGFileToXMI(xtextParsedTGG, resourceSet, options, projectPath);
-			
 			           // Invoke TGG forward transformation to produce TGG model
 			           String pathToThisPlugin = MoflonUtilitiesActivator.getPathRelToPlugIn("/", MOSLTGGPlugin.getDefault().getPluginId()).getFile();
 			
@@ -86,7 +85,9 @@ public class InternalTGGConversionHelper extends AbstractHandler {
 			           helper.getResourceSet().getResources().add(xtextParsedTGG.eResource());
 			           helper.setSrc(xtextParsedTGG);
 			           helper.integrateForward();
-			           helper.postProcessForward();
+			            
+			           CodeadapterPostProcessForwardHelper postProcessHelper = new CodeadapterPostProcessForwardHelper();
+			           postProcessHelper.postProcessForward(helper);
 			
 			           TGGProject tggProject = (TGGProject) helper.getTrg();
 			           saveInternalTGGModelToXMI(tggProject, resourceSet, options, tggFile.getProject().getName());

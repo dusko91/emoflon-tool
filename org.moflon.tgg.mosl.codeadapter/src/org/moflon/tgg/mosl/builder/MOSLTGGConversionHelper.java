@@ -42,6 +42,8 @@ import org.moflon.tgg.mosl.tgg.Rule;
 import org.moflon.tgg.mosl.tgg.TripleGraphGrammarFile;
 import org.moflon.tgg.tggproject.TGGProject;
 import org.moflon.tgg.tggproject.TggprojectFactory;
+import org.moflon.tie.CodeadapterPostProcessBackwardHelper;
+import org.moflon.tie.CodeadapterPostProcessForwardHelper;
 import org.moflon.tie.CodeadapterTrafo;
 
 public class MOSLTGGConversionHelper extends AbstractHandler
@@ -83,8 +85,6 @@ public class MOSLTGGConversionHelper extends AbstractHandler
 	            Map<Object, Object> options = new HashMap<Object, Object>();
 	            options.put(XMLResource.OPTION_URI_HANDLER, new MyURIHandler());
 	
-	            saveTGGFileToXMI(xtextParsedTGG, resourceSet, options, projectPath);
-	
 	            // Invoke TGG forward transformation to produce TGG model
 	            String pathToThisPlugin = MoflonUtilitiesActivator.getPathRelToPlugIn("/", MOSLTGGPlugin.getDefault().getPluginId()).getFile();
 	
@@ -92,7 +92,9 @@ public class MOSLTGGConversionHelper extends AbstractHandler
 	            helper.getResourceSet().getResources().add(xtextParsedTGG.eResource());
 	            helper.setSrc(xtextParsedTGG);
 	            helper.integrateForward();
-	            helper.postProcessForward();
+	            
+	            CodeadapterPostProcessForwardHelper postProcessHelper = new CodeadapterPostProcessForwardHelper();
+	            postProcessHelper.postProcessForward(helper);
 	
 	            TGGProject tggProject = (TGGProject) helper.getTrg();
 	            saveInternalTGGModelToXMI(tggProject, resourceSet, options, project.getName());
@@ -219,12 +221,12 @@ public class MOSLTGGConversionHelper extends AbstractHandler
 
                helper.setTrg(tggProject);
                helper.integrateBackward();
-               helper.postProcessBackward();
+               
+	           CodeadapterPostProcessBackwardHelper postProcessHelper = new CodeadapterPostProcessBackwardHelper();
+	           postProcessHelper.postProcessBackward(helper);
 
                TripleGraphGrammarFile tggModel = (TripleGraphGrammarFile) helper.getSrc();
                String projectPath = tggFile.getProject().getFullPath().toString();
-                              
-               saveXtextTGGModelToXMI(tggModel, projectPath);
                
                saveXtextTGGModelToTGGFile(tggModel, projectPath, "/src/org/moflon/tgg/mosl" + projectPath + ".tgg");
             }
