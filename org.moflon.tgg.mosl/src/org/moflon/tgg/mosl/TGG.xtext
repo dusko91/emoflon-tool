@@ -13,50 +13,50 @@ TripleGraphGrammarFile:
 Schema:
 	imports += Import*	
 	using += Using*	
-	'schema' name = QualifiedName
+	'«schema»' name = QualifiedName
 		
-	('source' '{'
+	('«source»' '{'
 		sourceTypes += [ecore::EPackage | QualifiedName]*
 	'}')? 
 	
-	('target' '{'
+	('«target»' '{'
 		targetTypes += [ecore::EPackage | QualifiedName]*
 	'}')? 
 
-	('correspondence' '{'
+	('«correspondence»' '{'
 		correspondenceTypes += CorrType*
 	'}')?	
 	
-	('attribute conditions' '{'
+	('«attribute conditions»' '{'
 		attributeCondDefs += AttrCondDef*
 	'}')? 
 ;
 
 CorrType:
-	name = ID (('extends' super=[CorrType]) | ('{'
-		'-@src->' source = [ecore::EClass | QualifiedName]  
-		'-@trg->' target = [ecore::EClass | QualifiedName]
+	name = ID (('«extends»' super=[CorrType]) | ('{'
+		'-«src»->' source = [ecore::EClass | QualifiedName]  
+		'-«trg»->' target = [ecore::EClass | QualifiedName]
 	'}'))
 ;
 
 Rule:
 	imports += Import*	
 	using += Using*
-	(abstractRule ?= 'abstract')? 'rule' name = ID ('extends' supertypes += [Rule] (',' supertypes += [Rule])*)? ('complements' kernel = [Rule])? ' with ' schema = [Schema | QualifiedName]
+	(abstractRule ?= '«abstract»')? '«rule»' name = ID ('«extends»' supertypes += [Rule] (',' supertypes += [Rule])*)? ('«complements»' kernel = [Rule])? ' «with» ' schema = [Schema | QualifiedName]
 		
-	('source' '{'
+	('«source»' '{'
 		sourcePatterns += ObjectVariablePattern* 
 	'}')? 	
 	
-	('target' '{'
+	('«target»' '{'
 		targetPatterns += ObjectVariablePattern* 
 	'}')? 
 	
-	('correspondence' '{'
+	('«correspondence»' '{'
 		correspondencePatterns += CorrVariablePattern*	
 	'}')? 
 
-	('attribute conditions' '{'
+	('«attribute conditions»' '{'
 		attrConditions += AttrCond*
 	'}')? 
 ;
@@ -66,7 +66,7 @@ AttrCond:
 ;
 
 AttrCondDef:
-	(userDefined ?= 'userDefined')? name = ID '(' (params += Param (',' params += Param)*)? ')' '{'
+	(userDefined ?= '«userDefined»')? name = ID '(' (params += Param (',' params += Param)*)? ')' '{'
 		'sync:'
 			allowedSyncAdornments += Adornment (',' allowedSyncAdornments += Adornment)*
 		'gen:'
@@ -75,7 +75,7 @@ AttrCondDef:
 ;
 
 AttrCondDefLibrary:
-	'library' name = QualifiedName
+	'«library»' name = QualifiedName
 	('{'
 		attributeCondDefs += AttrCondDef*
 	'}')?
@@ -102,13 +102,13 @@ LocalVariable:
 ;
 
 Literal:
-	value = STRING
+	value = LiteralValue
 ;
 
 CorrVariablePattern:
 	(op = Operator)? name = ID ' : ' type = [CorrType | QualifiedName] '{'
-		'-@src->' source = [ObjectVariablePattern]
-		'-@trg->' target = [ObjectVariablePattern]
+		'-«src»->' source = [ObjectVariablePattern]
+		'-«trg»->' target = [ObjectVariablePattern]
 	'}' 
 ;
 
@@ -137,7 +137,7 @@ AttributeExpression:
 ;
 
 LiteralExpression:
-	value = STRING
+	value = LiteralExpressionValue
 ;
 
 LinkVariablePattern:
@@ -151,11 +151,11 @@ Operator:
 // Auxiliaries
 
 Import:
-	'import' name=STRING
+	'«import»' name=STRING
 ;
 
 Using:
-	'using' importedNamespace = QualifiedNameWithWildcard
+	'«using»' importedNamespace = QualifiedNameWithWildcard
 ;
 
 terminal DECIMAL: INT '.' INT;
@@ -165,11 +165,11 @@ ComparisonOperator:
 ;
 
 LiteralExpressionValue:
-	(ID | STRING | INT | DECIMAL)
+	(ID | ID'::'ID | STRING | INT | DECIMAL)
 ;
 
 LiteralValue:
-	(STRING | INT | DECIMAL)
+	(ID'::'ID | STRING | INT | DECIMAL)
 ;
 
 ParamType returns ecore::EString:

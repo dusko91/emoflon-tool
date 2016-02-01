@@ -47,13 +47,13 @@ class TGGFormatter extends AbstractFormatter2 {
 
 	def dispatch void format(Schema schema, extension IFormattableDocument document) {
 		schema.append[newLines = 3]
-		schema.regionFor.keyword("schema").prepend[setNewLines(2);highPriority]
-		schema.regionFor.keyword("source").prepend[setNewLines(2)]
-		schema.regionFor.keywordPairs("source", "}").get(0).interior[indent]
-		schema.regionFor.keyword("target").prepend[setNewLines(2)]
-		schema.regionFor.keywordPairs("target", "}").get(0).interior[indent]
-		schema.regionFor.keyword("correspondence").prepend[setNewLines(2)]
-		schema.regionFor.keyword("attribute conditions").prepend[setNewLines(2)]
+		schema.regionFor.keyword("«schema»").prepend[setNewLines(2);highPriority]
+		schema.regionFor.keyword("«source»").prepend[setNewLines(2)]
+		schema.regionFor.keywordPairs("«source»", "}").get(0).interior[indent]
+		schema.regionFor.keyword("«target»").prepend[setNewLines(2)]
+		schema.regionFor.keywordPairs("«target»", "}").get(0).interior[indent]
+		schema.regionFor.keyword("«correspondence»").prepend[setNewLines(2)]
+		schema.regionFor.keyword("«attribute conditions»").prepend[setNewLines(2)]
 		
 		schema.regionFor.feature(SCHEMA__SOURCE_TYPES).surround[newLine]
 		schema.regionFor.feature(SCHEMA__TARGET_TYPES).surround[newLine]
@@ -74,15 +74,15 @@ class TGGFormatter extends AbstractFormatter2 {
 
 	def dispatch void format(Rule rule, extension IFormattableDocument document) {
 		rule.append[newLines = 3]
-		rule.regionFor.keyword("abstract").prepend[setNewLines(2);highPriority]
+		rule.regionFor.keyword("«abstract»").prepend[setNewLines(2);highPriority]
 		if (!rule.abstractRule) {
-			rule.regionFor.keyword("rule").prepend[setNewLines(2);highPriority]
+			rule.regionFor.keyword("«rule»").prepend[setNewLines(2);highPriority]
 		}
-		rule.regionFor.keyword(" with ").surround[noSpace]
-		rule.regionFor.keyword("source").prepend[setNewLines(2)]
-		rule.regionFor.keyword("target").prepend[setNewLines(2)]
-		rule.regionFor.keyword("correspondence").prepend[setNewLines(2)]
-		rule.regionFor.keyword("attribute conditions").prepend[setNewLines(2)]
+		rule.regionFor.keyword(" «with» ").surround[noSpace]
+		rule.regionFor.keyword("«source»").prepend[setNewLines(2)]
+		rule.regionFor.keyword("«target»").prepend[setNewLines(2)]
+		rule.regionFor.keyword("«correspondence»").prepend[setNewLines(2)]
+		rule.regionFor.keyword("«attribute conditions»").prepend[setNewLines(2)]
 		rule.regionFor.keyword(",").prepend[noSpace]
 		rule.regionFor.feature(RULE__KERNEL).append[noSpace]
 		
@@ -109,10 +109,9 @@ class TGGFormatter extends AbstractFormatter2 {
 		correspondenceType.surround[newLine]
 		correspondenceType.surround[indent]
 		correspondenceType.interior[indent]
-//		if(correspondenceType instanceof CorrTypeDef){
 		if(correspondenceType instanceof CorrType){
-			correspondenceType.regionFor.keyword("-@src->").prepend[newLine].append[noSpace]
-			correspondenceType.regionFor.keyword("-@trg->").prepend[newLine].append[noSpace]
+			correspondenceType.regionFor.keyword("-«src»->").prepend[newLine].append[noSpace]
+			correspondenceType.regionFor.keyword("-«trg»->").prepend[newLine].append[noSpace]
 			correspondenceType.regionFor.keyword("}").prepend[newLine]
 		}
 	}
@@ -168,8 +167,8 @@ class TGGFormatter extends AbstractFormatter2 {
 		corrvariablepattern.regionFor.feature(CORR_VARIABLE_PATTERN__NAME).surround[noSpace]
 		corrvariablepattern.regionFor.feature(CORR_VARIABLE_PATTERN__TYPE).prepend[noSpace]
 
-		corrvariablepattern.regionFor.keyword("-@src->").prepend[newLine].append[noSpace]
-		corrvariablepattern.regionFor.keyword("-@trg->").prepend[newLine].append[noSpace]
+		corrvariablepattern.regionFor.keyword("-«src»->").prepend[newLine].append[noSpace]
+		corrvariablepattern.regionFor.keyword("-«trg»->").prepend[newLine].append[noSpace]
 		corrvariablepattern.regionFor.keyword("}").prepend[newLine]
 	}
 
