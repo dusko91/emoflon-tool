@@ -133,9 +133,15 @@ public class CodeadapterPostProcessBackwardHelper {
 				if(var instanceof Literal && paramVal instanceof org.moflon.tgg.mosl.tgg.Literal){
 					org.moflon.tgg.mosl.tgg.Literal srcAttr = (org.moflon.tgg.mosl.tgg.Literal) paramVal;
 					Literal trgAttr = (Literal) var;
+					String srcAttrValue = srcAttr.getValue();
+					String trgAttrValue = (String) trgAttr.getValue();
 					
-					if(srcAttr.getValue().equals(trgAttr.getValue()))
+					if(srcAttrValue.equals(trgAttrValue) || srcAttrValue.equals(trgAttrValue.replace(".", "::"))){
+						if(srcAttrValue.charAt(0) != '"' && srcAttrValue.charAt(0) != '\''){
+							srcAttr.setValue(srcAttrValue.replace(".", "::"));
+						}
 						srcVariables.add(srcAttr);
+					}
 				}
 			}
 		}
