@@ -78,7 +78,6 @@ class TGGFormatter extends AbstractFormatter2 {
 		if (!rule.abstractRule) {
 			rule.regionFor.keyword("«rule»").prepend[setNewLines(2);highPriority]
 		}
-		rule.regionFor.keyword(" «with» ").surround[noSpace]
 		rule.regionFor.keyword("«source»").prepend[setNewLines(2)]
 		rule.regionFor.keyword("«target»").prepend[setNewLines(2)]
 		rule.regionFor.keyword("«correspondence»").prepend[setNewLines(2)]

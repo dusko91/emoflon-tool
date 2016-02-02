@@ -42,7 +42,7 @@ CorrType:
 Rule:
 	imports += Import*	
 	using += Using*
-	(abstractRule ?= '«abstract»')? '«rule»' name = ID ('«extends»' supertypes += [Rule] (',' supertypes += [Rule])*)? ('«complements»' kernel = [Rule])? ' «with» ' schema = [Schema | QualifiedName]
+	(abstractRule ?= '«abstract»')? '«rule»' name = ID ('«extends»' supertypes += [Rule] (',' supertypes += [Rule])*)? ('«complements»' kernel = [Rule])? '«with»' schema = [Schema | QualifiedName]
 		
 	('«source»' '{'
 		sourcePatterns += ObjectVariablePattern* 
