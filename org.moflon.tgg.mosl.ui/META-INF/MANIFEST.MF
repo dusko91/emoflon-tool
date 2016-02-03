@@ -21,5 +21,6 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: org.moflon.tgg.mosl.ui.quickfix,
  org.moflon.tgg.mosl.ui.contentassist,
  org.moflon.tgg.mosl.ui.internal,
- org.moflon.tgg.mosl.ui.contentassist.antlr
+ org.moflon.tgg.mosl.ui.contentassist.antlr,
+ org.moflon.tgg.mosl.ui.contentassist.antlr.internal
 Bundle-Activator: org.moflon.tgg.mosl.ui.internal.TGGActivator
