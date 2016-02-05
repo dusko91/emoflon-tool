@@ -6,7 +6,6 @@ package org.moflon.tgg.mosl.validation
 import org.moflon.tgg.mosl.tgg.Adornment
 import org.moflon.tgg.mosl.tgg.TggPackage
 import org.eclipse.xtext.validation.Check
-import org.moflon.tgg.mosl.tgg.ParamValue
 import org.moflon.tgg.mosl.tgg.AttributeVariable
 import org.eclipse.emf.common.util.BasicEList
 

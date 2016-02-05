@@ -12,8 +12,6 @@ import org.eclipse.ui.handlers.HandlerUtil;
 
 public class AddRemoveMOSLTGGNatureHandler extends AbstractHandler {
 
-	private ISelection selection;
-
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		ISelection selection = HandlerUtil.getCurrentSelection(event);
 

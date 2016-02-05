@@ -8,12 +8,7 @@ import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.ui.editor.contentassist.ICompletionProposalAcceptor
 import org.eclipse.xtext.Assignment
 import org.eclipse.xtext.ui.editor.contentassist.ContentAssistContext
-import org.eclipse.xtext.RuleCall
 import org.moflon.tgg.mosl.tgg.AttributeVariable
-import org.eclipse.xtext.CrossReference
-import org.moflon.tgg.mosl.tgg.AttributeAssignment
-import org.moflon.tgg.mosl.tgg.ObjectVariablePattern
-import org.moflon.tgg.mosl.tgg.AttributeConstraint
 
 /**
  * See https://www.eclipse.org/Xtext/documentation/304_ide_concepts.html#content-assist

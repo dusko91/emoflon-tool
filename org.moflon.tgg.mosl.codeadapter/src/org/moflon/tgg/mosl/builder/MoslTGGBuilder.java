@@ -9,81 +9,124 @@ import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 
-public class MoslTGGBuilder extends IncrementalProjectBuilder {
+public class MoslTGGBuilder extends IncrementalProjectBuilder
+{
+   public static final String BUILDER_ID = "org.moflon.tgg.mosl.codeadapter.mosltggbuilder";
 
-	class MoslTGGDeltaVisitor implements IResourceDeltaVisitor {
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see
-		 * org.eclipse.core.resources.IResourceDeltaVisitor#visit(org.eclipse.
-		 * core.resources.IResourceDelta)
-		 */
-		public boolean visit(IResourceDelta delta) throws CoreException {
-			IResource resource = delta.getResource();
-			switch (delta.getKind()) {
-			case IResourceDelta.ADDED:
-				// handle added resource
-				MOSLTGGConversionHelper.generateTGGModel(resource);
-				break;
-			case IResourceDelta.REMOVED:
-				// handle removed resource
-				break;
-			case IResourceDelta.CHANGED:
-				// handle changed resource
-				MOSLTGGConversionHelper.generateTGGModel(resource);
-				break;
-			}
-			// return true to continue visiting children.
-			return true;
-		}
-	}
+   class MoslTGGVisitor implements IResourceDeltaVisitor, IResourceVisitor
+   {
+      @Override
+      public boolean visit(IResourceDelta delta) throws CoreException
+      {
+         IResource resource = delta.getResource();
 
-	class SampleResourceVisitor implements IResourceVisitor {
-		public boolean visit(IResource resource) {
-			MOSLTGGConversionHelper.generateTGGModel(resource);
-			// return true to continue visiting children.
-			return true;
-		}
-	}
+         if (isMOSLFolder(resource))
+         {
+            switch (delta.getKind())
+            {
+            case IResourceDelta.ADDED:
+            case IResourceDelta.CHANGED:
+               new MOSLTGGConversionHelper().generateTGGModel(resource);
+               break;
+            case IResourceDelta.REMOVED:
+               // handle removed resource
+               break;
+            }
+         }
+         
+         if(isGeneratedEcore(resource)){
+            switch (delta.getKind())
+            {
+            case IResourceDelta.ADDED:
+               removeXtextMarkers(resource);
+               break;
+            }
+         }
 
-	public static final String BUILDER_ID = "org.moflon.tgg.mosl.codeadapter.mosltggbuilder";
+         // return true to continue visiting children.
+         return true;
+      }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.eclipse.core.internal.events.InternalBuilder#build(int,
-	 * java.util.Map, org.eclipse.core.runtime.IProgressMonitor)
-	 */
-	protected IProject[] build(int kind, Map args, IProgressMonitor monitor) throws CoreException {
-		if (kind == FULL_BUILD) {
-			fullBuild(monitor);
-		} else {
-			IResourceDelta delta = getDelta(getProject());
-			if (delta == null) {
-				fullBuild(monitor);
-			} else {
-				incrementalBuild(delta, monitor);
-			}
-		}
-		return null;
-	}
+      private void removeXtextMarkers(IResource resource)
+      {
+         try
+         {
+            resource.deleteMarkers(org.eclipse.xtext.ui.MarkerTypes.FAST_VALIDATION, false, IResource.DEPTH_ZERO);
+         } catch (CoreException e)
+         {
+            e.printStackTrace();
+         }
+      }
 
-	protected void clean(IProgressMonitor monitor) throws CoreException {
-		// TODO remove generated files
-	}
+      private boolean isGeneratedEcore(IResource resource)
+      {
+         return "ecore".equals(resource.getProjectRelativePath().getFileExtension())
+             && "model".equals(resource.getProjectRelativePath().segment(0));
+      }
 
-	protected void fullBuild(final IProgressMonitor monitor) throws CoreException {
-		try {
-			getProject().accept(new SampleResourceVisitor());
-		} catch (CoreException e) {
-		}
-	}
+      private boolean isMOSLFolder(IResource resource)
+      {
+         IProject project = resource.getProject();
+         IPath pathToMOSLFolder = project.getProjectRelativePath().append("/src/org/moflon/tgg/mosl");
+         return resource.getProjectRelativePath().equals(pathToMOSLFolder);
+      }
 
-	protected void incrementalBuild(IResourceDelta delta, IProgressMonitor monitor) throws CoreException {
-		// the visitor does the work.
-		delta.accept(new MoslTGGDeltaVisitor());
-	}
+      @Override
+      public boolean visit(IResource resource) throws CoreException
+      {
+         if (isMOSLFolder(resource))
+         {
+            new MOSLTGGConversionHelper().generateTGGModel(resource);
+            return true;
+         }
+
+         return false;
+      }
+   }
+
+   @Override
+   protected IProject[] build(int kind, Map<String, String> args, IProgressMonitor monitor) throws CoreException
+   {
+      if (kind == FULL_BUILD)
+      {
+         fullBuild(monitor);
+      } else
+      {
+         IResourceDelta delta = getDelta(getProject());
+         if (delta == null)
+         {
+            fullBuild(monitor);
+         } else
+         {
+            incrementalBuild(delta, monitor);
+         }
+      }
+      return null;
+   }
+
+   @Override
+   protected void clean(IProgressMonitor monitor) throws CoreException
+   {
+
+   }
+
+   protected void fullBuild(final IProgressMonitor monitor) throws CoreException
+   {
+      try
+      {
+         getProject().accept(new MoslTGGVisitor());
+      } catch (CoreException e)
+      {
+         e.printStackTrace();
+      }
+   }
+
+   protected void incrementalBuild(IResourceDelta delta, IProgressMonitor monitor) throws CoreException
+   {
+      // the visitor does the work.
+      delta.accept(new MoslTGGVisitor());
+   }
 }
