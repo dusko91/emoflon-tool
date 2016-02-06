@@ -30,10 +30,10 @@ public class MoslTGGBuilder extends IncrementalProjectBuilder
             case IResourceDelta.ADDED:
             case IResourceDelta.CHANGED:
                new MOSLTGGConversionHelper().generateTGGModel(resource);
-               break;
+               return false;
             case IResourceDelta.REMOVED:
                // handle removed resource
-               break;
+               return false;
             }
          }
          
@@ -42,7 +42,7 @@ public class MoslTGGBuilder extends IncrementalProjectBuilder
             {
             case IResourceDelta.ADDED:
                removeXtextMarkers(resource);
-               break;
+               return false;
             }
          }
 
@@ -80,10 +80,13 @@ public class MoslTGGBuilder extends IncrementalProjectBuilder
          if (isMOSLFolder(resource))
          {
             new MOSLTGGConversionHelper().generateTGGModel(resource);
-            return true;
+            return false;
+         } else if(isGeneratedEcore(resource)){
+        	removeXtextMarkers(resource);
+        	return false;
          }
 
-         return false;
+         return true;
       }
    }
 
