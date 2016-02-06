@@ -28,6 +28,7 @@ import org.moflon.tgg.mosl.tgg.Using
 
 import static org.moflon.tgg.mosl.tgg.TggPackage.Literals.*
 
+
 class TGGFormatter extends AbstractFormatter2 {
 	
 	@Inject extension TGGGrammarAccess
