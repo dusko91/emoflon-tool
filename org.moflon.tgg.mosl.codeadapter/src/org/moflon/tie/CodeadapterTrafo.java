@@ -8,7 +8,7 @@ import org.moflon.tgg.algorithm.synchronization.SynchronizationHelper;
 import org.moflon.tgg.mosl.codeadapter.CodeadapterPackage;
 
 
-public class CodeadapterTrafo extends SynchronizationHelper{
+public class CodeadapterTrafo extends SynchronizationHelper {
 
    public CodeadapterTrafo(String pathToProject)
    {
