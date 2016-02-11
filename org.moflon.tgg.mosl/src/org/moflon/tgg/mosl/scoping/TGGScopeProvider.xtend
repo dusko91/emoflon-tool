@@ -58,7 +58,6 @@ class TGGScopeProvider extends AbstractDeclarativeScopeProvider {
 			if(is_attr_of_attr_expression(context, reference))
 				return attr_must_be_from_attr_exp_ov(context)
 			
-			
 			if (is_type_of_lv(context, reference)) 
 				return type_of_lv_must_be_a_reference_of_enclosing_ov(context)
 			
@@ -90,7 +89,7 @@ class TGGScopeProvider extends AbstractDeclarativeScopeProvider {
 				
 			if(is_source_or_target_type_of_schema(context, reference))
 				return potential_packages(context)
-		} catch(IllegalStateException ies){
+		} catch(Exception e){
 			// Specific handling didn't work so delegate to base class
 		}
 
