@@ -3,6 +3,7 @@ package org.moflon.tie;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.emf.common.util.BasicEList;
 import org.eclipse.emf.common.util.EList;
@@ -216,9 +217,9 @@ public class CodeadapterPostProcessBackwardHelper {
 	private EPackage importEPackage(Schema schema, Domain domain) {
 		EPackage outermostPackage = domain.getMetamodel().getOutermostPackage();
 		Import packageImport = TggFactory.eINSTANCE.createImport();
-
-		String importPath = "/"+outermostPackage.getNsPrefix()+"/model/"+outermostPackage.getNsPrefix()+".ecore";
-
+		
+		String importPath = "/"+outermostPackage.getNsPrefix()+"/model/"+StringUtils.capitalize(outermostPackage.getName())+".ecore";
+		
 		if (ResourcesPlugin.getWorkspace().getRoot().findMember(importPath) != null) {
 			importPath = "platform:/resource" + importPath;
 		} else {
