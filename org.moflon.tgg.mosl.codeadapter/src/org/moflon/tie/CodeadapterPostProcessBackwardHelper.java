@@ -194,9 +194,6 @@ public class CodeadapterPostProcessBackwardHelper {
 		
 		using.setImportedNamespace(rule.getSchema().getName() +".*");
 		rule.getUsing().add(using);
-		using = TggFactory.eINSTANCE.createUsing();
-		using.setImportedNamespace("AttrCondDefLibrary.*");
-		rule.getUsing().add(using);
 	}
 
 	private void postProcessBackward_TripleGraphGrammarFile(TripleGraphGrammarFileToTripleGraphGrammar corr) {

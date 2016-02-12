@@ -268,30 +268,7 @@ public class MOSLTGGConversionHelper extends AbstractHandler
 
       XtextResourceSet xtextResourceSet = new XtextResourceSet();
       XtextResource xtextResource = (XtextResource) xtextResourceSet.createResource(tggFileURI);
-      AttrCondDefLibrary attrCondDefLibrary = AttrCondDefLibraryProvider.syncAttrCondDefLibrary(xtextResourceSet, projectPath);
-
-      EList<AttrCondDef> libraryAttrCondDefs = new BasicEList<AttrCondDef>();
-      for (AttrCondDef attrCondDef : tggModel.getSchema().getAttributeCondDefs())
-      {
-         if (!attrCondDef.isUserDefined())
-         {
-            libraryAttrCondDefs.add(attrCondDef);
-         }
-      }
-      for (Rule rule : tggModel.getRules())
-      {
-         for (AttrCond attrCond : rule.getAttrConditions())
-         {
-            for (AttrCondDef attrCondDef : attrCondDefLibrary.getAttributeCondDefs())
-            {
-               if (attrCondDef.getName().equals(attrCond.getName().getName()))
-               {
-                  attrCond.setName(attrCondDef);
-               }
-            }
-         }
-      }
-      tggModel.getSchema().getAttributeCondDefs().removeAll(libraryAttrCondDefs);
+	  AttrCondDefLibraryProvider.syncAttrCondDefLibrary(xtextResourceSet, projectPath);
 
       xtextResource.getContents().add(tggModel);
       EcoreUtil.resolveAll(xtextResource);
