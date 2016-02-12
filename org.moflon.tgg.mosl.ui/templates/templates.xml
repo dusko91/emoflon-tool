@@ -1,33 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <templates>
 
-<template id="t1" autoinsert="true" context="org.moflon.tgg.mosl.TGG.kw_«attribute conditions»" deleted="false" description="Specify Attribute Conditions" enabled="true" name="«attribute conditions»">
-«attribute conditions» {&#13;
-	${value}&#13;
-}</template>
-
-<template id="t2" autoinsert="true" context="org.moflon.tgg.mosl.TGG.kw_«correspondence»" deleted="false" description="Specify Correspondence Domain" enabled="true" name="«correspondence»">«correspondence» {&#13;
-	${value}&#13;
-}</template>
-
-<template id="t4" autoinsert="true" context="org.moflon.tgg.mosl.TGG.kw_«source»" deleted="false" description="Specify Source Domain" enabled="true" name="«source»">«source»  {&#13;
-	${value}&#13;
-}</template>
-
-<template id="t5" autoinsert="true" context="org.moflon.tgg.mosl.TGG.kw_«target»" deleted="false" description="Specify Target Domain" enabled="true" name="«target»">«target» {&#13;
-	${value}&#13;
-}</template>
-
-<template id="t6" autoinsert="true" context="org.moflon.tgg.mosl.TGG.CorrType" deleted="false" description="Define CorrType" enabled="true" name="CorrType">${name}  {&#13;
-	-«src»-&gt;${source}&#13;
-	-«trg»-&gt;${target}&#13;
-}</template>
-
-<template id="t7" autoinsert="true" context="org.moflon.tgg.mosl.TGG.CorrVariablePattern" deleted="false" description="Specify CorrVariablePattern" enabled="true" name="CorrVariablePattern">${name} : ${CorrType} {&#13;
-	-«src»-&gt;${source}&#13;
-	-«trg»-&gt;${target}&#13;
-}</template>
-
 <template id="t3" autoinsert="true" context="org.moflon.tgg.mosl.TGG.kw_«rule»" deleted="false" description="Declare TGG Rule" enabled="true" name="Rule">«using» ${nameOfSchema}.*&#13;
 «using» AttrCondDefLibrary.*&#13;
 &#13;
@@ -49,4 +22,5 @@
 	&#13;
 }&#13;
 </template>
+
 </templates>
