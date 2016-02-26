@@ -165,15 +165,15 @@ ComparisonOperator:
 ;
 
 LiteralExpressionValue:
-	(ID | ID'::'ID | STRING | INT | DECIMAL)
+	(ID | ID'::'ID | STRING | ('-')?INT | ('-')?DECIMAL)
 ;
 
 LiteralValue:
-	(ID'::'ID | STRING | INT | DECIMAL)
+	(ID'::'ID | STRING | ('-')?INT | ('-')?DECIMAL)
 ;
 
 ParamType returns ecore::EString:
-	(ID)?
+	(ID ('.' ID)*)?
 ;
 
 QualifiedNameWithWildcard:
