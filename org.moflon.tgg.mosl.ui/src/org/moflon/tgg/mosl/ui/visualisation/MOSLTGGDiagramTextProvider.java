@@ -61,18 +61,23 @@ public class MOSLTGGDiagramTextProvider implements DiagramTextProvider {
 	
 	@Override
 	public String getDiagramText(IEditorPart editorPart, ISelection selection) {
-		if (oldValue.isPresent() && !outdated)
-			return oldValue.get();
+		try {
+			if (oldValue.isPresent() && !outdated)
+				return oldValue.get();
 
-		Optional<TGGRule> rule = getTGGRuleForSelection(selection);
+			Optional<TGGRule> rule = getTGGRuleForSelection(selection);
 
-		oldValue = rule.map(r -> {
-			outdated = false;
-			TGGRuleDiagramTextProvider tggTextProvider = new TGGRuleDiagramTextProvider();
-			return new DotUnparserAdapter().unparse(tggTextProvider.modelToDot(r));
-		});
+			oldValue = rule.map(r -> {
+				outdated = false;
+				TGGRuleDiagramTextProvider tggTextProvider = new TGGRuleDiagramTextProvider();
+				return new DotUnparserAdapter().unparse(tggTextProvider.modelToDot(r));
+			});
 
-		return oldValue.orElse("@startuml @enduml");
+			return oldValue.orElse("@startuml @enduml");
+		} catch (Exception e) {
+			e.printStackTrace();
+			return "@startuml @enduml";
+		}
 	}
 
 	@Override
