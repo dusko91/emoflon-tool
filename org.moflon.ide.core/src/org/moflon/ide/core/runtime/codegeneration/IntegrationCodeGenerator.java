@@ -19,6 +19,7 @@ import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.moflon.codegen.eclipse.CodeGeneratorPlugin;
 import org.moflon.codegen.eclipse.MonitoredMetamodelLoader;
+import org.moflon.core.mocatomoflon.tgg.util.TggSwitch;
 import org.moflon.core.utilities.MoflonUtil;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.core.utilities.eMoflonEMFUtil;
@@ -35,6 +36,7 @@ import org.moflon.moca.tie.RunModelGenerationGenerator;
 import org.moflon.properties.MoflonPropertiesContainerHelper;
 import org.moflon.tgg.cspcodeadapter.CspcodeadapterFactory;
 import org.moflon.tgg.cspcodeadapter.VariableTypeManager;
+import org.moflon.tgg.democles.compiler.*;
 import org.moflon.tgg.language.LanguagePackage;
 import org.moflon.tgg.language.TGGRule;
 import org.moflon.tgg.language.TripleGraphGrammar;
@@ -273,6 +275,20 @@ public class IntegrationCodeGenerator extends RepositoryCodeGenerator
          {
             throw new CoreException(new Status(IStatus.ERROR, CoreActivator.getModuleID(), IStatus.ERROR, e.getMessage(), e));
          }
+         
+         try
+         {
+            URI patternsURI = URI.createURI(genTGGResource.getURI().toString().replace(WorkspaceHelper.TGG_FILE_EXTENSION, ".pattern.xmi"));
+            PackageRemappingDependency patternsFile = new PackageRemappingDependency(patternsURI);
+            Resource patternsResource = patternsFile.getResource(set, false);
+            TGGtoDemoclesPatternsCompiler democlesCompiler = new TGGtoDemoclesPatternsCompiler();
+            democlesCompiler.createPatterns(tgg).forEach(p -> patternsResource.getContents().add(p));
+            patternsResource.save(saveOptions);
+         } catch (IOException e)
+         {
+            e.printStackTrace();
+         }
+       
          monitor.worked(5);
 
          generateUserDefinedConstraints(userDefinedConstraints);
