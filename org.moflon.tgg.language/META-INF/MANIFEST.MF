@@ -10,7 +10,12 @@ Require-Bundle: org.apache.log4j;bundle-version="1.2.15",
  SDMLanguage,
  org.moflon.tgg.runtime,
  MoflonPropertyContainer,
- MocaTree
+ MocaTree,
+ org.gervarro.democles.compiler;bundle-version="1.1.0",
+ org.gervarro.democles.emf;bundle-version="2.0.0",
+ org.gervarro.democles.interpreter;bundle-version="1.0.0",
+ org.gervarro.democles.interpreter.emf;bundle-version="1.0.0",
+ org.gervarro.democles.specification.emf;bundle-version="2.0.0"
 Bundle-ManifestVersion: 2
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
@@ -46,6 +51,7 @@ Export-Package: .,
  org.moflon.tgg.algorithm.modelgenerator,
  org.moflon.tgg.algorithm.modelgenerator.controller,
  org.moflon.tgg.algorithm.synchronization,
+ org.moflon.tgg.democles.compiler,
  org.moflon.tgg.language,
  org.moflon.tgg.language.algorithm,
  org.moflon.tgg.language.algorithm.impl,
