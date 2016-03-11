@@ -27,7 +27,7 @@ Require-Bundle:
  org.moflon.tgg.runtime,
  org.moflon.tgg.language,
  org.moflon.ide.plugins,
- org.gervarro.democles.specification.emf;bundle-version="2.0.0"
+ org.gervarro.democles.specification.emf
 Export-Package: org.moflon.ide.core,
  org.moflon.ide.core.ea,
  org.moflon.ide.core.injection,
