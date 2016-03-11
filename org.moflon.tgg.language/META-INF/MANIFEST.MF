@@ -11,11 +11,14 @@ Require-Bundle: org.apache.log4j;bundle-version="1.2.15",
  org.moflon.tgg.runtime,
  MoflonPropertyContainer,
  MocaTree,
- org.gervarro.democles.compiler;bundle-version="1.1.0",
- org.gervarro.democles.emf;bundle-version="2.0.0",
- org.gervarro.democles.interpreter;bundle-version="1.0.0",
+ org.gervarro.democles.compiler,
+ org.gervarro.democles.emf,
+ org.gervarro.democles.interpreter,
+ org.gervarro.democles.codegen.emf;bundle-version="0.3.2",
+ org.gervarro.democles.codegen.velocity;bundle-version="0.3.2",
  org.gervarro.democles.interpreter.emf;bundle-version="1.0.0",
- org.gervarro.democles.specification.emf;bundle-version="2.0.0"
+ org.gervarro.democles.plan.emf;bundle-version="1.0.0",
+ org.gervarro.democles.specification.emf;bundle-version="1.0.0"
 Bundle-ManifestVersion: 2
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
