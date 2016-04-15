@@ -16,7 +16,7 @@ import org.moflon.core.mocatomoflon.impl.ExporterImpl;
 import org.moflon.core.utilities.UncheckedCoreException;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.ide.core.CoreActivator;
-import org.moflon.ide.core.runtime.builders.NewMetamodelBuilder;
+import org.moflon.ide.core.runtime.builders.MetamodelBuilder;
 import org.moflon.properties.MoflonPropertiesContainerHelper;
 import org.moflon.tgg.language.TripleGraphGrammar;
 
@@ -37,7 +37,7 @@ public class BasicResourceFillingMocaToMoflonTransformation extends
 			Logger.getLogger(ResourceFillingMocaToMoflonTransformation.class);
 	   
 	protected final ResourceSet set;
-	private final NewMetamodelBuilder metamodelBuilder;
+	private final MetamodelBuilder metamodelBuilder;
 	private final IWorkspace workspace = ResourcesPlugin.getWorkspace();
 	private final IProject metamodelProject;
 	
@@ -48,7 +48,7 @@ public class BasicResourceFillingMocaToMoflonTransformation extends
 
 	public BasicResourceFillingMocaToMoflonTransformation(
 			final ResourceSet set,
-			final NewMetamodelBuilder metamodelBuilder,
+			final MetamodelBuilder metamodelBuilder,
 			final IProject metamodelProject) {
 		this.set = set;
 		this.metamodelBuilder = metamodelBuilder;

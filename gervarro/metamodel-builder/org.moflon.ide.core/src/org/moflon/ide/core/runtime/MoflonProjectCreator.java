@@ -40,17 +40,17 @@ public class MoflonProjectCreator extends WorkspaceTask {
 	private static final String MANIFEST_BUILDER_NAME = "org.eclipse.pde.ManifestBuilder";
 
 	private IProject workspaceProject;
-	private MetamodelProperties properties;
+	private MetamodelProperties metamodelProperties;
 
 	public MoflonProjectCreator(final IProject project, final MetamodelProperties projectProperties) {
 		this.workspaceProject = project;
-		this.properties = projectProperties;
+		this.metamodelProperties = projectProperties;
 	}
 
 	@Override
 	public void run(final IProgressMonitor monitor) throws CoreException {
 		if (!workspaceProject.exists()) {
-			final String projectName = properties.getProjectName();
+			final String projectName = metamodelProperties.getProjectName();
 			monitor.beginTask("Creating project " + projectName, 10);
 			
 			// (1) Create project
@@ -75,10 +75,10 @@ public class MoflonProjectCreator extends WorkspaceTask {
 							changed |= ManifestFileUpdater.updateAttribute(manifest,
 									PluginManifestConstants.BUNDLE_MANIFEST_VERSION, "2", AttributeUpdatePolicy.KEEP);
 							changed |= ManifestFileUpdater.updateAttribute(manifest, PluginManifestConstants.BUNDLE_NAME,
-									properties.get(MetamodelProperties.NAME_KEY), AttributeUpdatePolicy.KEEP);
+									metamodelProperties.get(MetamodelProperties.NAME_KEY), AttributeUpdatePolicy.KEEP);
 							changed |= ManifestFileUpdater.updateAttribute(manifest,
 									PluginManifestConstants.BUNDLE_SYMBOLIC_NAME,
-									properties.get(MetamodelProperties.PLUGIN_ID_KEY) + ";singleton:=true",
+									metamodelProperties.get(MetamodelProperties.PLUGIN_ID_KEY) + ";singleton:=true",
 									AttributeUpdatePolicy.KEEP);
 							changed |= ManifestFileUpdater.updateAttribute(manifest, PluginManifestConstants.BUNDLE_VERSION,
 									"1.0", AttributeUpdatePolicy.KEEP);
@@ -88,7 +88,7 @@ public class MoflonProjectCreator extends WorkspaceTask {
 									PluginManifestConstants.BUNDLE_ACTIVATION_POLICY, "lazy", AttributeUpdatePolicy.KEEP);
 							changed |= ManifestFileUpdater.updateAttribute(manifest,
 									PluginManifestConstants.BUNDLE_EXECUTION_ENVIRONMENT,
-									properties.get(MetamodelProperties.JAVA_VERION), AttributeUpdatePolicy.KEEP);
+									metamodelProperties.get(MetamodelProperties.JAVA_VERION), AttributeUpdatePolicy.KEEP);
 							return changed;
 						});
 			} catch (IOException e) {
@@ -101,7 +101,7 @@ public class MoflonProjectCreator extends WorkspaceTask {
 					WorkspaceHelper.createSubmonitorWith1Tick(monitor));
 
 			// TODO (5) Configure natures and builders (.project file)
-			final String moflonNatureID = getNatureID(properties.getType());
+			final String moflonNatureID = getNatureID(metamodelProperties.getType());
 			registerPluginBuildersAndAddNature(workspaceProject, WorkspaceHelper.createSubmonitorWith1Tick(monitor));
 
 			// (6) Configure Java settings (.classpath file)
@@ -124,8 +124,9 @@ public class MoflonProjectCreator extends WorkspaceTask {
 			// (7) Create Moflon properties file (moflon.properties.xmi)
 			MoflonPropertiesContainer moflonProperties =
 					MoflonPropertiesContainerHelper.createDefaultPropertiesContainer(workspaceProject.getName(),
-							properties.getMetamodelProjectName());
-			setDefaultCodeGenerator(moflonProperties);
+							metamodelProperties.getMetamodelProjectName());
+			moflonProperties.getSdmCodegeneratorHandlerId().setValue(
+					getCodeGeneratorHandler(metamodelProperties.getType()));
 			MoflonPropertiesContainerHelper.save(moflonProperties, WorkspaceHelper.createSubmonitorWith1Tick(monitor));
 		}
 
@@ -135,13 +136,10 @@ public class MoflonProjectCreator extends WorkspaceTask {
 	private final String getNatureID(final String type) {
 		return MetamodelProperties.REPOSITORY_KEY.equals(type) ? WorkspaceHelper.REPOSITORY_NATURE_ID : WorkspaceHelper.INTEGRATION_NATURE_ID;
 	}
-
-	private void setDefaultCodeGenerator(final MoflonPropertiesContainer moflonProps) {
-		if (properties.getType().equals(MetamodelProperties.INTEGRATION_KEY)) {
-			moflonProps.getSdmCodegeneratorHandlerId().setValue(SDMCodeGeneratorIds.DEMOCLES_REVERSE_NAVI);
-		} else {
-			moflonProps.getSdmCodegeneratorHandlerId().setValue(SDMCodeGeneratorIds.DEMOCLES);
-		}
+	
+	private final SDMCodeGeneratorIds getCodeGeneratorHandler(final String type) {
+		return MetamodelProperties.INTEGRATION_KEY.equals(type) ?
+				SDMCodeGeneratorIds.DEMOCLES_REVERSE_NAVI : SDMCodeGeneratorIds.DEMOCLES;
 	}
 
 	private static void addGitIgnoreFiles(final IProject project, final IProgressMonitor monitor) throws CoreException {

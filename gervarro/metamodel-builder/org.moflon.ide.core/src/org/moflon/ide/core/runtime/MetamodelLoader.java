@@ -20,7 +20,7 @@ import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.dependency.PackageRemappingDependency;
 import org.moflon.eclipse.resource.SDMEnhancedEcoreResource;
 import org.moflon.ide.core.CoreActivator;
-import org.moflon.ide.core.runtime.builders.NewMetamodelBuilder;
+import org.moflon.ide.core.runtime.builders.MetamodelBuilder;
 import org.moflon.properties.MoflonPropertiesContainerHelper;
 
 import MocaTree.Attribute;
@@ -41,13 +41,13 @@ public class MetamodelLoader implements ITask {
 			Logger.getLogger(ResourceFillingMocaToMoflonTransformation.class);
 	   
 	protected final ResourceSet set;
-	private final NewMetamodelBuilder builder;
+	private final MetamodelBuilder builder;
 	private final Node node;
 	private final EPackage outermostPackage;
 	private final URI defaultNamespaceURI;
 	// private final IWorkspace workspace = ResourcesPlugin.getWorkspace();
 
-	public MetamodelLoader(final NewMetamodelBuilder builder,
+	public MetamodelLoader(final MetamodelBuilder builder,
 			final ResourceSet set, final Node node, final EPackage ePackage) {
 		this.builder = builder;
 		this.set = set;

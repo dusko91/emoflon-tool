@@ -21,7 +21,7 @@ import org.moflon.core.utilities.MoflonUtil;
 import org.moflon.core.utilities.UncheckedCoreException;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.ide.core.CoreActivator;
-import org.moflon.ide.core.runtime.builders.NewMetamodelBuilder;
+import org.moflon.ide.core.runtime.builders.MetamodelBuilder;
 import org.moflon.properties.MoflonPropertiesContainerHelper;
 import org.moflon.sdm.language.SDMLanguagePlugin;
 import org.moflon.tgg.runtime.TGGRuntimePlugin;
@@ -41,7 +41,7 @@ public class ResourceFillingMocaToMoflonTransformation extends BasicResourceFill
 	private IProgressMonitor monitor;
 
 	public ResourceFillingMocaToMoflonTransformation(final ResourceSet resourceSet,
-			final NewMetamodelBuilder resourceSetProcessor,
+			final MetamodelBuilder resourceSetProcessor,
 			final IProject metamodelProject,
 			final Map<String, MetamodelProperties> propertiesMap,
 			final IProgressMonitor progressMonitor) {

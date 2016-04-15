@@ -24,17 +24,17 @@ import org.eclipse.emf.ecore.resource.impl.ExtensibleURIConverterImpl.URIMap;
 import org.gervarro.eclipse.task.ITask;
 import org.moflon.codegen.eclipse.CodeGeneratorPlugin;
 import org.moflon.ide.core.CoreActivator;
-import org.moflon.ide.core.runtime.builders.NewMetamodelBuilder;
+import org.moflon.ide.core.runtime.builders.MetamodelBuilder;
 
 public class ProjectDependencyAnalyzer implements ITask {
-	private final NewMetamodelBuilder builder;
+	private final MetamodelBuilder builder;
 	private final IProject metamodelProject;
 	private final IProject moflonProject;
 	private final EPackage metamodelRoot;
 	private final Set<IProject> interestingProjects =
-			new TreeSet<IProject>(NewMetamodelBuilder.PROJECT_COMPARATOR);
+			new TreeSet<IProject>(MetamodelBuilder.PROJECT_COMPARATOR);
 
-	public ProjectDependencyAnalyzer(final NewMetamodelBuilder builder,
+	public ProjectDependencyAnalyzer(final MetamodelBuilder builder,
 			final IProject metamodelProject,
 			final IProject moflonProject,
 			final EPackage metamodelRoot) {
@@ -81,7 +81,7 @@ public class ProjectDependencyAnalyzer implements ITask {
 		final MultiStatus status =
 				new MultiStatus(CoreActivator.getModuleID(), 0, "Project dependency analysis failed", null);
 		final TreeSet<IProject> projectReferences =
-				new TreeSet<IProject>(NewMetamodelBuilder.PROJECT_COMPARATOR);
+				new TreeSet<IProject>(MetamodelBuilder.PROJECT_COMPARATOR);
 		analyzeDependencies(status, projectReferences, metamodelRoot.eResource());
 		
 		for (IProject reference : projectReferences) {
