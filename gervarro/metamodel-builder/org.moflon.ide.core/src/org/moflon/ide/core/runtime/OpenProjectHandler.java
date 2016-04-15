@@ -11,8 +11,12 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.emf.common.util.URI;
 import org.gervarro.eclipse.workspace.util.WorkspaceTask;
+import org.moflon.TGGLanguageActivator;
+import org.moflon.core.moca.tree.MocaTreePlugin;
 import org.moflon.core.utilities.MoflonUtil;
 import org.moflon.core.utilities.WorkspaceHelper;
+import org.moflon.sdm.language.SDMLanguagePlugin;
+import org.moflon.tgg.runtime.TGGRuntimePlugin;
 import org.moflon.util.plugins.MetamodelProperties;
 import org.moflon.util.plugins.manifest.ManifestFileUpdater;
 
@@ -25,38 +29,37 @@ public class OpenProjectHandler extends WorkspaceTask {
 	private static final Logger logger = Logger.getLogger(OpenProjectHandler.class);
 
 	private IProject project;
+	private MetamodelProperties metamodelProperties;
+	private MoflonPropertiesContainer moflonProperties;
 
-	private MetamodelProperties properties;
-	
-	private MoflonPropertiesContainer moflonProps;
-
-	public OpenProjectHandler(final IProject project, final MetamodelProperties projectProperties, final MoflonPropertiesContainer moflonProps) {
+	public OpenProjectHandler(final IProject project,
+			final MetamodelProperties metamodelProperties,
+			final MoflonPropertiesContainer moflonProperties) {
 		this.project = project;
-		this.properties = projectProperties;
-		this.moflonProps = moflonProps;
+		this.metamodelProperties = metamodelProperties;
+		this.moflonProperties = moflonProperties;
 	}
 
 	@Override
 	public void run(final IProgressMonitor monitor) throws CoreException {
 		try {
-         updatePluginDependencies(project, properties, monitor);
-         
-         moflonProps.getDependencies().clear();
-         properties.getDependenciesAsURIs().stream().forEach(dep -> addMetamodelDependency(moflonProps, dep));
-          
-         // These two metamodels are usually used directly or indirectly by most projects
-         addMetamodelDependency(moflonProps, MoflonUtil.getDefaultURIToEcoreFileInPlugin(WorkspaceHelper.PLUGIN_ID_ECORE));     
-         
-         // TODO Additional standard dependencies for integration projects
-//         if (properties.isIntegrationProject()) {
-//            addMetamodelDependency(moflonProps, MoflonUtil.getDefaultURIToEcoreFileInPlugin(WorkspaceHelper.PLUGIN_ID_TGGRUNTIME));
-//            addMetamodelDependency(moflonProps, MoflonUtil.getDefaultURIToEcoreFileInPlugin(WorkspaceHelper.PLUGIN_ID_SDMLANGUAGE));
-//            addMetamodelDependency(moflonProps, MoflonUtil.getDefaultURIToEcoreFileInPlugin(WorkspaceHelper.PLUGIN_ID_TGGLANGUAGE));
-//            addMetamodelDependency(moflonProps, MoflonUtil.getDefaultURIToEcoreFileInPlugin(WorkspaceHelper.PLUGIN_ID_MOCATREE));
-//         }
-      } catch (final IOException e) {
-         e.printStackTrace();
-      }
+			updatePluginDependencies(project, metamodelProperties, monitor);
+
+			moflonProperties.getDependencies().clear();
+			metamodelProperties.getDependenciesAsURIs().stream().forEach(dep -> addMetamodelDependency(moflonProperties, dep));
+
+			// These two metamodels are usually used directly or indirectly by most projects
+			addMetamodelDependency(moflonProperties, MoflonUtil.getDefaultURIToEcoreFileInPlugin(WorkspaceHelper.PLUGIN_ID_ECORE));     
+
+			if (metamodelProperties.isIntegrationProject()) {
+				addMetamodelDependency(moflonProperties, MoflonUtil.getDefaultURIToEcoreFileInPlugin(TGGRuntimePlugin.getDefault().getPluginId()));
+				addMetamodelDependency(moflonProperties, MoflonUtil.getDefaultURIToEcoreFileInPlugin(SDMLanguagePlugin.getDefault().getPluginId()));
+				addMetamodelDependency(moflonProperties, MoflonUtil.getDefaultURIToEcoreFileInPlugin(TGGLanguageActivator.getDefault().getPluginId()));
+				addMetamodelDependency(moflonProperties, MoflonUtil.getDefaultURIToEcoreFileInPlugin(MocaTreePlugin.getDefault().getPluginId()));
+			}
+		} catch (final IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private void updatePluginDependencies(final IProject currentProject, final MetamodelProperties properties,
@@ -96,18 +99,17 @@ public class OpenProjectHandler extends WorkspaceTask {
 		monitor.done();
 	}
 
-	   public void addMetamodelDependency(final MoflonPropertiesContainer moflonProperties, final URI metamodelUri)
-	   {
-	      Dependencies dep = MoflonPropertyContainerFactory.eINSTANCE.createDependencies();
-	      dep.setValue(metamodelUri.toString());
-	      if (!alreadyContainsDependency(moflonProperties.getDependencies(), dep))
-	         moflonProperties.getDependencies().add(dep);
-	   }
+	public void addMetamodelDependency(final MoflonPropertiesContainer moflonProperties, final URI metamodelUri) {
+		Dependencies dep = MoflonPropertyContainerFactory.eINSTANCE.createDependencies();
+		dep.setValue(metamodelUri.toString());
+		if (!alreadyContainsDependency(moflonProperties.getDependencies(), dep)) {
+			moflonProperties.getDependencies().add(dep);
+		}
+	}
 
-	   private boolean alreadyContainsDependency(final Collection<? extends PropertiesValue> dependencies, final PropertiesValue addDep)
-	   {
-	      return dependencies.stream().anyMatch(d -> d.getValue().equals(addDep.getValue()));
-	   }
+	private boolean alreadyContainsDependency(final Collection<? extends PropertiesValue> dependencies, final PropertiesValue addDep) {
+		return dependencies.stream().anyMatch(d -> d.getValue().equals(addDep.getValue()));
+	}
 
 	@Override
 	public String getTaskName() {

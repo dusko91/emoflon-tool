@@ -58,8 +58,8 @@ public class ResourceFillingMocaToMoflonTransformation extends BasicResourceFill
 	   
 	   protected void handleMissingProject(final Node node, final IProject project) {
 		   final MetamodelProperties properties = propertiesMap.get(project.getName());
-		   final NewMoflonProjectCreator moflonProjectCreator =
-				   new NewMoflonProjectCreator(project, properties);
+		   final MoflonProjectCreator moflonProjectCreator =
+				   new MoflonProjectCreator(project, properties);
 		   try {
 			   WorkspaceTask.execute(moflonProjectCreator, false);
 		   } catch (CoreException e) {
