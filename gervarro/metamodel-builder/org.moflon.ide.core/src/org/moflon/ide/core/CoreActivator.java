@@ -6,15 +6,22 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.URIConverter;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.pde.core.plugin.IPluginModelBase;
 import org.eclipse.pde.core.plugin.PluginRegistry;
+import org.moflon.codegen.eclipse.CodeGeneratorPlugin;
 import org.moflon.core.utilities.EMoflonPlugin;
+import org.moflon.core.utilities.UncheckedCoreException;
 import org.osgi.framework.BundleContext;
 
 /**
@@ -167,4 +174,40 @@ public class CoreActivator extends EMoflonPlugin
 
    }
 
+	public static void createProblemMarker(final IResource resource, final String message,
+			final int severity, final String location) {
+		try {
+			IMarker marker = resource.createMarker(IMarker.PROBLEM);
+			marker.setAttribute(IMarker.MESSAGE, message);
+			marker.setAttribute(IMarker.SEVERITY, severity);
+			marker.setAttribute(IMarker.LOCATION, location);
+		} catch (CoreException e) {
+			throw new UncheckedCoreException(e);
+		}
+	}
+
+	public static final void deleteMarkers(final IResource resource, final String type,
+			final boolean includeSubtypes, final int depth) {
+		try {
+			resource.deleteMarkers(type, includeSubtypes, depth);
+		} catch (CoreException e) {
+			throw new UncheckedCoreException(e);
+		}
+	}
+	
+	public static final int convertStatusSeverityToMarkerSeverity(final int severity) throws CoreException {
+		switch (severity) {
+		case IStatus.ERROR:
+			return IMarker.SEVERITY_ERROR;
+		case IStatus.WARNING:
+			return IMarker.SEVERITY_WARNING;
+		case IStatus.INFO:
+			return IMarker.SEVERITY_INFO;
+		default:
+			break;
+		}
+		final IStatus invalidSeverityConversion = new Status(IStatus.ERROR, CodeGeneratorPlugin.getModuleID(), "Cannot convert severity " + severity
+				+ " to a marker");
+		throw new CoreException(invalidSeverityConversion);
+	}
 }
