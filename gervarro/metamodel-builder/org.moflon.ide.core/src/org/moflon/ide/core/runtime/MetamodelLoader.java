@@ -73,8 +73,8 @@ public class MetamodelLoader implements ITask {
 					final IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(projectName);
 					assert project.isAccessible();
 					final URI projectURI = CodeGeneratorPlugin.lookupProjectURI(project);
-					final URI metamodelURI = getProjectRelativeMetamodelURI(node)
-							.resolve(projectURI);
+					final URI metamodelURI =
+							getProjectRelativeMetamodelURI(node).resolve(projectURI);
 					
 					CodeGeneratorPlugin.createPluginToResourceMapping(set, project);
 					Resource resource =

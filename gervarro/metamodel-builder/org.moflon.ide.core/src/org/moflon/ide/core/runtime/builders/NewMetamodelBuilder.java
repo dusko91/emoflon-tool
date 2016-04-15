@@ -28,8 +28,7 @@ import org.moflon.core.utilities.eMoflonEMFUtil;
 import org.moflon.eclipse.resource.SDMEnhancedEcoreResource;
 import org.moflon.ide.core.CoreActivator;
 import org.moflon.ide.core.properties.MocaTreeEAPropertiesReader;
-import org.moflon.ide.core.runtime.BasicResourceFillingMocaToMoflonTransformation;
-import org.moflon.ide.core.runtime.NewResourceFillingMocaToMoflonTransformation;
+import org.moflon.ide.core.runtime.ResourceFillingMocaToMoflonTransformation;
 import org.moflon.ide.core.runtime.ProjectDependencyAnalyzer;
 import org.moflon.util.plugins.MetamodelProperties;
 
@@ -91,8 +90,8 @@ public class NewMetamodelBuilder extends AbstractVisitorBuilder {
 				exporterSubMonitor.beginTask("Running MOCA-to-eMoflon transformation", properties.keySet().size());
 
 				// Create and run exporter on Moca tree
-				BasicResourceFillingMocaToMoflonTransformation exporter =
-						new NewResourceFillingMocaToMoflonTransformation(set, this, getProject(), properties, exporterSubMonitor);
+				ResourceFillingMocaToMoflonTransformation exporter =
+						new ResourceFillingMocaToMoflonTransformation(set, this, getProject(), properties, exporterSubMonitor);
 				exporter.mocaToEcore(mocaTree);
 				exporterSubMonitor.done();
 

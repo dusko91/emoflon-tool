@@ -80,7 +80,8 @@ public class MetamodelBuilder extends AbstractBuilder
                callPreBuildHooks(properties, mocaTreeReader);
                exporterSubMonitor.beginTask("Running MOCA-to-eMoflon transformation", properties.keySet().size());
 
-               exporter = new ResourceFillingMocaToMoflonTransformation(mocaTreeReader.getResourceSet(), properties, exporterSubMonitor);
+               exporter = new ResourceFillingMocaToMoflonTransformation(mocaTreeReader.getResourceSet(),
+            		   null, getProject(), properties, exporterSubMonitor);
                exporter.mocaToEcore(mocaTreeReader.getMocaTree());
                for (final ErrorMessage message : exporter.getMocaToMoflonReport().getErrorMessages())
                {
