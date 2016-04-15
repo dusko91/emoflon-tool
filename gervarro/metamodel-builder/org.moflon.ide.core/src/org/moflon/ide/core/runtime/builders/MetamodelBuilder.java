@@ -176,10 +176,6 @@ public class MetamodelBuilder extends AbstractVisitorBuilder {
 					return;
 				}
 
-				for (final IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
-					CodeGeneratorPlugin.createPluginToResourceMapping(set, project);
-				}
-				
 				// Prepare save options
 				Map<Object, Object> saveOnlyIfChangedOption = new HashMap<Object, Object>();
 				saveOnlyIfChangedOption.put(Resource.OPTION_SAVE_ONLY_IF_CHANGED, Resource.OPTION_SAVE_ONLY_IF_CHANGED_MEMORY_BUFFER);
