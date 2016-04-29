@@ -30,7 +30,6 @@ import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.gervarro.eclipse.task.ITask;
 import org.gervarro.eclipse.task.ProgressMonitoringJob;
 import org.gervarro.eclipse.workspace.util.AntPatternCondition;
-import org.gervarro.eclipse.workspace.util.RelevantElementCollector;
 import org.moflon.codegen.ErrorReporter;
 import org.moflon.codegen.eclipse.CodeGeneratorPlugin;
 import org.moflon.codegen.eclipse.ValidationStatus;
@@ -60,19 +59,6 @@ public class MetamodelBuilder extends AbstractVisitorBuilder {
 
 	public MetamodelBuilder() {
 		super(new AntPatternCondition(new String[] { ".temp/*.moca.xmi" }));
-	}
-
-	protected void postprocess(final RelevantElementCollector buildVisitor, final int kind,
-			final Map<String, String> args, final IProgressMonitor monitor) {
-		if (kind == INCREMENTAL_BUILD || kind == AUTO_BUILD) {
-			if (buildVisitor.getRelevantDeltas().size() == 1) {
-				super.postprocess(buildVisitor, kind, args, monitor);
-			}
-		} else if (kind == FULL_BUILD) {
-			if (buildVisitor.getRelevantResources().size() == 1) {
-				super.postprocess(buildVisitor, kind, args, monitor);
-			}
-		}		
 	}
 
 	@Override

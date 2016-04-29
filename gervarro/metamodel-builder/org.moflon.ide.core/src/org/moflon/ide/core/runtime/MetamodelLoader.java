@@ -16,6 +16,7 @@ import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.gervarro.eclipse.task.ITask;
 import org.moflon.codegen.eclipse.CodeGeneratorPlugin;
+import org.moflon.core.utilities.MoflonUtil;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.dependency.PackageRemappingDependency;
 import org.moflon.eclipse.resource.SDMEnhancedEcoreResource;
@@ -178,7 +179,8 @@ public class MetamodelLoader implements ITask {
 	}
 
 	protected String getEcoreFileName(final Node node) {
-		return lookupAttribute(node, MOFLON_TREE_ATTRIBUTE_NAME);
+		final String name = lookupAttribute(node, MOFLON_TREE_ATTRIBUTE_NAME);
+		return MoflonUtil.lastCapitalizedSegmentOf(name);
 	}
 
 	protected URI getProjectRelativeMetamodelURI(final Node node) {
