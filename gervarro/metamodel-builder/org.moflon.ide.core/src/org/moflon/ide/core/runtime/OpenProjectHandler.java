@@ -12,6 +12,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.emf.common.util.URI;
+import org.gervarro.eclipse.workspace.autosetup.JavaProjectConfigurator;
+import org.gervarro.eclipse.workspace.autosetup.PluginProjectConfigurator;
 import org.gervarro.eclipse.workspace.util.WorkspaceTask;
 import org.moflon.TGGLanguageActivator;
 import org.moflon.core.moca.tree.MocaTreePlugin;
@@ -56,12 +58,33 @@ public class OpenProjectHandler extends WorkspaceTask {
 
 	@Override
 	public void run(final IProgressMonitor monitor) throws CoreException {
+		// TODO The execution of the natureAndBuilderConfiguratorTask should be removed
+		// when the order of builders has been fixed in the eMoflon developer workspace.
+		final JavaProjectConfigurator javaProjectConfigurator =
+				new JavaProjectConfigurator();
+		final MoflonProjectCreator moflonProjectConfigurator =
+				new MoflonProjectCreator(project, metamodelProperties);
+		final PluginProjectConfigurator pluginProjectConfigurator =
+				new PluginProjectConfigurator();
+		final ProjectNatureAndBuilderConfiguratorTask natureAndBuilderConfiguratorTask =
+				new ProjectNatureAndBuilderConfiguratorTask(project, false);
+		natureAndBuilderConfiguratorTask.updateNatureIDs(javaProjectConfigurator, true);
+		natureAndBuilderConfiguratorTask.updateBuildSpecs(javaProjectConfigurator, true);
+		natureAndBuilderConfiguratorTask.updateNatureIDs(moflonProjectConfigurator, true);
+		natureAndBuilderConfiguratorTask.updateBuildSpecs(moflonProjectConfigurator, true);
+		natureAndBuilderConfiguratorTask.updateNatureIDs(pluginProjectConfigurator, true);
+		natureAndBuilderConfiguratorTask.updateBuildSpecs(pluginProjectConfigurator, true);
+		WorkspaceTask.execute(natureAndBuilderConfiguratorTask, false);
+		// Last line to be removed
+		
 		try {
 			MoflonProjectCreator.createFoldersIfNecessary(project, new NullProgressMonitor());
 		} catch (final CoreException e) {
 			logger.warn("Failed to create folders: " + e.getMessage());
 		}
 		try {
+			
+			// TODO Plugin dependency handling should be updated by Repository/IntegrationBuilders
 			updatePluginDependencies(monitor);
 
 			moflonProperties.getDependencies().clear();
@@ -78,9 +101,6 @@ public class OpenProjectHandler extends WorkspaceTask {
 				addMetamodelDependency(moflonProperties, MoflonUtil.getDefaultURIToEcoreFileInPlugin(TGGLanguageActivator.getDefault().getPluginId()));
 				addMetamodelDependency(moflonProperties, MoflonUtil.getDefaultURIToEcoreFileInPlugin(MocaTreePlugin.getDefault().getPluginId()));
 			}
-
-			// TODO At which point should moflonProperties be saved?
-			// MoflonPropertiesContainerHelper.save(moflonProperties, new NullProgressMonitor());
 		} catch (final IOException e) {
 			e.printStackTrace();
 		}

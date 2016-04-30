@@ -10,6 +10,7 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -45,6 +46,7 @@ import org.moflon.ide.core.runtime.builders.hooks.PostMetamodelBuilderHookDTO;
 import org.moflon.ide.core.runtime.builders.hooks.PreMetamodelBuilderHook;
 import org.moflon.ide.core.runtime.builders.hooks.PreMetamodelBuilderHookDTO;
 import org.moflon.sdm.compiler.democles.validation.result.ErrorMessage;
+import org.moflon.ide.core.runtime.CleanMocaToMoflonTransformation;
 import org.moflon.ide.core.runtime.ProjectDependencyAnalyzer;
 import org.moflon.util.plugins.MetamodelProperties;
 
@@ -59,6 +61,41 @@ public class MetamodelBuilder extends AbstractVisitorBuilder {
 
 	public MetamodelBuilder() {
 		super(new AntPatternCondition(new String[] { ".temp/*.moca.xmi" }));
+	}
+
+	public void clean(final IProgressMonitor monitor) throws CoreException {
+		try {
+			monitor.beginTask("Cleaning " + getProject(), 4);
+
+			// Remove all problem markers
+			deleteProblemMarkers();
+			monitor.worked(1);
+
+			final IFolder tempFolder = getProject().getFolder(WorkspaceHelper.TEMP_FOLDER);
+			final IFile mocaFile = tempFolder.getFile(getProject().getName() + WorkspaceHelper.MOCA_XMI_FILE_EXTENSION);
+			if (mocaFile.isAccessible()) {
+				final URI workspaceURI = URI.createPlatformResourceURI("/", true);
+				final URI projectURI = URI.createURI(getProject().getName() + "/", true).resolve(workspaceURI);
+
+				// Create and initialize resource set
+				final ResourceSet set = CodeGeneratorPlugin.createDefaultResourceSet();
+				eMoflonEMFUtil.installCrossReferencers(set);
+
+				// Load Moca tree in read-only mode
+				final URI mocaFileURI = URI.createURI(mocaFile.getProjectRelativePath().toString(), true).resolve(projectURI);
+				final Resource mocaTreeResource = set.getResource(mocaFileURI, true);
+				final Node mocaTree = (Node) mocaTreeResource.getContents().get(0);
+
+				try {
+					new CleanMocaToMoflonTransformation(set, this, getProject()).mocaToEcore(mocaTree);
+				} catch (final Exception e) {
+					throw new CoreException(new Status(IStatus.ERROR, CoreActivator.getModuleID(),
+							"Exception during export.", e));
+				}
+			}
+		} finally {
+			monitor.done();
+		}
 	}
 
 	@Override
@@ -77,6 +114,8 @@ public class MetamodelBuilder extends AbstractVisitorBuilder {
 			monitor.worked(2);
 
 			try {
+				deleteProblemMarkers();
+
 				final URI workspaceURI = URI.createPlatformResourceURI("/", true);
 				final URI projectURI = URI.createURI(getProject().getName() + "/", true).resolve(workspaceURI);
 
@@ -106,16 +145,18 @@ public class MetamodelBuilder extends AbstractVisitorBuilder {
 				try {
 					exporter.mocaToEcore(mocaTree);
 				} catch (final Exception e) {
+					forgetLastBuiltState();
 					throw new CoreException(new Status(IStatus.ERROR, CoreActivator.getModuleID(), "Exception during export.", e));
 				} finally {
 					exporterSubMonitor.done();
 				}
-				
+
 				for (final ErrorMessage message : exporter.getMocaToMoflonReport().getErrorMessages()) {
 					mocaToMoflonStatus.add(ValidationStatus.createValidationStatus(message));
 				}
 
 				if (exporter.getEpackages().isEmpty()) {
+					forgetLastBuiltState();
 					final String errorMessage = "Unable to transform exported files to Ecore models";
 					CoreActivator.createProblemMarker(mocaFile, errorMessage,
 							IMarker.SEVERITY_ERROR, mocaFile.getProjectRelativePath().toString());
@@ -139,6 +180,7 @@ public class MetamodelBuilder extends AbstractVisitorBuilder {
 					throw new OperationCanceledException();
 				}
 				if (!metamodelLoaderStatus.isOK()) {
+					forgetLastBuiltState();
 					processProblemStatus(metamodelLoaderStatus, mocaFile);
 					return;
 				}
@@ -158,6 +200,7 @@ public class MetamodelBuilder extends AbstractVisitorBuilder {
 					throw new OperationCanceledException();
 				}
 				if (!projectDependencyAnalyzerStatus.isOK()) {
+					forgetLastBuiltState();
 					processProblemStatus(projectDependencyAnalyzerStatus, mocaFile);
 					return;
 				}
@@ -178,6 +221,7 @@ public class MetamodelBuilder extends AbstractVisitorBuilder {
 				
 				callPostBuildHooks(mocaToMoflonStatus, mocaTreeReader, exporter);
 			} catch (CoreException e) {
+				forgetLastBuiltState();
 				logger.fatal("Unable to update created projects: " + e.getMessage());
 				e.printStackTrace();
 			} finally {

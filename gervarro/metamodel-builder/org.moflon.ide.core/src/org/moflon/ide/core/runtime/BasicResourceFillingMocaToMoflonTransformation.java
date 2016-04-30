@@ -36,9 +36,9 @@ public class BasicResourceFillingMocaToMoflonTransformation extends
 	protected static final Logger MOCA_TO_MOFLON_TRANSFORMATION_LOGGER =
 			Logger.getLogger(ResourceFillingMocaToMoflonTransformation.class);
 	   
+	protected final IWorkspace workspace = ResourcesPlugin.getWorkspace();
 	protected final ResourceSet set;
 	private final MetamodelBuilder metamodelBuilder;
-	private final IWorkspace workspace = ResourcesPlugin.getWorkspace();
 	private final IProject metamodelProject;
 	
 	private final LinkedList<ITask> metamodelLoaderTasks =
@@ -99,7 +99,7 @@ public class BasicResourceFillingMocaToMoflonTransformation extends
 		}
 	}
 
-	private final boolean isExported(final String exported) {
+	static final boolean isExported(final String exported) {
 		return !"false".equals(exported);
 	}
 	

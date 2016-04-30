@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -13,7 +14,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.URIConverter;
 import org.eclipse.jdt.core.JavaCore;
@@ -21,7 +21,9 @@ import org.eclipse.pde.core.plugin.IPluginModelBase;
 import org.eclipse.pde.core.plugin.PluginRegistry;
 import org.moflon.codegen.eclipse.CodeGeneratorPlugin;
 import org.moflon.core.utilities.EMoflonPlugin;
+import org.moflon.core.utilities.MoflonUtil;
 import org.moflon.core.utilities.UncheckedCoreException;
+import org.moflon.core.utilities.WorkspaceHelper;
 import org.osgi.framework.BundleContext;
 
 /**
@@ -84,10 +86,6 @@ public class CoreActivator extends EMoflonPlugin
       super.start(context);
 
       dirtyProjectListeners = new ArrayList<>();
-
-      // Add mappings of all projects in Workspace for Ecore modelbrowser
-      Job registrationJob = new RegisterUrlMappingsForAllProjectsJob();
-      registrationJob.schedule();
    }
 
    @Override
@@ -151,6 +149,7 @@ public class CoreActivator extends EMoflonPlugin
     *  
     * @param project the project to be added
     */
+   @Deprecated
    public static void addMappingForProject(final IProject project) 
    {
       if (project.isAccessible())
@@ -209,5 +208,10 @@ public class CoreActivator extends EMoflonPlugin
 		final IStatus invalidSeverityConversion = new Status(IStatus.ERROR, CodeGeneratorPlugin.getModuleID(), "Cannot convert severity " + severity
 				+ " to a marker");
 		throw new CoreException(invalidSeverityConversion);
+	}
+	
+	public static final IFile getEcoreFile(final IProject project) {
+		final String ecoreFileName = MoflonUtil.getDefaultNameOfFileInProjectWithoutExtension(project.getName());
+		return project.getFolder(WorkspaceHelper.MODEL_FOLDER).getFile(ecoreFileName + WorkspaceHelper.ECORE_FILE_EXTENSION);
 	}
 }

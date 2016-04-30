@@ -4,6 +4,7 @@ import java.util.Comparator;
 import java.util.Map;
 import java.util.TreeSet;
 
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
@@ -13,6 +14,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.MultiStatus;
 import org.gervarro.eclipse.workspace.util.RelevantElementCollectingBuilder;
 import org.gervarro.eclipse.workspace.util.VisitorCondition;
+import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.ide.core.CoreActivator;
 
 abstract public class AbstractVisitorBuilder extends RelevantElementCollectingBuilder {
@@ -60,5 +62,11 @@ abstract public class AbstractVisitorBuilder extends RelevantElementCollectingBu
 					CoreActivator.convertStatusSeverityToMarkerSeverity(status.getSeverity()),
 					resource.getProjectRelativePath().toString());
 		}
+	}
+	
+	protected final void deleteProblemMarkers() throws CoreException {
+		getProject().deleteMarkers(IMarker.PROBLEM, false, IResource.DEPTH_INFINITE);
+		getProject().deleteMarkers(WorkspaceHelper.MOFLON_PROBLEM_MARKER_ID, false, IResource.DEPTH_INFINITE);
+		getProject().deleteMarkers(WorkspaceHelper.INJECTION_PROBLEM_MARKER_ID, false, IResource.DEPTH_INFINITE);
 	}
 }
