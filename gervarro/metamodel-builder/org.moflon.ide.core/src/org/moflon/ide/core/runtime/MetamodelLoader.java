@@ -17,7 +17,6 @@ import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.gervarro.eclipse.task.ITask;
 import org.moflon.codegen.eclipse.CodeGeneratorPlugin;
 import org.moflon.core.utilities.MoflonUtil;
-import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.dependency.PackageRemappingDependency;
 import org.moflon.eclipse.resource.SDMEnhancedEcoreResource;
 import org.moflon.ide.core.CoreActivator;
@@ -96,14 +95,18 @@ public class MetamodelLoader implements ITask {
 				// E.g., platform:/plugin/org.eclipse.emf.ecore/model/Ecore.ecore
 				final int kind = getDependencyType(namespaceURI);
 				if (kind == CodeGeneratorPlugin.DEPLOYED_PLUGIN) {
-					// TODO gervarro: What shall we do with the set of interesting projects if the deployed plugin overrides a closed SDM project?
-					// Override existing metamodel content (deployedResource) with the constructed metamodel (resource)
-					final Resource deployedResource =
-							new PackageRemappingDependency(namespaceURI, true, true).getResource(set, true, false);
-					final EPackage ePackage = (EPackage) deployedResource.getContents().get(0);
-					final Resource resource =
-							new PackageRemappingDependency(namespaceURI, false, false).getResource(set, false, true);
-					handleNewMetamodelContent(ePackage, resource);
+					try {
+						// TODO gervarro: What shall we do with the set of interesting projects if the deployed plugin overrides a closed SDM project?
+						// Override existing metamodel content (deployedResource) with the constructed metamodel (resource)
+						final Resource deployedResource =
+								new PackageRemappingDependency(namespaceURI, true, true).getResource(set, true, false);
+						final EPackage ePackage = (EPackage) deployedResource.getContents().get(0);
+						final Resource resource =
+								new PackageRemappingDependency(namespaceURI, false, false).getResource(set, false, true);
+						handleNewMetamodelContent(ePackage, resource);
+					} catch (final WrappedException e) {
+						return handleResourceLoadingException(e, namespaceURI);
+					}
 				} else if (kind == USER_DEFINED) {
 					try {
 						final Resource resource =
@@ -112,28 +115,26 @@ public class MetamodelLoader implements ITask {
 						// Replace existing metamodel content with the constructed metamodel in resource
 						resource.unload();
 						handleNewMetamodelContent(ePackage, resource);
-					} catch (WrappedException e) {
-						Throwable cause = e.getCause();
-						if (cause instanceof CoreException) {
-							return new Status(IStatus.ERROR, CoreActivator.getModuleID(), 
-									"Error while loading resource at " + namespaceURI.toString(), cause);
-						} else {
-							throw e;
-						}
+					} catch (final WrappedException e) {
+						return handleResourceLoadingException(e, namespaceURI);
 					}
 				} else if (kind == CodeGeneratorPlugin.WORKSPACE_PLUGIN_PROJECT || kind == CodeGeneratorPlugin.WORKSPACE_PROJECT) {
 					final IProject project = CodeGeneratorPlugin.getWorkspaceProject(namespaceURI);
 					if (project.isAccessible()) {
 						CodeGeneratorPlugin.createPluginToResourceMapping(set, project);
 						if (set.getURIConverter().exists(namespaceURI, null)) {
-							// Open project with ecore file
-							final Resource resource =
-									new PackageRemappingDependency(namespaceURI, false, false).getResource(set, true, project.isAccessible());
-							final EPackage ePackage = (EPackage) resource.getContents().get(0);
-							// Replace existing metamodel content with the constructed metamodel in resource
-							resource.unload();
-							handleNewMetamodelContent(ePackage, resource);
-							builder.addInterestingProject(project);
+							try {
+								// Open project with ecore file
+								final Resource resource =
+										new PackageRemappingDependency(namespaceURI, false, false).getResource(set, true, project.isAccessible());
+								final EPackage ePackage = (EPackage) resource.getContents().get(0);
+								// Replace existing metamodel content with the constructed metamodel in resource
+								resource.unload();
+								handleNewMetamodelContent(ePackage, resource);
+								builder.addInterestingProject(project);
+							} catch (final Exception e) {
+								throw e;
+							}
 						} else {
 							// Open project without ecore file
 							builder.addInterestingProject(project);
@@ -186,7 +187,7 @@ public class MetamodelLoader implements ITask {
 	protected URI getProjectRelativeMetamodelURI(final Node node) {
 		URI uri = URI.createURI("model/" + getEcoreFileName(node) + ".ecore");
 		if (MOCA_TREE_ATTRIBUTE_INTEGRATION_PROJECT.equals(node.getName())) {
-			uri.trimFileExtension().appendFileExtension(WorkspaceHelper.PRE_ECORE_FILE_EXTENSION);
+			uri = uri.trimFileExtension().appendFileExtension("pre.ecore");
 		}
 		return uri;
 	}
@@ -244,6 +245,16 @@ public class MetamodelLoader implements ITask {
 			if (!matchFound) {
 				MOCA_TO_MOFLON_TRANSFORMATION_LOGGER.warn("Unable to find a match for subpackage: " + sourceSubpackage + " in " + target);
 			}
+		}
+	}
+	
+	private final IStatus handleResourceLoadingException(final WrappedException e, final URI namespaceURI) {
+		final Throwable cause = e.getCause();
+		if (cause instanceof CoreException) {
+			throw e;
+		} else {
+			return new Status(IStatus.ERROR, CoreActivator.getModuleID(), 
+					"Error while loading resource at " + namespaceURI.toString(), cause);
 		}
 	}
 }

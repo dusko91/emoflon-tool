@@ -13,6 +13,7 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.gervarro.eclipse.task.ITask;
 import org.moflon.core.mocatomoflon.impl.ExporterImpl;
+import org.moflon.core.utilities.MoflonUtil;
 import org.moflon.core.utilities.UncheckedCoreException;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.ide.core.CoreActivator;
@@ -124,7 +125,8 @@ public class BasicResourceFillingMocaToMoflonTransformation extends
 	}
 
 	protected String getEcoreFileName(final Node node) {
-		return lookupAttribute(node, MOFLON_TREE_ATTRIBUTE_NAME);
+		final String name = lookupAttribute(node, MOFLON_TREE_ATTRIBUTE_NAME);
+		return MoflonUtil.lastCapitalizedSegmentOf(name);
 	}
 
 	protected URI getProjectRelativeMetamodelURI(final Node node) {

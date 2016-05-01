@@ -36,7 +36,6 @@ import org.moflon.codegen.eclipse.CodeGeneratorPlugin;
 import org.moflon.codegen.eclipse.ValidationStatus;
 import org.moflon.core.mocatomoflon.Exporter;
 import org.moflon.core.utilities.WorkspaceHelper;
-import org.moflon.core.utilities.eMoflonEMFUtil;
 import org.moflon.eclipse.resource.SDMEnhancedEcoreResource;
 import org.moflon.ide.core.CoreActivator;
 import org.moflon.ide.core.properties.MocaTreeEAPropertiesReader;
@@ -46,7 +45,6 @@ import org.moflon.ide.core.runtime.builders.hooks.PostMetamodelBuilderHookDTO;
 import org.moflon.ide.core.runtime.builders.hooks.PreMetamodelBuilderHook;
 import org.moflon.ide.core.runtime.builders.hooks.PreMetamodelBuilderHookDTO;
 import org.moflon.sdm.compiler.democles.validation.result.ErrorMessage;
-import org.moflon.ide.core.runtime.CleanMocaToMoflonTransformation;
 import org.moflon.ide.core.runtime.ProjectDependencyAnalyzer;
 import org.moflon.util.plugins.MetamodelProperties;
 
@@ -65,7 +63,7 @@ public class MetamodelBuilder extends AbstractVisitorBuilder {
 
 	public void clean(final IProgressMonitor monitor) throws CoreException {
 		try {
-			monitor.beginTask("Cleaning " + getProject(), 4);
+			monitor.beginTask("Cleaning " + getProject(), 2);
 
 			// Remove all problem markers
 			deleteProblemMarkers();
@@ -74,24 +72,7 @@ public class MetamodelBuilder extends AbstractVisitorBuilder {
 			final IFolder tempFolder = getProject().getFolder(WorkspaceHelper.TEMP_FOLDER);
 			final IFile mocaFile = tempFolder.getFile(getProject().getName() + WorkspaceHelper.MOCA_XMI_FILE_EXTENSION);
 			if (mocaFile.isAccessible()) {
-				final URI workspaceURI = URI.createPlatformResourceURI("/", true);
-				final URI projectURI = URI.createURI(getProject().getName() + "/", true).resolve(workspaceURI);
-
-				// Create and initialize resource set
-				final ResourceSet set = CodeGeneratorPlugin.createDefaultResourceSet();
-				eMoflonEMFUtil.installCrossReferencers(set);
-
-				// Load Moca tree in read-only mode
-				final URI mocaFileURI = URI.createURI(mocaFile.getProjectRelativePath().toString(), true).resolve(projectURI);
-				final Resource mocaTreeResource = set.getResource(mocaFileURI, true);
-				final Node mocaTree = (Node) mocaTreeResource.getContents().get(0);
-
-				try {
-					new CleanMocaToMoflonTransformation(set, this, getProject()).mocaToEcore(mocaTree);
-				} catch (final Exception e) {
-					throw new CoreException(new Status(IStatus.ERROR, CoreActivator.getModuleID(),
-							"Exception during export.", e));
-				}
+				mocaFile.touch(WorkspaceHelper.createSubMonitor(monitor, 1));
 			}
 		} finally {
 			monitor.done();
@@ -101,8 +82,6 @@ public class MetamodelBuilder extends AbstractVisitorBuilder {
 	@Override
 	protected void processResource(IResource mocaFile, int kind,
 			Map<String, String> args, IProgressMonitor monitor) {
-		// CoreActivator.deleteMarkers(mocaFile, IMarker.PROBLEM, false, IResource.DEPTH_ZERO);
-		
 		final MultiStatus mocaToMoflonStatus =
 				new MultiStatus(CoreActivator.getModuleID(), 0, getClass().getName() + " failed", null);
 	      
@@ -114,6 +93,7 @@ public class MetamodelBuilder extends AbstractVisitorBuilder {
 			monitor.worked(2);
 
 			try {
+				// CoreActivator.deleteMarkers(mocaFile, IMarker.PROBLEM, false, IResource.DEPTH_ZERO);
 				deleteProblemMarkers();
 
 				final URI workspaceURI = URI.createPlatformResourceURI("/", true);
@@ -121,7 +101,7 @@ public class MetamodelBuilder extends AbstractVisitorBuilder {
 
 				// Create and initialize resource set
 				final ResourceSet set = CodeGeneratorPlugin.createDefaultResourceSet();
-				eMoflonEMFUtil.installCrossReferencers(set);
+				// eMoflonEMFUtil.installCrossReferencers(set);
 
 				// Load Moca tree in read-only mode
 				final URI mocaFileURI = URI.createURI(mocaFilePath, true).resolve(projectURI);
@@ -145,7 +125,6 @@ public class MetamodelBuilder extends AbstractVisitorBuilder {
 				try {
 					exporter.mocaToEcore(mocaTree);
 				} catch (final Exception e) {
-					forgetLastBuiltState();
 					throw new CoreException(new Status(IStatus.ERROR, CoreActivator.getModuleID(), "Exception during export.", e));
 				} finally {
 					exporterSubMonitor.done();
@@ -156,7 +135,6 @@ public class MetamodelBuilder extends AbstractVisitorBuilder {
 				}
 
 				if (exporter.getEpackages().isEmpty()) {
-					forgetLastBuiltState();
 					final String errorMessage = "Unable to transform exported files to Ecore models";
 					CoreActivator.createProblemMarker(mocaFile, errorMessage,
 							IMarker.SEVERITY_ERROR, mocaFile.getProjectRelativePath().toString());
@@ -180,7 +158,6 @@ public class MetamodelBuilder extends AbstractVisitorBuilder {
 					throw new OperationCanceledException();
 				}
 				if (!metamodelLoaderStatus.isOK()) {
-					forgetLastBuiltState();
 					processProblemStatus(metamodelLoaderStatus, mocaFile);
 					return;
 				}
@@ -200,7 +177,6 @@ public class MetamodelBuilder extends AbstractVisitorBuilder {
 					throw new OperationCanceledException();
 				}
 				if (!projectDependencyAnalyzerStatus.isOK()) {
-					forgetLastBuiltState();
 					processProblemStatus(projectDependencyAnalyzerStatus, mocaFile);
 					return;
 				}
@@ -221,7 +197,6 @@ public class MetamodelBuilder extends AbstractVisitorBuilder {
 				
 				callPostBuildHooks(mocaToMoflonStatus, mocaTreeReader, exporter);
 			} catch (CoreException e) {
-				forgetLastBuiltState();
 				logger.fatal("Unable to update created projects: " + e.getMessage());
 				e.printStackTrace();
 			} finally {

@@ -12,6 +12,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.emf.codegen.ecore.genmodel.GenModel;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.gervarro.eclipse.workspace.util.AntPatternCondition;
@@ -39,6 +40,10 @@ public class RepositoryBuilder extends AbstractVisitorBuilder {
 		super(new AntPatternCondition(new String[] { "model/*.ecore" }));
 	}
 
+	public ISchedulingRule getRule(final int kind, final Map<String, String> args) {
+		return getProject();
+	}
+	
 	@Override
 	protected void processResource(IResource ecoreResource, int kind,
 			Map<String, String> args, IProgressMonitor monitor) {
@@ -63,9 +68,6 @@ public class RepositoryBuilder extends AbstractVisitorBuilder {
 					codeGenerationTask.setValidationTimeout(EMoflonPreferencesStorage.getInstance().getValidationTimeout());
 
 					final IStatus status = codeGenerationTask.run(WorkspaceHelper.createSubmonitorWith1Tick(monitor));
-					if (!status.isOK()) {
-						forgetLastBuiltState();
-					}
 					handleErrorsAndWarnings(status, ecoreFile);
 					monitor.worked(3);
 
@@ -79,7 +81,6 @@ public class RepositoryBuilder extends AbstractVisitorBuilder {
 						new PluginXmlUpdater().updatePluginXml(getProject(), genModel, WorkspaceHelper.createSubmonitorWith1Tick(monitor));
 					}
 				} catch (final CoreException e) {
-					forgetLastBuiltState();
 					final IStatus status = new Status(e.getStatus().getSeverity(),
 							CoreActivator.getModuleID(), e.getMessage(), e);
 					handleErrorsInEclipse(status, ecoreFile);
