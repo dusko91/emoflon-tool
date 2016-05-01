@@ -15,7 +15,6 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
-import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.resources.WorkspaceJob;
 import org.eclipse.core.runtime.CoreException;
@@ -103,7 +102,6 @@ public class UIActivator extends AbstractUIPlugin
 
       registerDirtyStateChangedListener();
       // labelDirtyMetamodelProjects();
-      registerListenerForDirtyMetamodelProjects();
       registerListenerForMetaModelProjectRenaming();
    }
 
@@ -280,47 +278,6 @@ public class UIActivator extends AbstractUIPlugin
             }
          }
       });
-   }
-
-   /**
-    * Registers a listener that is triggered when the EAP file in a metamodel project is becoming more recent than its
-    * generated Moca tree.
-    */
-   private void registerListenerForDirtyMetamodelProjects()
-   {
-      ResourcesPlugin.getWorkspace().addResourceChangeListener(new IResourceChangeListener() {
-
-         @Override
-         public void resourceChanged(final IResourceChangeEvent event)
-         {
-            try
-            {
-               event.getDelta().accept(new IResourceDeltaVisitor() {
-
-                  @Override
-                  public boolean visit(final IResourceDelta delta) throws CoreException
-                  {
-                     IResource eapFile = delta.getResource();
-                     if (eapFile.getName().endsWith(".eap"))
-                     {
-                        IFile xmiTree = WorkspaceHelper.getExportedMocaTree(eapFile.getProject());
-                        if (xmiTree.exists() && xmiTree.getLocalTimeStamp() < eapFile.getLocalTimeStamp())
-                        {
-                           CoreActivator.getDefault().setDirty(eapFile.getProject(), true);
-                        }
-                        return false;
-                     } else
-                     {
-                        return true;
-                     }
-                  }
-               });
-            } catch (CoreException e)
-            {
-               e.printStackTrace();
-            }
-         }
-      }, IResourceChangeEvent.POST_CHANGE);
    }
 
    /**

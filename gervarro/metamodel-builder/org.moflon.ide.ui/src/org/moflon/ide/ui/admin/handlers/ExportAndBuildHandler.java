@@ -18,7 +18,6 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.ui.handlers.HandlerUtil;
 import org.moflon.core.utilities.WorkspaceHelper;
-import org.moflon.ide.core.CoreActivator;
 import org.moflon.ide.core.ea.EnterpriseArchitectHelper;
 import org.moflon.ide.ui.UIActivator;
 
@@ -46,10 +45,6 @@ public class ExportAndBuildHandler extends AbstractCommandHandler {
 										WorkspaceHelper.createSubmonitorWith1Tick(pm));
 							} catch (IOException | InterruptedException e) {
 								status = new Status(IStatus.ERROR, UIActivator.getModuleID(), e.getMessage());
-							} finally {
-								if (status.isOK()) {
-									CoreActivator.getDefault().setDirty(project, true);
-								}
 							}
 						}
 						return status;
