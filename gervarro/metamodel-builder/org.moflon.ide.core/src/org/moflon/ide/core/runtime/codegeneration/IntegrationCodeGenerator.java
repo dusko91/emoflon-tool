@@ -92,7 +92,7 @@ public class IntegrationCodeGenerator extends RepositoryCodeGenerator
          metamodelLoader.run(monitor);
          WorkspaceHelper.createSubMonitor(monitor, 100);
 
-         Resource ecoreResource = metamodelLoader.getEcoreResource();
+         Resource ecoreResource = metamodelLoader.getMainResource();
          HashMap<String, Object> saveOptions = new HashMap<String, Object>();
          saveOptions.put(SDMEnhancedEcoreResource.SAVE_GENERATED_PACKAGE_CROSSREF_URIS, Boolean.valueOf(true));
          try
@@ -267,7 +267,7 @@ public class IntegrationCodeGenerator extends RepositoryCodeGenerator
 
             // Persist ecore resource
             set.getResources().add(genTGGResource);
-            Resource ecoreResource = metamodelLoader.getEcoreResource();
+            Resource ecoreResource = metamodelLoader.getMainResource();
             ecoreResource.save(saveOptions);
          } catch (IOException e)
          {

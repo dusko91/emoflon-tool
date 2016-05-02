@@ -20,7 +20,7 @@ import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.moflon.codegen.eclipse.CodeGeneratorPlugin;
-import org.moflon.codegen.eclipse.NewMonitoredMetamodelLoader;
+import org.moflon.codegen.eclipse.MonitoredMetamodelLoader;
 import org.moflon.core.utilities.MoflonUtil;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.core.utilities.eMoflonEMFUtil;
@@ -118,8 +118,8 @@ public class IntegrationBuilder extends RepositoryBuilder {
 			uriMapping.put(tggFileURI, preTGGFileURI);
 			uriMapping.put(ecoreFileURI, preEcoreFileURI);
 			
-			final NewMonitoredMetamodelLoader metamodelLoader =
-					new NewMonitoredMetamodelLoader(set, tggFile);
+			final MonitoredMetamodelLoader metamodelLoader =
+					new MonitoredMetamodelLoader(set, tggFile, moflonProperties);
 			metamodelLoader.run(WorkspaceHelper.createSubMonitor(monitor, 10));
 			final Resource tggResource = metamodelLoader.getMainResource();
 			final Resource ecoreResource = set.getResource(ecoreFileURI, false);
