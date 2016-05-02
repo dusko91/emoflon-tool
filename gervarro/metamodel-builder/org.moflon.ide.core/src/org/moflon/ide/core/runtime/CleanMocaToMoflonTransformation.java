@@ -7,6 +7,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.ResourceSet;
+import org.gervarro.eclipse.workspace.util.AntPatternCondition;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.ide.core.runtime.builders.MetamodelBuilder;
 
@@ -36,12 +37,11 @@ public class CleanMocaToMoflonTransformation extends BasicResourceFillingMocaToM
 						final IFile ecoreFile = modelFolder.getFile(getEcoreFileName(node) + WorkspaceHelper.ECORE_FILE_EXTENSION);
 						ecoreFile.delete(true, null);
 					} else if (MOCA_TREE_ATTRIBUTE_INTEGRATION_PROJECT.equals(nodeName)) {
-						// Remove all regular files from the /model folder
-						for (final IResource child : modelFolder.members(IResource.NONE)) {
-							if (child.getType() == IResource.FILE) {
-								child.delete(true, null);
-							}
-						}
+						final String[] patterns = new String[] {
+								"model/" + getEcoreFileName(node) + ".pre.*" };
+						final CleanVisitor cleanVisitor = new CleanVisitor(workspaceProject,
+								new AntPatternCondition(patterns));
+						workspaceProject.accept(cleanVisitor, IResource.DEPTH_INFINITE, IResource.NONE);
 					}
 				} catch (final CoreException e) {
 					reportError(e);
