@@ -53,7 +53,7 @@ public class RepositoryBuilder extends AbstractVisitorBuilder {
 				try {
 					monitor.beginTask("Generating code for project " + getProject().getName(), 9);
 					
-					// Remove markers and generated code
+					// Remove markers and delete generated code
 					deleteProblemMarkers();
 					final CleanVisitor cleanVisitor =
 							new CleanVisitor(getProject(), new AntPatternCondition(new String[] { "gen/**" }));

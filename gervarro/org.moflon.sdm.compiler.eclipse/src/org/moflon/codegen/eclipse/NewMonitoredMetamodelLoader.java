@@ -1,191 +1,133 @@
 package org.moflon.codegen.eclipse;
 
-import java.io.IOException;
-import java.util.LinkedList;
 import java.util.List;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.MultiStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.emf.common.util.URI;
-import org.eclipse.emf.ecore.EPackage;
-import org.eclipse.emf.ecore.impl.EPackageRegistryImpl;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
-import org.eclipse.emf.ecore.resource.impl.ResourceFactoryRegistryImpl;
-import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.dependency.PackageRemappingDependency;
 import org.moflon.eclipse.job.IMonitoredJob;
-import org.moflon.eclipse.resource.SDMEnhancedEcoreResourceFactory;
 
-import MoflonPropertyContainer.AdditionalDependencies;
-import MoflonPropertyContainer.Dependencies;
-import MoflonPropertyContainer.MoflonPropertiesContainer;
+public final class NewMonitoredMetamodelLoader implements IMonitoredJob {
+	private static final String TASK_NAME = "Metamodel loading";
 
-// This class is the new metamodel loading process that would handle all kinds of projects correctly
-public final class NewMonitoredMetamodelLoader implements IMonitoredJob
-{
-   private static final String TASK_NAME = "Metamodel loading";
+	private final ResourceSet resourceSet;
+	private final IFile file;
+	private Resource resource;
+	private List<Resource> resources; 
 
-   private final ResourceSet resourceSet;
+	public NewMonitoredMetamodelLoader(final ResourceSet resourceSet, final IFile file) {
+		this.resourceSet = resourceSet;
+		this.file = file;
+	}
 
-   private final IFile ecoreFile;
+	@Override
+	public final IStatus run(final IProgressMonitor monitor) {
+		try {
+			monitor.beginTask(TASK_NAME + " task", 25);
+			final IProject project = file.getProject();
+			monitor.subTask("Loading metamodel for project " + project.getName());
+			monitor.worked(5);
 
-   private final MoflonPropertiesContainer moflonProperties;
+			if (monitor.isCanceled()) {
+				return Status.CANCEL_STATUS;
+			}
 
-   private Resource ecoreResource;
+			try {
+				// Prepare plugin to resource URI mapping
+				CodeGeneratorPlugin.createPluginToResourceMapping(resourceSet,
+						WorkspaceHelper.createSubMonitor(monitor, 5));
+			} catch (final CoreException e) {
+				return new Status(IStatus.ERROR, CodeGeneratorPlugin.getModuleID(), e.getMessage(), e);
+			}
 
-   public NewMonitoredMetamodelLoader(final ResourceSet resourceSet, final IFile ecoreFile, final MoflonPropertiesContainer moflonProperties)
-   {
-      this.resourceSet = resourceSet;
-      this.resourceSet.setPackageRegistry(new EPackageRegistryImpl(EPackage.Registry.INSTANCE));
-      this.resourceSet.setResourceFactoryRegistry(new ResourceFactoryRegistryImpl());
+			// Create (unloaded) resources for all possibly dependent metamodels in Moflon-specific workspace projects
+			createResourcesForWorkspaceProjects(WorkspaceHelper.createSubMonitor(monitor, 10));
+			if (monitor.isCanceled()) {
+				return Status.CANCEL_STATUS;
+			}
+			
+			// Always load Ecore metamodel
+			PackageRemappingDependency ecoreMetamodelDependency = new PackageRemappingDependency(
+					URI.createURI("platform:/plugin/org.eclipse.emf.ecore/model/Ecore.ecore"), true, true);
+			ecoreMetamodelDependency.getResource(resourceSet, true, false);
 
-      this.resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put("ecore", new SDMEnhancedEcoreResourceFactory());
-      this.resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put("*", new XMIResourceFactoryImpl());
+			// Load the file
+			URI projectURI = URI.createPlatformResourceURI(project.getName() + "/", true);
+			URI uri = URI.createURI(file.getProjectRelativePath().toString()).resolve(projectURI);
+			resource = resourceSet.getResource(uri, true);
 
-      this.ecoreFile = ecoreFile;
-      this.moflonProperties = moflonProperties;
-   }
+			if (monitor.isCanceled()) {
+				return Status.CANCEL_STATUS;
+			}
 
-   @Override
-   public final IStatus run(final IProgressMonitor monitor)
-   {
-      try
-      {
-         monitor.beginTask(TASK_NAME + " task", 50);
-         IProject project = ecoreFile.getProject();
-         monitor.subTask("Loading metamodel for project " + project.getName());
-         monitor.worked(5);
-
-         if (monitor.isCanceled())
-         {
-            return Status.CANCEL_STATUS;
-         }
-
-         // Prepare plugin to resource URI mapping
-         // PluginURIToResourceURIRemapper.createPluginToResourceMap(resourceSet);
-
-         // Create (unloaded) resources for all possibly dependent metamodels in Moflon-specific workspace projects
-         createResourcesForWorkspaceProjects(WorkspaceHelper.createSubMonitor(monitor, 10));
-         if (monitor.isCanceled())
-         {
-            return Status.CANCEL_STATUS;
-         }
-
-         // Create resources for the user-defined dependent metamodels
-         final List<Resource> resourcesToLoad = createResourcesForUserDefinedMetamodels(WorkspaceHelper.createSubMonitor(monitor, 10));
-         if (monitor.isCanceled())
-         {
-            return Status.CANCEL_STATUS;
-         }
-
-         // Load the user-defined dependent metamodels
-         final IStatus userDefinedMetamodelLoaderStatus = loadUserDefinedMetamodels(resourcesToLoad, WorkspaceHelper.createSubMonitor(monitor, 10));
-         if (!userDefinedMetamodelLoaderStatus.isOK())
-         {
-            return userDefinedMetamodelLoaderStatus;
-         }
-         if (monitor.isCanceled())
-         {
-            return Status.CANCEL_STATUS;
-         }
-
-         // Load the main metamodel
-         URI projectURI = URI.createPlatformResourceURI(project.getName() + "/", true);
-         URI ecoreURI = URI.createURI(ecoreFile.getProjectRelativePath().toString()).resolve(projectURI);
-         ecoreResource = resourceSet.getResource(ecoreURI, true);
-
-         if (monitor.isCanceled())
-         {
-            return Status.CANCEL_STATUS;
-         }
-
-         IStatus status = CodeGeneratorPlugin.validateResourceSet(resourceSet, TASK_NAME, WorkspaceHelper.createSubMonitor(monitor, 5));
-
-         return status;
-      } finally
-      {
-         monitor.done();
-      }
-   }
-
-   public final Resource getEcoreResource()
-   {
-      return ecoreResource;
-   }
-
-   @Override
-   public final String getTaskName()
-   {
-      return TASK_NAME;
-   }
-
-   private final void createResourcesForWorkspaceProjects(final IProgressMonitor monitor)
-   {
-      try
-      {
-         final List<Dependencies> dependencies = moflonProperties.getDependencies();
-         monitor.beginTask("Creating resources for required metamodels", dependencies.size());
-         for (Dependencies metamodel : dependencies)
-         {
-            URI uri = URI.createURI(metamodel.getValue());
-            resourceSet.createResource(uri);
-
-            monitor.worked(1);
-         }
-      } finally
-      {
-         monitor.done();
-      }
-   }
-
-   private final List<Resource> createResourcesForUserDefinedMetamodels(final IProgressMonitor monitor)
-   {
-      try
-      {
-         final List<Resource> resourcesToLoad = new LinkedList<Resource>();
-         final List<AdditionalDependencies> additionalDependencies = moflonProperties.getAdditionalDependencies();
-         monitor.beginTask("Creating resources for user-defined metamodels", additionalDependencies.size());
-         for (AdditionalDependencies userDefinedMetamodel : additionalDependencies)
-         {
-            URI uri = URI.createURI(userDefinedMetamodel.getValue());
-            PackageRemappingDependency dependency = new PackageRemappingDependency(uri, true, false);
-            resourcesToLoad.add(dependency.getResource(resourceSet, false));
-            monitor.worked(1);
-         }
-         return resourcesToLoad;
-      } finally
-      {
-         monitor.done();
-      }
-   }
-
-   private final IStatus loadUserDefinedMetamodels(final List<Resource> resourcesToLoad, final IProgressMonitor monitor)
-   {
-      try
-      {
-         final MultiStatus resourceLoadingStatus = new MultiStatus(CodeGeneratorPlugin.getModuleID(), IStatus.OK, "Resource loading status", null);
-         monitor.beginTask("Loading user-defined metamodels", resourcesToLoad.size());
-         for (Resource resource : resourcesToLoad)
-         {
-            try
-            {
-               resource.load(null);
-            } catch (IOException e)
-            {
-               resourceLoadingStatus.add(new Status(IStatus.ERROR, CodeGeneratorPlugin.getModuleID(), IStatus.ERROR, e.getMessage(), e));
+			// Resolve cross-references
+			final CrossReferenceResolver crossReferenceResolver =
+					new CrossReferenceResolver(resource);
+			crossReferenceResolver.run(WorkspaceHelper.createSubMonitor(monitor, 5));
+			resources = crossReferenceResolver.getResources();
+			
+            // Remove unloaded resources from resource set
+            final List<Resource> resources = resourceSet.getResources();
+            for (int i = 0; i < resources.size(); i++) {
+            	final Resource resource = resources.get(i);
+            	if (!resource.isLoaded()) {
+            		resources.remove(i--);
+            	}
             }
-            monitor.worked(1);
-         }
-         return resourceLoadingStatus;
-      } finally
-      {
-         monitor.done();
-      }
-   }
+
+			return CodeGeneratorPlugin.validateResourceSet(resourceSet, TASK_NAME,
+					WorkspaceHelper.createSubMonitor(monitor, 5));
+		} finally {
+			monitor.done();
+		}
+	}
+	
+	public final List<Resource> getResources() {
+		return resources;
+	}
+
+	public final Resource getMainResource() {
+		return resource;
+	}
+
+	@Override
+	public final String getTaskName() {
+		return TASK_NAME;
+	}
+
+	protected void createResourcesForWorkspaceProjects(final IProgressMonitor monitor) {
+		try {
+			final IProject[] workspaceProjects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
+			monitor.beginTask("Loading workspace projects", workspaceProjects.length);
+			for (final IProject workspaceProject : workspaceProjects) {
+				if (isAccessible(workspaceProject)) {
+					final URI projectURI = CodeGeneratorPlugin.lookupProjectURI(workspaceProject);
+					final URI metamodelURI = 
+							CodeGeneratorPlugin.getDefaultProjectRelativeEcoreFileURI(workspaceProject).resolve(projectURI);
+					new PackageRemappingDependency(metamodelURI, false, false).getResource(resourceSet, false, true);
+				}
+				monitor.worked(1);
+			}
+		} finally {
+			monitor.done();
+		}
+	}
+
+	protected boolean isAccessible(IProject project) {
+		try {
+			return project.isAccessible() && (project.hasNature(WorkspaceHelper.REPOSITORY_NATURE_ID) ||
+					project.hasNature(WorkspaceHelper.INTEGRATION_NATURE_ID));
+		} catch (final CoreException e) {
+			return false;
+		}
+	}
 }

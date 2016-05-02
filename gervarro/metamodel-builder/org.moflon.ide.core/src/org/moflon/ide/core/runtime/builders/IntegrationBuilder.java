@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -16,11 +17,10 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.emf.common.util.URI;
-import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.moflon.codegen.eclipse.CodeGeneratorPlugin;
-import org.moflon.codegen.eclipse.MonitoredMetamodelLoader;
+import org.moflon.codegen.eclipse.NewMonitoredMetamodelLoader;
 import org.moflon.core.utilities.MoflonUtil;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.core.utilities.eMoflonEMFUtil;
@@ -36,7 +36,6 @@ import org.moflon.moca.tie.RunModelGenerationGenerator;
 import org.moflon.properties.MoflonPropertiesContainerHelper;
 import org.moflon.tgg.cspcodeadapter.CspcodeadapterFactory;
 import org.moflon.tgg.cspcodeadapter.VariableTypeManager;
-import org.moflon.tgg.language.LanguagePackage;
 import org.moflon.tgg.language.TGGRule;
 import org.moflon.tgg.language.TripleGraphGrammar;
 import org.moflon.tgg.language.algorithm.ApplicationTypes;
@@ -54,11 +53,8 @@ import org.moflon.tgg.language.precompiler.PrecompileMessage;
 import org.moflon.tgg.language.precompiler.PrecompilerFactory;
 import org.moflon.tgg.language.precompiler.RuleProcessingMessage;
 import org.moflon.tgg.language.precompiler.TGGPrecompiler;
-import org.moflon.tgg.runtime.RuntimePackage;
 
-import MocaTree.MocaTreePackage;
 import MoflonPropertyContainer.MoflonPropertiesContainer;
-import SDMLanguage.SDMLanguagePackage;
 import SDMLanguage.sdmUtil.CompilerInjection;
 import SDMLanguage.sdmUtil.SdmUtilFactory;
 
@@ -77,32 +73,16 @@ public class IntegrationBuilder extends RepositoryBuilder {
 			Map<String, String> args, IProgressMonitor monitor) {
 		try {
 			monitor.beginTask("Generating code", 500);
-			processTGG(monitor);
-
-			ResourceSet set = CodeGeneratorPlugin.createDefaultResourceSet();
-			eMoflonEMFUtil.installCrossReferencers(set);
-			final MoflonPropertiesContainer moflonProperties =
-					MoflonPropertiesContainerHelper.load(getProject(), WorkspaceHelper.createSubMonitor(monitor, 100));
-
-			final MonitoredMetamodelLoader metamodelLoader =
-					new MonitoredMetamodelLoader(set, CoreActivator.getEcoreFile(getProject()), moflonProperties);
-			metamodelLoader.run(monitor);
-			WorkspaceHelper.createSubMonitor(monitor, 100);
-
-			Resource ecoreResource = metamodelLoader.getEcoreResource();
-			HashMap<String, Object> saveOptions = new HashMap<String, Object>();
-			saveOptions.put(SDMEnhancedEcoreResource.SAVE_GENERATED_PACKAGE_CROSSREF_URIS, Boolean.valueOf(true));
-			try {
-				ecoreResource.save(saveOptions);
-			} catch (IOException e) {
-				e.printStackTrace();
+			final IStatus tggCompilationStatus = processTGG(WorkspaceHelper.createSubMonitor(monitor, 250));
+			if (tggCompilationStatus.matches(IStatus.ERROR)) {
+				handleErrorsInEclipse(tggCompilationStatus, (IFile) resource);
 			}
-			WorkspaceHelper.createSubMonitor(monitor, 100);
 
-			super.processResource(resource, kind, args,
-					WorkspaceHelper.createSubMonitor(monitor, 100));
+			final IFile ecoreFile = getProject().getFolder(WorkspaceHelper.MODEL_FOLDER).getFile(
+					MoflonUtil.lastCapitalizedSegmentOf(getProject().getName()) + WorkspaceHelper.ECORE_FILE_EXTENSION);
+			super.processResource(ecoreFile, kind, args,
+					WorkspaceHelper.createSubMonitor(monitor, 250));
 		} catch (final CoreException e) {
-			forgetLastBuiltState();
 			final IStatus status = new Status(e.getStatus().getSeverity(),
 					CoreActivator.getModuleID(), e.getMessage(), e);
 			handleErrorsInEclipse(status, (IFile) resource);
@@ -111,66 +91,44 @@ public class IntegrationBuilder extends RepositoryBuilder {
 		}
 	}
 
-	private void createFilesFromPreFiles() {
-		try {
-			final IProject project = getProject();
-			if (CoreActivator.getEcoreFile(project).exists()) {
-				CoreActivator.getEcoreFile(project).delete(true, new NullProgressMonitor());
-			}
-
-			IntegrationBuilder.getPreEcoreFile(project).copy(CoreActivator.getEcoreFile(project).getFullPath(), true, new NullProgressMonitor());
-
-			if (getTGGFile().exists()) {
-				getTGGFile().delete(true, new NullProgressMonitor());
-			}
-
-			IntegrationBuilder.getPreTGGFile(project).copy(getTGGFile().getFullPath(), true, new NullProgressMonitor());
-		} catch (CoreException e) {
-			e.printStackTrace();
-		}
-	}
-
-	private void processTGG(final IProgressMonitor monitor) throws CoreException {
+	private IStatus processTGG(final IProgressMonitor monitor) throws CoreException {
 		try {
 			monitor.beginTask("Processing TGGs", 66);
 
-			createFilesFromPreFiles();
-
-			ResourceSet set = CodeGeneratorPlugin.createDefaultResourceSet();
+			final ResourceSet set = CodeGeneratorPlugin.createDefaultResourceSet();
 			eMoflonEMFUtil.installCrossReferencers(set);
 			final MoflonPropertiesContainer moflonProperties =
 					MoflonPropertiesContainerHelper.load(getProject(),
-							WorkspaceHelper.createSubMonitor(monitor, 1));
-
-			handleBuiltInMetamodels(set);
-			monitor.worked(5);
-
-			final MonitoredMetamodelLoader metamodelLoader =
-					new MonitoredMetamodelLoader(set, CoreActivator.getEcoreFile(getProject()), moflonProperties);
-			metamodelLoader.run(WorkspaceHelper.createSubMonitor(monitor, 10));
-
-			// Make sure all dependencies are really loaded in the resource set.
-			// This might be necessary as the tgg might depend on more than the correspondence metamodel does!
-			moflonProperties.getDependencies().forEach(dep -> {
-				URI uri = URI.createURI(dep.getValue());
-				new PackageRemappingDependency(uri).getResource(set, true);
-			});
-			monitor.worked(5);
+							WorkspaceHelper.createSubMonitor(monitor, 5));
 
 			// Load TGG file
-			IFile tggFile = getProject().getFile("/model/" +
-					MoflonUtil.lastCapitalizedSegmentOf(getProject().getName()) + WorkspaceHelper.TGG_FILE_EXTENSION);
-			URI tggFileURI = URI.createPlatformResourceURI(tggFile.getFullPath().toOSString(), true);
-			monitor.worked(5);
-
-			// Compile TGGs to SDMs
-			monitor.subTask(getProject().getName() + ": Translating TGG model to SDMs...");
-			PackageRemappingDependency tggDependency =
-					new PackageRemappingDependency(tggFileURI);
-			Resource tggResource = tggDependency.getResource(set, true);
+			final IFolder modelFolder = getProject().getFolder(WorkspaceHelper.MODEL_FOLDER);
+			final String defaultFileName = 
+					MoflonUtil.lastCapitalizedSegmentOf(getProject().getName());
+			final IFile tggFile = modelFolder.getFile(defaultFileName + WorkspaceHelper.TGG_FILE_EXTENSION);
+			
+			final URI projectURI = CodeGeneratorPlugin.lookupProjectURI(getProject());
+			final URI workspaceProjectURI = URI.createURI(getProject().getName() + "/", true).resolve(URI.createPlatformResourceURI("/", true));
+			final URI modelFolderURI = URI.createURI(WorkspaceHelper.MODEL_FOLDER + "/", true);
+			final URI tggFileURI = URI.createURI(defaultFileName + WorkspaceHelper.TGG_FILE_EXTENSION, true).resolve(modelFolderURI.resolve(workspaceProjectURI));
+			final URI preTGGFileURI = URI.createURI(defaultFileName + WorkspaceHelper.PRE_TGG_FILE_EXTENSION, true).resolve(modelFolderURI.resolve(workspaceProjectURI));
+			final URI ecoreFileURI = URI.createURI(defaultFileName + WorkspaceHelper.ECORE_FILE_EXTENSION, true).resolve(modelFolderURI.resolve(projectURI));
+			final URI preEcoreFileURI = URI.createURI(defaultFileName + WorkspaceHelper.PRE_ECORE_FILE_EXTENSION, true).resolve(modelFolderURI.resolve(projectURI));
+			final Map<URI,URI> uriMapping = set.getURIConverter().getURIMap();
+			uriMapping.put(tggFileURI, preTGGFileURI);
+			uriMapping.put(ecoreFileURI, preEcoreFileURI);
+			
+			final NewMonitoredMetamodelLoader metamodelLoader =
+					new NewMonitoredMetamodelLoader(set, tggFile);
+			metamodelLoader.run(WorkspaceHelper.createSubMonitor(monitor, 10));
+			final Resource tggResource = metamodelLoader.getMainResource();
+			final Resource ecoreResource = set.getResource(ecoreFileURI, false);
 			tgg = (TripleGraphGrammar) tggResource.getContents().get(0);
+			uriMapping.remove(tggFileURI);
+			uriMapping.remove(ecoreFileURI);
 			monitor.worked(5);
 
+			monitor.subTask(getProject().getName() + ": Translating TGG model to SDMs...");
 			// Create and add precompiler to resourceSet so reverse navigation of links works
 			TGGPrecompiler precompiler = PrecompilerFactory.eINSTANCE.createTGGPrecompiler();
 			eMoflonEMFUtil.createParentResourceAndInsertIntoResourceSet(precompiler, set);
@@ -189,20 +147,17 @@ public class IntegrationBuilder extends RepositoryBuilder {
 			// Persist tgg model after precompilation
 			HashMap<String, Object> saveOptions = new HashMap<String, Object>();
 			saveOptions.put(SDMEnhancedEcoreResource.SAVE_GENERATED_PACKAGE_CROSSREF_URIS, Boolean.valueOf(true));
+			saveOptions.put(Resource.OPTION_SAVE_ONLY_IF_CHANGED, Resource.OPTION_SAVE_ONLY_IF_CHANGED_MEMORY_BUFFER);
 
-			Resource genTGGResource = tgg.eResource();
 			try {
-				genTGGResource.save(saveOptions);
+				tggResource.save(saveOptions);
 			} catch (final IOException e) {
-				e.printStackTrace();
+				return new Status(IStatus.ERROR, CoreActivator.getModuleID(), IStatus.ERROR, e.getMessage(), e);
 			}
 			monitor.worked(5);
 
-			// Create SDMs from TGG specification
-			StaticAnalysis staticAnalysis = null;
-
 			// Prepare injection resource compiler injections
-			URI compilerInjectionFileURI = URI.createURI(genTGGResource.getURI().toString().replace(WorkspaceHelper.TGG_FILE_EXTENSION, ".injection.xmi"));
+			URI compilerInjectionFileURI = URI.createURI(tggResource.getURI().toString().replace(WorkspaceHelper.TGG_FILE_EXTENSION, ".injection.xmi"));
 			PackageRemappingDependency compilerInjectionFile = new PackageRemappingDependency(compilerInjectionFileURI);
 			Resource compilerInjectionResource = compilerInjectionFile.getResource(set, false);
 			InjectionHelper injectionHelper = CompilerfacadeFactory.eINSTANCE.createInjectionHelper();
@@ -217,7 +172,20 @@ public class IntegrationBuilder extends RepositoryBuilder {
 				compiler.setProperties(moflonProperties);
 				compiler.setInjectionHelper(injectionHelper);
 				compiler.deriveOperationalRules(tgg, ApplicationTypes.get(moflonProperties.getTGGBuildMode().getBuildMode().getValue()));
-				staticAnalysis = compiler.getStaticAnalysis();
+				StaticAnalysis staticAnalysis = compiler.getStaticAnalysis();
+
+				// Persist results of static analysis
+				URI smaFileURI = URI.createURI(tggResource.getURI().toString().replace(WorkspaceHelper.TGG_FILE_EXTENSION, SUFFIX_SMA));
+				PackageRemappingDependency smaFile = new PackageRemappingDependency(smaFileURI);
+				Resource smaResource = smaFile.getResource(set, false);
+				if (staticAnalysis != null) {
+					smaResource.getContents().add(staticAnalysis);
+				}
+				try {
+					smaResource.save(saveOptions);
+				} catch (final IOException e) {
+					return new Status(IStatus.ERROR, CoreActivator.getModuleID(), IStatus.ERROR, e.getMessage(), e);
+				}
 
 				// Persist compiler injections
 				saveInjectionFiles(saveOptions, compiler, compilerInjectionResource);
@@ -244,21 +212,10 @@ public class IntegrationBuilder extends RepositoryBuilder {
 			monitor.worked(5);
 
 			try {
-				// Persist results of static analysis
-				URI smaFileURI = URI.createURI(genTGGResource.getURI().toString().replace(WorkspaceHelper.TGG_FILE_EXTENSION, SUFFIX_SMA));
-				PackageRemappingDependency smaFile = new PackageRemappingDependency(smaFileURI);
-				Resource smaResource = smaFile.getResource(set, false);
-				if (staticAnalysis != null) {
-					smaResource.getContents().add(staticAnalysis);
-				}
-				smaResource.save(saveOptions);
-
 				// Persist ecore resource
-				set.getResources().add(genTGGResource);
-				Resource ecoreResource = metamodelLoader.getEcoreResource();
 				ecoreResource.save(saveOptions);
-			} catch (IOException e) {
-				throw new CoreException(new Status(IStatus.ERROR, CoreActivator.getModuleID(), IStatus.ERROR, e.getMessage(), e));
+			} catch (final IOException e) {
+				return new Status(IStatus.ERROR, CoreActivator.getModuleID(), IStatus.ERROR, e.getMessage(), e);
 			}
 			monitor.worked(5);
 
@@ -268,6 +225,7 @@ public class IntegrationBuilder extends RepositoryBuilder {
 			new RunIntegrationGeneratorSync(getProject()).doFinish();
 			new RunModelGenerationGenerator(getProject()).doFinish();
 			monitor.worked(5);
+			return Status.OK_STATUS;
 		} finally {
 			monitor.done();
 		}
@@ -298,21 +256,6 @@ public class IntegrationBuilder extends RepositoryBuilder {
 				}
 			}
 		}
-	}
-
-	private void handleBuiltInMetamodels(final ResourceSet set)
-	{
-		ArrayList<String> metamodels = new ArrayList<>();
-		metamodels.add(MocaTreePackage.eNS_URI);
-		metamodels.add(SDMLanguagePackage.eNS_URI);
-		metamodels.add(RuntimePackage.eNS_URI);
-		metamodels.add(LanguagePackage.eNS_URI);
-		metamodels.add(EcorePackage.eNS_URI);
-
-		metamodels.forEach(mm -> {
-			Resource resource = set.getResource(URI.createURI(mm), false);
-			set.getResources().add(resource);
-		});
 	}
 
 	/**
@@ -386,11 +329,6 @@ public class IntegrationBuilder extends RepositoryBuilder {
 		}
 	}
 
-	private IFile getTGGFile()
-	{
-		return getProject().getFile(MoflonUtil.getDefaultPathToFileInProject(getProject().getName(), WorkspaceHelper.TGG_FILE_EXTENSION));
-	}
-
 	private void printPrecompilerLog(final PrecompileLog log) {
 		String errorMessage = "";
 		for (PrecompileMessage error : log.getPrecompileerror()) {
@@ -428,11 +366,6 @@ public class IntegrationBuilder extends RepositoryBuilder {
 			warningMessage = " ------------ PreCompiler Warninglog ------------ \n" + warningMessage + " --------------------------------------";
 			logger.warn("TGGLanguage Precompiler (Refinements) - " + warningMessage);
 		}
-	}
-
-	protected boolean isEcoreFile(final IResource ecoreResource) {
-		return ecoreResource.getType() == IResource.FILE && "ecore".equals(ecoreResource.getFileExtension()) &&
-				getPreEcoreFile(getProject()).exists() && getPreTGGFile(getProject()).exists();
 	}
 
 	public static IFile getPreTGGFile(final IProject project) {
