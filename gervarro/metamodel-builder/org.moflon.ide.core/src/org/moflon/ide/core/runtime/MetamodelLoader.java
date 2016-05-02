@@ -193,8 +193,10 @@ public class MetamodelLoader implements ITask {
 	}
 
 	protected URI getDefaultNamespace(final Node node) {
-		URI pluginURI = URI.createPlatformPluginURI(getProjectName(node) + "/", true);
-		return getProjectRelativeMetamodelURI(node).resolve(pluginURI);
+		final IProject project =
+				ResourcesPlugin.getWorkspace().getRoot().getProject(getProjectName(node));
+		final URI projectURI = CodeGeneratorPlugin.lookupProjectURI(project);
+		return getProjectRelativeMetamodelURI(node).resolve(projectURI);
 	}
 
 	private final boolean isUserDefined(URI namespaceURI) {
