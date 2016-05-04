@@ -12,7 +12,10 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.MultiStatus;
+import org.eclipse.core.runtime.SubProgressMonitor;
+import org.gervarro.eclipse.workspace.util.AntPatternCondition;
 import org.gervarro.eclipse.workspace.util.RelevantElementCollectingBuilder;
+import org.gervarro.eclipse.workspace.util.RelevantElementCollector;
 import org.gervarro.eclipse.workspace.util.VisitorCondition;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.ide.core.CoreActivator;
@@ -26,13 +29,50 @@ abstract public class AbstractVisitorBuilder extends RelevantElementCollectingBu
 				}
 			};
 			
-	protected final TreeSet<IProject> interestingProjects =
+	protected final TreeSet<IProject> triggerProjects =
 			new TreeSet<IProject>(PROJECT_COMPARATOR);
 	
 	protected AbstractVisitorBuilder(VisitorCondition condition) {
 		super(condition);
 	}
 
+	protected void postprocess(final RelevantElementCollector buildVisitor, final int kind,
+			final Map<String, String> args, final IProgressMonitor monitor) {
+		super.postprocess(buildVisitor, kind, args, monitor);
+		if (buildVisitor.getRelevantDeltas().isEmpty() && (kind == INCREMENTAL_BUILD || kind == AUTO_BUILD)) {
+			final SubProgressMonitor subMonitor =
+					WorkspaceHelper.createSubMonitor(monitor, triggerProjects.size());
+			try {
+				for (final IProject project : triggerProjects) {
+						final RelevantElementCollector relevantElementCollector =
+								new RelevantElementCollector(project, getTriggerCondition(project)) {
+							public boolean handleResourceDelta(final IResourceDelta delta) {
+								final int deltaKind = delta.getKind();
+								if (deltaKind == IResourceDelta.ADDED || deltaKind == IResourceDelta.CHANGED) {
+									super.handleResourceDelta(delta);
+								}
+								return false;
+							}
+						};
+						getDelta(project).accept(relevantElementCollector, IResource.NONE);
+						if (!relevantElementCollector.getRelevantDeltas().isEmpty()) {
+							// Perform a full build if a triggering project changed
+							build(FULL_BUILD, args, WorkspaceHelper.createSubMonitor(subMonitor, 1));
+							return;
+						} else {
+							subMonitor.worked(1);
+						}
+				}
+			} catch (final CoreException e) {
+				throw new RuntimeException(e.getMessage(), e);
+			} finally {
+				subMonitor.done();
+			}
+		}		
+	}
+	
+	abstract AntPatternCondition getTriggerCondition(final IProject project);
+	
 	protected void processResourceDelta(final IResourceDelta delta, final int kind,
 			final Map<String,String> args, final IProgressMonitor monitor) {
 		if (delta.getKind() != IResourceDelta.REMOVED) {
@@ -40,13 +80,13 @@ abstract public class AbstractVisitorBuilder extends RelevantElementCollectingBu
 		}
 	}
 
-	public final boolean addInterestingProject(IProject project) {
-		return interestingProjects.add(project);
+	public final boolean addTriggerProject(IProject project) {
+		return triggerProjects.add(project);
 	}
 
 	protected final IProject[] calculateInterestingProjects() {
-		IProject[] result = new IProject[interestingProjects.size()];
-		return interestingProjects.toArray(result);
+		IProject[] result = new IProject[triggerProjects.size()];
+		return triggerProjects.toArray(result);
 	}
 	
 	protected final void processProblemStatus(IStatus status, IResource resource) throws CoreException {

@@ -54,6 +54,5 @@ Export-Package: org.moflon.ide.ui,
  org.moflon.ide.ui.admin.wizards.moca,
  org.moflon.ide.ui.admin.wizards.util,
  org.moflon.ide.ui.preferences,
- org.moflon.ide.ui.propertytesters,
- org.moflon.ide.ui.runtime.natures
+ org.moflon.ide.ui.propertytesters
 Bundle-ClassPath: .

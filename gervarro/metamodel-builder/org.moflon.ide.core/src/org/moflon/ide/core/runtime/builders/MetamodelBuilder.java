@@ -149,7 +149,7 @@ public class MetamodelBuilder extends AbstractVisitorBuilder {
 				ResourcesPlugin.getWorkspace().checkpoint(false);
 
 				// Load resources (metamodels and tgg files)
-				interestingProjects.clear();
+				triggerProjects.clear();
 				ITask[] taskArray = new ITask[exporter.getMetamodelLoaderTasks().size()];
 				taskArray = exporter.getMetamodelLoaderTasks().toArray(taskArray);
 				final IStatus metamodelLoaderStatus = ProgressMonitoringJob.executeSyncSubTasks(taskArray,
@@ -167,9 +167,9 @@ public class MetamodelBuilder extends AbstractVisitorBuilder {
 						new ProjectDependencyAnalyzer[exporter.getProjectDependencyAnalyzerTasks().size()];
 				dependencyAnalyzers = exporter.getProjectDependencyAnalyzerTasks().toArray(dependencyAnalyzers);
 				for (ProjectDependencyAnalyzer analyzer : dependencyAnalyzers) {
-					analyzer.setInterestingProjects(interestingProjects);
+					analyzer.setInterestingProjects(triggerProjects);
 				}
-				interestingProjects.clear();
+				triggerProjects.clear();
 				final IStatus projectDependencyAnalyzerStatus =
 						ProgressMonitoringJob.executeSyncSubTasks(dependencyAnalyzers,
 								new MultiStatus(CoreActivator.getModuleID(), 0, "Dependency analysis failed", null), monitor);
@@ -204,6 +204,18 @@ public class MetamodelBuilder extends AbstractVisitorBuilder {
 			}
 			handleErrorsInEclipse(mocaToMoflonStatus);
 		}
+	}
+	
+	@Override
+	final AntPatternCondition getTriggerCondition(final IProject project) {
+		try {
+			if (project.hasNature(WorkspaceHelper.REPOSITORY_NATURE_ID) || project.hasNature(WorkspaceHelper.INTEGRATION_NATURE_ID)) {
+				return new AntPatternCondition(new String[] { "model/*.ecore" });
+			}
+		} catch (final CoreException e) {
+			// Do nothing
+		}
+		return new AntPatternCondition(new String[0]);
 	}
 	
 	/**

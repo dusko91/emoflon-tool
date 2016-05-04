@@ -1,4 +1,4 @@
-package org.moflon.ide.ui.runtime.natures;
+package org.moflon.ide.core.runtime.natures;
 
 import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IProject;

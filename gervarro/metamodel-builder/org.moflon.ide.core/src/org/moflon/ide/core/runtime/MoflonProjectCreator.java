@@ -104,14 +104,16 @@ public class MoflonProjectCreator extends WorkspaceTask implements ProjectConfig
 			// (5) Configure natures and builders (.project file)
 			final JavaProjectConfigurator javaProjectConfigurator =
 					new JavaProjectConfigurator();
+			final MoflonProjectConfigurator moflonProjectConfigurator =
+					new MoflonProjectConfigurator(MetamodelProperties.INTEGRATION_KEY.equals(metamodelProperties.getType()));
 			final PluginProjectConfigurator pluginProjectConfigurator =
 					new PluginProjectConfigurator();
 			final ProjectNatureAndBuilderConfiguratorTask natureAndBuilderConfiguratorTask =
 					new ProjectNatureAndBuilderConfiguratorTask(workspaceProject, false);
 			natureAndBuilderConfiguratorTask.updateNatureIDs(javaProjectConfigurator, true);
 			natureAndBuilderConfiguratorTask.updateBuildSpecs(javaProjectConfigurator, true);
-			natureAndBuilderConfiguratorTask.updateNatureIDs(this, true);
-			natureAndBuilderConfiguratorTask.updateBuildSpecs(this, true);
+			natureAndBuilderConfiguratorTask.updateNatureIDs(moflonProjectConfigurator, true);
+			natureAndBuilderConfiguratorTask.updateBuildSpecs(moflonProjectConfigurator, true);
 			natureAndBuilderConfiguratorTask.updateNatureIDs(pluginProjectConfigurator, true);
 			natureAndBuilderConfiguratorTask.updateBuildSpecs(pluginProjectConfigurator, true);
 			WorkspaceTask.execute(natureAndBuilderConfiguratorTask, false);

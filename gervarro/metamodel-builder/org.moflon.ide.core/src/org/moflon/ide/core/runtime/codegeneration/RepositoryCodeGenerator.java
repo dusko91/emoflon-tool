@@ -81,10 +81,9 @@ public class RepositoryCodeGenerator
          if (genModel != null)
          {
 
-            ExportedPackagesInManifestUpdater exportedPackagesUpdater = new ExportedPackagesInManifestUpdater(project, genModel);
-            exportedPackagesUpdater.run(WorkspaceHelper.createSubmonitorWith1Tick(monitor));
+        	 ExportedPackagesInManifestUpdater.updateExportedPackageInManifest(project, genModel);
 
-            new PluginXmlUpdater().updatePluginXml(project, genModel, WorkspaceHelper.createSubmonitorWith1Tick(monitor));
+            PluginXmlUpdater.updatePluginXml(project, genModel, WorkspaceHelper.createSubmonitorWith1Tick(monitor));
          }
          ecoreFile.getProject().refreshLocal(IResource.DEPTH_INFINITE, WorkspaceHelper.createSubmonitorWith1Tick(monitor));
 

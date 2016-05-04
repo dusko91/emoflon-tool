@@ -62,8 +62,8 @@ public class OpenProjectHandler extends WorkspaceTask {
 		// when the order of builders has been fixed in the eMoflon developer workspace.
 		final JavaProjectConfigurator javaProjectConfigurator =
 				new JavaProjectConfigurator();
-		final MoflonProjectCreator moflonProjectConfigurator =
-				new MoflonProjectCreator(project, metamodelProperties);
+		final MoflonProjectConfigurator moflonProjectConfigurator =
+				new MoflonProjectConfigurator(MetamodelProperties.INTEGRATION_KEY.equals(metamodelProperties.getType()));
 		final PluginProjectConfigurator pluginProjectConfigurator =
 				new PluginProjectConfigurator();
 		final ProjectNatureAndBuilderConfiguratorTask natureAndBuilderConfiguratorTask =

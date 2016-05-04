@@ -64,7 +64,7 @@ public class GenericMonitoredResourceLoader implements IMonitoredJob {
 						WorkspaceHelper.createSubMonitor(monitor, 5));
 			} else {
 				return new Status(IStatus.ERROR, CodeGeneratorPlugin.getModuleID(),
-						"Project " + project.getName() + "is not accessible");
+						"Project " + project.getName() + " is not accessible");
 			}
 		} finally {
 			monitor.done();

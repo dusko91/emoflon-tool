@@ -131,13 +131,13 @@ public class MetamodelLoader implements ITask {
 								// Replace existing metamodel content with the constructed metamodel in resource
 								resource.unload();
 								handleNewMetamodelContent(ePackage, resource);
-								builder.addInterestingProject(project);
+								builder.addTriggerProject(project);
 							} catch (final Exception e) {
 								throw e;
 							}
 						} else {
 							// Open project without ecore file
-							builder.addInterestingProject(project);
+							builder.addTriggerProject(project);
 							return new Status(IStatus.ERROR, CoreActivator.getModuleID(),
 									"The project cannot be built until its prerequisite " + projectName + " is built. Cleaning and building all projects is recommended");
 						}

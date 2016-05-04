@@ -19,6 +19,8 @@ import org.eclipse.emf.ecore.resource.URIConverter;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.pde.core.plugin.IPluginModelBase;
 import org.eclipse.pde.core.plugin.PluginRegistry;
+import org.gervarro.eclipse.workspace.util.WorkspaceObservationLifecycleManager;
+import org.gervarro.eclipse.workspace.util.WorkspaceTask;
 import org.moflon.codegen.eclipse.CodeGeneratorPlugin;
 import org.moflon.core.utilities.EMoflonPlugin;
 import org.moflon.core.utilities.MoflonUtil;
@@ -62,6 +64,8 @@ public class CoreActivator extends EMoflonPlugin
    private Map<String, Boolean> isDirty = new HashMap<>();
 
    private List<DirtyProjectListener> dirtyProjectListeners;
+   
+   private NatureMigrator natureMigrator;
 
    public static CoreActivator getDefault() {
       CoreActivator plugin = getPlugin(CoreActivator.class);
@@ -86,11 +90,15 @@ public class CoreActivator extends EMoflonPlugin
       super.start(context);
 
       dirtyProjectListeners = new ArrayList<>();
+
+      natureMigrator = new NatureMigrator();
+      WorkspaceTask.execute(new WorkspaceObservationLifecycleManager(natureMigrator), false);
    }
 
    @Override
    public void stop(final BundleContext context) throws Exception
    {
+	   WorkspaceTask.execute(new WorkspaceObservationLifecycleManager(), false);
       dirtyProjectListeners = null;
       super.stop(context);
    }

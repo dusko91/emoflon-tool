@@ -3,6 +3,7 @@ package org.moflon.ide.core.runtime.builders;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
+import org.eclipse.core.resources.IBuildConfiguration;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -52,6 +53,13 @@ public class RepositoryBuilder extends AbstractVisitorBuilder {
 						Platform.getAdapterManager().getAdapter(ecoreResource, IFile.class);
 				try {
 					monitor.beginTask("Generating code for project " + getProject().getName(), 9);
+
+					// Compute project dependencies
+					final IBuildConfiguration[] referencedBuildConfigs = 
+							getProject().getReferencedBuildConfigs(getProject().getActiveBuildConfig().getName(), false);
+					for (final IBuildConfiguration referencedConfig : referencedBuildConfigs) {
+						addTriggerProject(referencedConfig.getProject());
+					}
 					
 					// Remove markers and delete generated code
 					deleteProblemMarkers();
@@ -71,14 +79,11 @@ public class RepositoryBuilder extends AbstractVisitorBuilder {
 					handleErrorsAndWarnings(status, ecoreFile);
 					monitor.worked(3);
 
-					// TODO What to do with this?
 					final GenModel genModel = codeGenerationTask.getGenModel();
 					if (genModel != null) {
-						ExportedPackagesInManifestUpdater exportedPackagesUpdater =
-								new ExportedPackagesInManifestUpdater(getProject(), genModel);
-						exportedPackagesUpdater.run(WorkspaceHelper.createSubmonitorWith1Tick(monitor));
+						ExportedPackagesInManifestUpdater.updateExportedPackageInManifest(getProject(), genModel);
 
-						new PluginXmlUpdater().updatePluginXml(getProject(), genModel, WorkspaceHelper.createSubmonitorWith1Tick(monitor));
+						PluginXmlUpdater.updatePluginXml(getProject(), genModel, WorkspaceHelper.createSubmonitorWith1Tick(monitor));
 					}
 				} catch (final CoreException e) {
 					final IStatus status = new Status(e.getStatus().getSeverity(),
@@ -92,6 +97,21 @@ public class RepositoryBuilder extends AbstractVisitorBuilder {
 	
 	protected boolean isEcoreFile(final IResource ecoreResource) {
 		return ecoreResource.getType() == IResource.FILE && "ecore".equals(ecoreResource.getFileExtension());
+	}
+	
+	@Override
+	final AntPatternCondition getTriggerCondition(final IProject project) {
+		try {
+			if (project.hasNature(WorkspaceHelper.REPOSITORY_NATURE_ID) ||
+					project.hasNature(WorkspaceHelper.INTEGRATION_NATURE_ID)) {
+				return new AntPatternCondition(new String[] { "gen/**" });
+			} else if (project.hasNature(CoreActivator.METAMODEL_NATURE_ID)) {
+				return new AntPatternCondition(new String[] { ".temp/*.moca.xmi" });
+			}
+		} catch (final CoreException e) {
+			// Do nothing
+		}
+		return new AntPatternCondition(new String[0]);
 	}
 	
    public void clean(final IProgressMonitor monitor) throws CoreException

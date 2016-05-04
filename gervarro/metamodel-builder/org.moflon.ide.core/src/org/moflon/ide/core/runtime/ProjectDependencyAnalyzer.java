@@ -86,7 +86,7 @@ public class ProjectDependencyAnalyzer implements ITask {
 		
 		for (IProject reference : projectReferences) {
 			if (interestingProjects.contains(reference)) {
-				builder.addInterestingProject(reference);
+				builder.addTriggerProject(reference);
 			}
 		}
 		if (!status.isOK()) {

@@ -15,7 +15,6 @@ import org.eclipse.emf.codegen.ecore.genmodel.GenModel;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
-import org.eclipse.ui.statushandlers.StatusManager;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.eclipse.job.IMonitoredJob;
 import org.moflon.properties.MoflonPropertiesContainerHelper;
@@ -94,9 +93,8 @@ public final class MonitoredGenModelBuilder implements IMonitoredJob
             this.genModel = genModelBuilder.buildGenModel(genModelURI);
          } catch (RuntimeException e)
          {
-            IStatus errorStatus = new Status(IStatus.ERROR, "SDMCompiler", IStatus.ERROR, e.getMessage(), e);
-            StatusManager.getManager().handle(errorStatus, StatusManager.SHOW | StatusManager.LOG);
-            return errorStatus;
+            // StatusManager.getManager().handle(errorStatus, StatusManager.SHOW | StatusManager.LOG);
+            return new Status(IStatus.ERROR, CodeGeneratorPlugin.getModuleID(), e.getMessage(), e);
          }
          monitor.worked(30);
          if (monitor.isCanceled())
