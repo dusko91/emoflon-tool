@@ -8,6 +8,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -84,6 +85,7 @@ public class RepositoryBuilder extends AbstractVisitorBuilder {
 						ExportedPackagesInManifestUpdater.updateExportedPackageInManifest(getProject(), genModel);
 
 						PluginXmlUpdater.updatePluginXml(getProject(), genModel, WorkspaceHelper.createSubmonitorWith1Tick(monitor));
+						ResourcesPlugin.getWorkspace().checkpoint(false);
 					}
 				} catch (final CoreException e) {
 					final IStatus status = new Status(e.getStatus().getSeverity(),
