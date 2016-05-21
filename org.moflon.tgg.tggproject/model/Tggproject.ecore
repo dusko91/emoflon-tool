@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="ASCII"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="tggproject" nsURI="platform:/plugin/org.moflon.tgg.tggproject/model/Tggproject.ecore" nsPrefix="org.moflon.tgg.tggproject">
+  <eClassifiers xsi:type="ecore:EClass" name="TGGProject">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="tgg" lowerBound="1" containment="true">
+      <eType xsi:type="ecore:EClass" href="platform:/plugin/org.moflon.tgg.language/model/Language.ecore#//TripleGraphGrammar"/>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="corrPackage" lowerBound="1" containment="true">
+      <eType xsi:type="ecore:EClass" href="http://www.eclipse.org/emf/2002/Ecore#//EPackage"/>
+    </eStructuralFeatures>
+  </eClassifiers>
+</ecore:EPackage>

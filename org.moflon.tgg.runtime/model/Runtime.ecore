@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="ASCII"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:activities="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//activities"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="runtime" nsURI="platform:/plugin/org.moflon.tgg.runtime/model/Runtime.ecore"
+    nsPrefix="org.moflon.tgg.runtime">
+  <eClassifiers xsi:type="ecore:EClass" name="AttributeDelta">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="delta" lowerBound="1" eType="#//DeltaSpecification"
+        eOpposite="#//DeltaSpecification/attributeChanges"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="affectedAttribute" lowerBound="1"
+        eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EAttribute"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="affectedNode" lowerBound="1"
+        eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="oldValue" ordered="false"
+        lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="newValue" ordered="false"
+        lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="TripleMatch">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="sourceElements" upperBound="-1"
+        eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="contextElements" upperBound="-1"
+        eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="nodeMappings" upperBound="-1"
+        eType="#//TripleMatchNodeMapping" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="containedEdges" upperBound="-1"
+        eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="targetElements" upperBound="-1"
+        eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="correspondenceElements"
+        upperBound="-1" eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="createdElements" upperBound="-1"
+        eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="children" upperBound="-1"
+        eType="#//TripleMatch"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="ruleName" ordered="false"
+        lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="number" ordered="false"
+        lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="DeltaSpecification">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="targetModel" eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="addedEdges" upperBound="-1"
+        eType="#//EMoflonEdge" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="deletedNodes" upperBound="-1"
+        eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="addedNodes" upperBound="-1"
+        eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="deletedEdges" upperBound="-1"
+        eType="#//EMoflonEdge" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="attributeChanges" upperBound="-1"
+        eType="#//AttributeDelta" containment="true" eOpposite="#//AttributeDelta/delta"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="IsApplicableRuleResult" eSuperTypes="#//RuleResult">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="isApplicableMatch" upperBound="-1"
+        eType="#//IsApplicableMatch" containment="true" eOpposite="#//IsApplicableMatch/isApplicableRuleResult"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="performOperation" lowerBound="1"
+        eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EOperation"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="coreMatch" lowerBound="1"
+        eType="#//Match"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="TripleMatchNodeMapping">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="node" eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="nodeName" ordered="false"
+        lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="IsApplicableMatch" eSuperTypes="#//TGGRuleMorphism">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="isApplicableRuleResult"
+        lowerBound="1" eType="#//IsApplicableRuleResult" eOpposite="#//IsApplicableRuleResult/isApplicableMatch"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="attributeInfo" upperBound="-1"
+        eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="allContextElements" upperBound="-1"
+        eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="CorrespondenceModel">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="correspondences" upperBound="-1"
+        eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="source" lowerBound="1"
+        eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="target" lowerBound="1"
+        eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="EMoflonEdge">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="src" lowerBound="1" eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="trg" lowerBound="1" eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" ordered="false" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="AttributeConstraintsRuleResult" eSuperTypes="#//RuleResult">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="requiredChange" ordered="false"
+        lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="AbstractRule"/>
+  <eClassifiers xsi:type="ecore:EClass" name="CCMatch" eSuperTypes="#//IsApplicableMatch">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="targetMatch" lowerBound="1"
+        eType="#//Match"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="sourceMatch" lowerBound="1"
+        eType="#//Match"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="createCorr" upperBound="-1"
+        eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="eObjects" upperBound="-1"
+        eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ModelgeneratorRuleResult" eSuperTypes="#//RuleResult">
+    <eOperations xsi:type="activities:MoflonEOperation" name="getIncrementedPerformCount"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="sourceObjects" upperBound="-1"
+        eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="targetObjects" upperBound="-1"
+        eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="corrObjects" upperBound="-1"
+        eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="performCount" ordered="false"
+        lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        defaultValueLiteral="0"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="RuleResult">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="success" ordered="false"
+        lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="rule" ordered="false" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="EObjectContainer">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="contents" upperBound="-1"
+        eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="PrecedenceStructure">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="tripleMatches" upperBound="-1"
+        eType="#//TripleMatch" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="PerformRuleResult" eSuperTypes="#//TGGRuleMorphism">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="translatedElements" lowerBound="1"
+        upperBound="-1" eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="createdElements" upperBound="-1"
+        eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="createdLinkElements" upperBound="-1"
+        eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="createdEdges" upperBound="-1"
+        eType="#//EMoflonEdge"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="translatedEdges" upperBound="-1"
+        eType="#//EMoflonEdge"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="TGGRuleMorphism">
+    <eOperations xsi:type="activities:MoflonEOperation" name="getObject" eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject">
+      <eParameters name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    </eOperations>
+    <eOperations xsi:type="activities:MoflonEOperation" name="registerObject">
+      <eParameters name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+      <eParameters name="node" eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject"/>
+    </eOperations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="ruleName" ordered="false"
+        lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="AbstractCorrespondence"/>
+  <eClassifiers xsi:type="ecore:EClass" name="Match" eSuperTypes="#//TGGRuleMorphism">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="succeeding" upperBound="-1"
+        eType="#//Match"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="toBeTranslatedNodes" upperBound="-1"
+        eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="contextNodes" upperBound="-1"
+        eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="isApplicableCCOperation"
+        eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EOperation"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="isApplicableOperation"
+        eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EOperation"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="contextEdges" upperBound="-1"
+        eType="#//EMoflonEdge"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="toBeTranslatedEdges" upperBound="-1"
+        eType="#//EMoflonEdge"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="IsApplicableMatchCC" eSuperTypes="#//IsApplicableMatch">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="targetMatch" lowerBound="1"
+        eType="#//Match"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="sourceMatch" lowerBound="1"
+        eType="#//Match"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="createCorr" upperBound="-1"
+        eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="eObjects" upperBound="-1"
+        eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject"/>
+  </eClassifiers>
+</ecore:EPackage>
