@@ -31,13 +31,20 @@ public class NewRepositoryWizard extends AbstractMoflonWizard {
 			
 			String projectName = projectInfo.getProjectName();
 			
-			IProject project = createProject(monitor, projectName);
+			MetamodelProperties properties = new MetamodelProperties();
+			properties.setDefaultValues();
+			properties.put(MetamodelProperties.PLUGIN_ID_KEY, projectName);
+			properties.put(MetamodelProperties.NAME_KEY, projectName);
+				
+			IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(projectName);
+			createProject(monitor, project, properties);
 			monitor.worked(3);
 			
 			generateDefaultFiles(monitor, project);
 			monitor.worked(3);
 			
-			makeProjectPlugin(monitor, project);
+			ResourcesPlugin.getWorkspace().run(new PluginProducerWorkspaceRunnable(project, properties),
+					WorkspaceHelper.createSubmonitorWith1Tick(monitor));
 			monitor.worked(2);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -46,26 +53,16 @@ public class NewRepositoryWizard extends AbstractMoflonWizard {
 		}
 	}
 
-	protected void makeProjectPlugin(IProgressMonitor monitor, IProject project) throws CoreException {
-		MetamodelProperties properties = new MetamodelProperties();
-		properties.setDefaultValues();
-		properties.put(MetamodelProperties.PLUGIN_ID_KEY, project.getName());
-		properties.put(MetamodelProperties.NAME_KEY, project.getName());
-		ResourcesPlugin.getWorkspace().run(new PluginProducerWorkspaceRunnable(project, properties),
-				WorkspaceHelper.createSubmonitorWith1Tick(monitor));
-	}
-
-	protected void generateDefaultFiles(final IProgressMonitor monitor, IProject project) throws CoreException {
+	void generateDefaultFiles(final IProgressMonitor monitor, IProject project) throws CoreException {
 		String defaultEcoreFile = DefaultFilesHelper.generateDefaultEPackageForProject(project.getName());
 		WorkspaceHelper.addFile(project, MoflonUtil.getDefaultPathToEcoreFileInProject(project.getName()), defaultEcoreFile,
 				WorkspaceHelper.createSubmonitorWith1Tick(monitor));
 	}
 
-	protected IProject createProject(IProgressMonitor monitor, String projectName) throws CoreException {
-		MoflonProjectCreator createMoflonProject = new MoflonProjectCreator();
-		createMoflonProject.setProjectName(projectName);
-		createMoflonProject.setType(MetamodelProperties.REPOSITORY_KEY);
+	void createProject(IProgressMonitor monitor, IProject project, MetamodelProperties metamodelProperties) throws CoreException {
+		metamodelProperties.put(MetamodelProperties.TYPE_KEY, MetamodelProperties.REPOSITORY_KEY);
+		MoflonProjectCreator createMoflonProject =
+				new MoflonProjectCreator(project, metamodelProperties);
 		ResourcesPlugin.getWorkspace().run(createMoflonProject, WorkspaceHelper.createSubmonitorWith1Tick(monitor));
-		return ResourcesPlugin.getWorkspace().getRoot().getProject(projectName);
 	}
 }

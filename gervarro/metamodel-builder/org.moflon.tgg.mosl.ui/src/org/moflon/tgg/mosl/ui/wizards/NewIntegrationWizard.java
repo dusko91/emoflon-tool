@@ -31,21 +31,19 @@ public class NewIntegrationWizard extends NewRepositoryWizard {
 	}
 
 	@Override
-	protected IProject createProject(IProgressMonitor monitor, String projectName) throws CoreException {
-		MoflonProjectCreator createMoflonProject = new MoflonProjectCreator();
-		createMoflonProject.setProjectName(projectName);
-		createMoflonProject.setType(MetamodelProperties.INTEGRATION_KEY);
+	void createProject(IProgressMonitor monitor, IProject project, MetamodelProperties metamodelProperties)
+			throws CoreException {
+		metamodelProperties.put(MetamodelProperties.TYPE_KEY, MetamodelProperties.INTEGRATION_KEY);
+		MoflonProjectCreator createMoflonProject =
+				new MoflonProjectCreator(project, metamodelProperties);
 		ResourcesPlugin.getWorkspace().run(createMoflonProject, createSubmonitorWith1Tick(monitor));
 
-		IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(projectName);
 		addNature(project, "org.eclipse.xtext.ui.shared.xtextNature", createSubmonitorWith1Tick(monitor));
 		addNature(project, MOSLTGGNature.NATURE_ID, createSubmonitorWith1Tick(monitor));
-
-		return project;
 	}
 
 	@Override
-	protected void generateDefaultFiles(final IProgressMonitor monitor, IProject project) throws CoreException {
+	void generateDefaultFiles(final IProgressMonitor monitor, IProject project) throws CoreException {
 		String defaultSchema = DefaultFilesHelper.generateDefaultSchema(project.getName());
 		IPath pathToSchema = new Path("src/org/moflon/tgg/mosl/Schema.tgg");
 		addAllFoldersAndFile(project, pathToSchema, defaultSchema,
