@@ -125,7 +125,7 @@ public class MetamodelBuilder extends AbstractVisitorBuilder {
 				try {
 					exporter.mocaToEcore(mocaTree);
 				} catch (final Exception e) {
-					throw new CoreException(new Status(IStatus.ERROR, CoreActivator.getModuleID(), "Exception during export.", e));
+					throw new CoreException(new Status(IStatus.ERROR, CoreActivator.getModuleID(), "Exception during export: " + e.toString(), e));
 				} finally {
 					exporterSubMonitor.done();
 				}

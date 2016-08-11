@@ -147,6 +147,9 @@ public class RepositoryBuilder extends AbstractVisitorBuilder {
    {
       try
       {
+    	 if(!folder.exists())
+    		return;
+    	  
          monitor.beginTask("Inspecting " + folder.getName(), folder.members().length);
 
          for (final IResource resource : folder.members())

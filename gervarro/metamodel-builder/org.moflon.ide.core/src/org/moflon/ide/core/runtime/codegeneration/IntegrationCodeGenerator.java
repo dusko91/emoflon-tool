@@ -8,6 +8,8 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -30,6 +32,7 @@ import org.moflon.ide.core.runtime.builders.IntegrationBuilder;
 import org.moflon.moca.MocaUtil;
 import org.moflon.moca.tggUserDefinedConstraint.unparser.TGGUserDefinedConstraintUnparserAdapter;
 import org.moflon.moca.tie.RunIntegrationGeneratorBatch;
+import org.moflon.moca.tie.RunIntegrationGeneratorCC;
 import org.moflon.moca.tie.RunIntegrationGeneratorSync;
 import org.moflon.moca.tie.RunModelGenerationGenerator;
 import org.moflon.properties.MoflonPropertiesContainerHelper;
@@ -107,7 +110,8 @@ public class IntegrationCodeGenerator extends RepositoryCodeGenerator
          boolean success = super.generateCode(WorkspaceHelper.createSubMonitor(monitor, 100));
 
          CoreActivator.getDefault().setDirty(project, false);
-
+         removeObsoleteErrorMarkers();
+         
          return success;
       } finally
       {
@@ -116,6 +120,10 @@ public class IntegrationCodeGenerator extends RepositoryCodeGenerator
 
    }
 
+private void removeObsoleteErrorMarkers() throws CoreException {
+	project.deleteMarkers( "org.eclipse.xtext.ui.check.fast", true, IResource.DEPTH_INFINITE);
+}
+
    private void createFilesFromPreFiles()
    {
       try
@@ -123,14 +131,19 @@ public class IntegrationCodeGenerator extends RepositoryCodeGenerator
          if (RepositoryCodeGenerator.getEcoreFile(project).exists())
             RepositoryCodeGenerator.getEcoreFile(project).delete(true, new NullProgressMonitor());
 
+         // Try another build to solve many problems due to checking out a workspace	
+         project.build(IncrementalProjectBuilder.CLEAN_BUILD, new NullProgressMonitor());
+         project.build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
+         
          IntegrationBuilder.getPreEcoreFile(project).copy(RepositoryCodeGenerator.getEcoreFile(project).getFullPath(), true, new NullProgressMonitor());
 
          if (getTGGFile().exists())
             getTGGFile().delete(true, new NullProgressMonitor());
 
          IntegrationBuilder.getPreTGGFile(project).copy(getTGGFile().getFullPath(), true, new NullProgressMonitor());
-      } catch (CoreException e)
+      } catch (Exception e)
       {
+    	 logger.error("I'm having problems building " + project.getName() + ", please refresh all projects and retry.");
          e.printStackTrace();
       }
    }
@@ -151,7 +164,12 @@ public class IntegrationCodeGenerator extends RepositoryCodeGenerator
          monitor.worked(5);
 
          final MonitoredMetamodelLoader metamodelLoader = new MonitoredMetamodelLoader(set, RepositoryCodeGenerator.getEcoreFile(project), moflonProperties);
-         metamodelLoader.run(WorkspaceHelper.createSubMonitor(monitor, 10));
+         try {
+        	 metamodelLoader.run(WorkspaceHelper.createSubMonitor(monitor, 10));
+         } catch(Exception e){
+        	 logger.error("Unable to load " + RepositoryCodeGenerator.getEcoreFile(project));
+        	 return;
+         }
 
          // Make sure all dependencies are really loaded in the resource set.
          // This might be necessary as the tgg might depend on more than the correspondence metamodel does!
@@ -173,6 +191,12 @@ public class IntegrationCodeGenerator extends RepositoryCodeGenerator
          tgg = (TripleGraphGrammar) tggResource.getContents().get(0);
          monitor.worked(5);
 
+         if(tggIsEmpty()){
+        	 monitor.done();
+        	 logger.warn("Your TGG does not contain any rules, aborting attempt to generate code...");
+        	 return;        	 
+         }
+         
          // Create and add precompiler to resourceSet so reverse navigation of links works
          TGGPrecompiler precompiler = PrecompilerFactory.eINSTANCE.createTGGPrecompiler();
          eMoflonEMFUtil.createParentResourceAndInsertIntoResourceSet(precompiler, set);
@@ -279,12 +303,17 @@ public class IntegrationCodeGenerator extends RepositoryCodeGenerator
 
          new RunIntegrationGeneratorBatch(project).doFinish();
          new RunIntegrationGeneratorSync(project).doFinish();
+         new RunIntegrationGeneratorCC(project).doFinish();
          new RunModelGenerationGenerator(project).doFinish();
          monitor.worked(5);
       } finally
       {
          monitor.done();
       }
+   }
+
+   private boolean tggIsEmpty() {
+	   return tgg.getTggRule().isEmpty();
    }
 
    private void enrichCspsWithTypeInformation()

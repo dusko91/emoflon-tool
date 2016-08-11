@@ -125,7 +125,8 @@ public class MoflonProjectCreator extends WorkspaceTask implements ProjectConfig
 			final IClasspathEntry genFolderEntry =
 					JavaCore.newSourceEntry(workspaceProject.getFolder(WorkspaceHelper.GEN_FOLDER).getFullPath(),
 					new IPath[0], new IPath[0], null,
-					new IClasspathAttribute[] { JavaCore.newClasspathAttribute("ignore_optional_problems", "true") });
+					// see issue #718
+					new IClasspathAttribute[] { /* JavaCore.newClasspathAttribute("ignore_optional_problems", "true") */ });
 			final IClasspathEntry jreContainerEntry =
 					JavaCore.newContainerEntry(new Path("org.eclipse.jdt.launching.JRE_CONTAINER"));
 			final IClasspathEntry pdeContainerEntry =
