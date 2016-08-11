@@ -24,17 +24,18 @@ import org.eclipse.emf.ecore.resource.impl.ExtensibleURIConverterImpl.URIMap;
 import org.gervarro.eclipse.task.ITask;
 import org.moflon.codegen.eclipse.CodeGeneratorPlugin;
 import org.moflon.ide.core.CoreActivator;
+import org.moflon.ide.core.runtime.builders.AbstractVisitorBuilder;
 import org.moflon.ide.core.runtime.builders.MetamodelBuilder;
 
 public class ProjectDependencyAnalyzer implements ITask {
-	private final MetamodelBuilder builder;
+	private final AbstractVisitorBuilder builder;
 	private final IProject metamodelProject;
 	private final IProject moflonProject;
 	private final EPackage metamodelRoot;
 	private final Set<IProject> interestingProjects =
 			new TreeSet<IProject>(MetamodelBuilder.PROJECT_COMPARATOR);
 
-	public ProjectDependencyAnalyzer(final MetamodelBuilder builder,
+	public ProjectDependencyAnalyzer(final AbstractVisitorBuilder builder,
 			final IProject metamodelProject,
 			final IProject moflonProject,
 			final EPackage metamodelRoot) {
@@ -96,7 +97,9 @@ public class ProjectDependencyAnalyzer implements ITask {
 		try {
 			final LinkedList<IBuildConfiguration> buildConfigs =
 					new LinkedList<IBuildConfiguration>();
-			buildConfigs.add(metamodelProject.getBuildConfig(IBuildConfiguration.DEFAULT_CONFIG_NAME));
+			if (metamodelProject != moflonProject) {
+				buildConfigs.add(metamodelProject.getBuildConfig(IBuildConfiguration.DEFAULT_CONFIG_NAME));
+			}
 			for (IProject project : projectReferences) {
 				if (project.isAccessible()) {
 					buildConfigs.add(project.getBuildConfig(IBuildConfiguration.DEFAULT_CONFIG_NAME));
