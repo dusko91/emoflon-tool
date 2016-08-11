@@ -71,7 +71,7 @@ abstract public class AbstractVisitorBuilder extends RelevantElementCollectingBu
 		}		
 	}
 	
-	abstract AntPatternCondition getTriggerCondition(final IProject project);
+	abstract protected AntPatternCondition getTriggerCondition(final IProject project);
 	
 	protected void processResourceDelta(final IResourceDelta delta, final int kind,
 			final Map<String,String> args, final IProgressMonitor monitor) {
