@@ -31,6 +31,7 @@ import org.moflon.ide.core.CoreActivator;
 import org.moflon.moca.MocaUtil;
 import org.moflon.moca.tggUserDefinedConstraint.unparser.TGGUserDefinedConstraintUnparserAdapter;
 import org.moflon.moca.tie.RunIntegrationGeneratorBatch;
+import org.moflon.moca.tie.RunIntegrationGeneratorCC;
 import org.moflon.moca.tie.RunIntegrationGeneratorSync;
 import org.moflon.moca.tie.RunModelGenerationGenerator;
 import org.moflon.properties.MoflonPropertiesContainerHelper;
@@ -128,6 +129,12 @@ public class IntegrationBuilder extends RepositoryBuilder {
 			uriMapping.remove(ecoreFileURI);
 			monitor.worked(5);
 
+			if (tgg.getTggRule().isEmpty()){
+				monitor.done();
+				return new Status(IStatus.WARNING, CoreActivator.getModuleID(), IStatus.WARNING,
+						"Your TGG does not contain any rules, aborting attempt to generate code...", null);
+			}
+	         
 			monitor.subTask(getProject().getName() + ": Translating TGG model to SDMs...");
 			// Create and add precompiler to resourceSet so reverse navigation of links works
 			TGGPrecompiler precompiler = PrecompilerFactory.eINSTANCE.createTGGPrecompiler();
@@ -223,6 +230,7 @@ public class IntegrationBuilder extends RepositoryBuilder {
 
 			new RunIntegrationGeneratorBatch(getProject()).doFinish();
 			new RunIntegrationGeneratorSync(getProject()).doFinish();
+			new RunIntegrationGeneratorCC(getProject()).doFinish();
 			new RunModelGenerationGenerator(getProject()).doFinish();
 			monitor.worked(5);
 			return Status.OK_STATUS;
