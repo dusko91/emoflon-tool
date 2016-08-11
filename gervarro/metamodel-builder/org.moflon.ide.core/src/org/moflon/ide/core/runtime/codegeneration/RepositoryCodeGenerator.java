@@ -38,6 +38,7 @@ import org.moflon.ide.core.util.BuilderHelper;
 import org.moflon.util.plugins.manifest.ExportedPackagesInManifestUpdater;
 import org.moflon.util.plugins.manifest.PluginXmlUpdater;
 
+@Deprecated
 @SuppressWarnings("restriction")
 public class RepositoryCodeGenerator
 {
