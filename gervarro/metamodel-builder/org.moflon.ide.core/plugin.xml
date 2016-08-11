@@ -77,7 +77,8 @@
          id="org.moflon.ide.core.runtime.builders.IntegrationBuilder"
          name="Integration Builder"
          point="org.eclipse.core.resources.builders">
-      <builder>
+      <builder
+            isConfigurable="true">
          <run
                class="org.moflon.ide.core.runtime.builders.IntegrationBuilder">
          </run>
