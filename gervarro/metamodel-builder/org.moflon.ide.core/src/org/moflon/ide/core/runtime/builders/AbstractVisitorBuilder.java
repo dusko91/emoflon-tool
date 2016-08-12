@@ -40,7 +40,7 @@ abstract public class AbstractVisitorBuilder extends RelevantElementCollectingBu
 			final Map<String, String> args, final IProgressMonitor monitor) {
 		super.postprocess(buildVisitor, kind, args, monitor);
 		if (buildVisitor.getRelevantDeltas().isEmpty() && (kind == INCREMENTAL_BUILD || kind == AUTO_BUILD)) {
-			final SubProgressMonitor subMonitor =
+         final IProgressMonitor subMonitor =
 					WorkspaceHelper.createSubMonitor(monitor, triggerProjects.size());
 			try {
 				for (final IProject project : triggerProjects) {
