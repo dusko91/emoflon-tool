@@ -3,12 +3,14 @@ package org.moflon.core.utilities;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintStream;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -37,6 +39,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.jdt.core.IClasspathAttribute;
 import org.eclipse.jdt.core.IClasspathEntry;
@@ -656,15 +659,21 @@ public class WorkspaceHelper
       }
    }
 
-   public static SubProgressMonitor createSubmonitorWith1Tick(final IProgressMonitor monitor)
+   /**
+    * @deprecated See {@link #createSubMonitor(IProgressMonitor, int)}
+    */
+   public static IProgressMonitor createSubmonitorWith1Tick(final IProgressMonitor monitor)
    {
       return createSubMonitor(monitor, 1);
    }
 
    /**
-    * Creates a submonitor of the given monitor with the given number of ticks.
+    * Creates a sub-monitor of the given monitor with the given number of ticks.
+    * 
+    * @deprecated The API suggests to to switch to {@link SubMonitor}. Instructions are given {@link SubMonitor}.
     */
-   public static SubProgressMonitor createSubMonitor(final IProgressMonitor monitor, final int ticks)
+   @Deprecated
+   public static IProgressMonitor createSubMonitor(final IProgressMonitor monitor, final int ticks)
    {
       return new SubProgressMonitor(monitor, ticks);
    }
@@ -1193,5 +1202,20 @@ public class WorkspaceHelper
       {
          monitor.done();
       }
+   }
+
+   /**
+    * Prints the stacktrace of the given {@link Throwable} to a string.
+    * 
+    * If t is null, then the result is the empty string.
+    */
+   public static String printStacktraceToString(final Throwable t)
+   {
+      if (null == t)
+         return "";
+
+      ByteArrayOutputStream stream = new ByteArrayOutputStream();
+      t.printStackTrace(new PrintStream(stream));
+      return new String(stream.toByteArray());
    }
 }
