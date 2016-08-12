@@ -15,6 +15,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.emf.common.util.BasicEList;
 import org.eclipse.emf.common.util.EList;
@@ -32,6 +33,7 @@ import org.eclipse.ui.handlers.HandlerUtil;
 import org.eclipse.xtext.resource.SaveOptions;
 import org.eclipse.xtext.resource.XtextResource;
 import org.eclipse.xtext.resource.XtextResourceSet;
+import org.moflon.codegen.eclipse.CodeGeneratorPlugin;
 import org.moflon.core.utilities.MoflonUtil;
 import org.moflon.core.utilities.MoflonUtilitiesActivator;
 import org.moflon.core.utilities.eMoflonEMFUtil;
@@ -239,7 +241,7 @@ public class MOSLTGGConversionHelper extends AbstractHandler
    }
 
    private void saveInternalTGGModelToXMI(TGGProject tggProject, XtextResourceSet resourceSet, Map<Object, Object> options, String saveTargetName)
-         throws IOException
+         throws IOException, CoreException
    {
       TripleGraphGrammar tgg = tggProject.getTgg();
       EPackage corrPackage = tggProject.getCorrPackage();
@@ -254,7 +256,12 @@ public class MOSLTGGConversionHelper extends AbstractHandler
          file = StringUtils.capitalize(file);
       }
 
-      URI preEcoreXmiURI = URI.createPlatformResourceURI(saveTargetName + "/" + MoflonUtil.getDefaultPathToFileInProject(file, ".pre.ecore"), false);
+      final IProject project =
+    		  ResourcesPlugin.getWorkspace().getRoot().getProject(saveTargetName);
+      CodeGeneratorPlugin.createPluginToResourceMapping(resourceSet, project);
+      URI relativePreEcoreXmiURI = URI.createURI(MoflonUtil.getDefaultPathToFileInProject(file, ".pre.ecore"));
+      URI projectURI = CodeGeneratorPlugin.lookupProjectURI(project);
+      URI preEcoreXmiURI = relativePreEcoreXmiURI.resolve(projectURI);
       Resource preEcoreResource = resourceSet.createResource(preEcoreXmiURI);
       preEcoreResource.getContents().add(corrPackage);
       preEcoreResource.save(options);
