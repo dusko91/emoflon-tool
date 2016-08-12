@@ -15,6 +15,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
+import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.resources.WorkspaceJob;
 import org.eclipse.core.runtime.CoreException;
@@ -102,12 +103,54 @@ public class UIActivator extends AbstractUIPlugin
 
       registerDirtyStateChangedListener();
       // labelDirtyMetamodelProjects();
+      registerListenerForDirtyMetamodelProjects();
       registerListenerForMetaModelProjectRenaming();
    }
 
    /**
-    * Registers a {@link IResourceChangeListener} for detecting renamings of meta-model projects.
-    * According to our convention, the name of the EAP file of a meta-model project equals the project name plus the suffix ".eap".
+    * Registers a listener that is triggered when the EAP file in a metamodel project is becoming more recent than its
+    * generated Moca tree.
+    */
+   private void registerListenerForDirtyMetamodelProjects()
+   {
+      ResourcesPlugin.getWorkspace().addResourceChangeListener(new IResourceChangeListener() {
+
+         @Override
+         public void resourceChanged(final IResourceChangeEvent event)
+         {
+            try
+            {
+               event.getDelta().accept(new IResourceDeltaVisitor() {
+
+                  @Override
+                  public boolean visit(final IResourceDelta delta) throws CoreException
+                  {
+                     IResource eapFile = delta.getResource();
+                     if (eapFile.getName().endsWith(".eap"))
+                     {
+                        IFile xmiTree = WorkspaceHelper.getExportedMocaTree(eapFile.getProject());
+                        if (xmiTree.exists() && xmiTree.getLocalTimeStamp() < eapFile.getLocalTimeStamp())
+                        {
+                           CoreActivator.getDefault().setDirty(eapFile.getProject(), true);
+                        }
+                        return false;
+                     } else
+                     {
+                        return true;
+                     }
+                  }
+               });
+            } catch (CoreException e)
+            {
+               e.printStackTrace();
+            }
+         }
+      }, IResourceChangeEvent.POST_CHANGE);
+   }
+
+   /**
+    * Registers a {@link IResourceChangeListener} for detecting renamings of meta-model projects. According to our
+    * convention, the name of the EAP file of a meta-model project equals the project name plus the suffix ".eap".
     */
    private void registerListenerForMetaModelProjectRenaming()
    {
