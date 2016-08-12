@@ -88,8 +88,7 @@ public class BasicResourceFillingMocaToMoflonTransformation extends
 				projectDependencyAnalyzerTasks.add(
 						new ProjectDependencyAnalyzer(metamodelBuilder, metamodelProject, workspaceProject, outermostPackage));
 			} else {
-				reportError("Project " + getProjectName(node)
-						+ " has unknown type " + node.getName());
+            reportError("Project %s has unknown type %s", getProjectName(node), node.getName());
 			}
 		} else {
 			if (!MOCA_TREE_ATTRIBUTE_REPOSITORY_PROJECT.equals(node.getName())) {
@@ -168,7 +167,7 @@ public class BasicResourceFillingMocaToMoflonTransformation extends
 			final IProject project) {
 		handleMissingProject(node, project);
 		if (!project.exists()) {
-			reportError("Project " + getProjectName(node) + " is missing");
+         reportError("Project %s is missing", getProjectName(node));
 		}
 	}
 
@@ -176,12 +175,13 @@ public class BasicResourceFillingMocaToMoflonTransformation extends
 			final IProject project) {
 		handleClosedProject(node, project);
 		if (!project.isAccessible()) {
-			reportError("Project " + project.getName() + " is closed");
+         reportError("Project %s is closed", project.getName());
 		}
 	}
 
-	protected final void reportError(final String errorMessage) {
-		throw new UncheckedCoreException(errorMessage, CoreActivator.getModuleID());
+   protected final void reportError(final String errorMessage, final Object... arguments)
+   {
+      throw new UncheckedCoreException(String.format(errorMessage, arguments), CoreActivator.getModuleID());
 	}
 
 	protected void reportError(final CoreException e) {
