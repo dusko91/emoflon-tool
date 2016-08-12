@@ -204,10 +204,11 @@ public class MetamodelLoader implements ITask {
 	}
 	
 	private final int getDependencyType(URI namespaceURI) {
-		if (isUserDefined(namespaceURI)) {
+		final int result = CodeGeneratorPlugin.getDependencyType(namespaceURI);
+		if (result == CodeGeneratorPlugin.UNKNOWN && isUserDefined(namespaceURI)) {
 			return USER_DEFINED;
 		}
-		return CodeGeneratorPlugin.getDependencyType(namespaceURI);
+		return result;
 	}
 	
 	protected static final String lookupAttribute(final Node node,
