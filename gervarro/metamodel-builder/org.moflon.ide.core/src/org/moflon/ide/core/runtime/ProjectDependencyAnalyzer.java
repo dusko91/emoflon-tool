@@ -58,6 +58,7 @@ public class ProjectDependencyAnalyzer implements ITask {
 					final EPackage referencedEPackage = ((EClassifier) eCrossReference).getEPackage();
 					if (resource != referencedEPackage.eResource()) {
 						final URI uri = CodeGeneratorPlugin.getResolvedPlatformResourceURI(uriMap, referencedEPackage.eResource().getURI());
+                  // TODO@rkluge: Refactor the ">= 2" term into a centralized utility method sometime in the future.
 						if (uri.isPlatformResource() && uri.segmentCount() >= 2) {
 							final IProject project = CodeGeneratorPlugin.getWorkspaceProject(uri);
 							if (project != null) {
