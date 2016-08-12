@@ -116,7 +116,7 @@ public class MetamodelBuilder extends AbstractVisitorBuilder {
 				createInfoFile(properties, mocaTree);
 				callPreBuildHooks(properties, mocaTreeReader);
 
-				SubProgressMonitor exporterSubMonitor = WorkspaceHelper.createSubmonitorWith1Tick(monitor);
+            IProgressMonitor exporterSubMonitor = WorkspaceHelper.createSubmonitorWith1Tick(monitor);
 				exporterSubMonitor.beginTask("Running MOCA-to-eMoflon transformation", properties.keySet().size());
 
 				// Create and run exporter on Moca tree
