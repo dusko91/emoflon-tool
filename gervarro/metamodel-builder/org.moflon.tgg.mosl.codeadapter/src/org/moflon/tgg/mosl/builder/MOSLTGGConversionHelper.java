@@ -66,7 +66,7 @@ public class MOSLTGGConversionHelper extends AbstractHandler
       }
    }
 
-   public void generateTGGModel(IResource resource)
+   public Resource generateTGGModel(IResource resource)
    {
       try
       {
@@ -100,13 +100,15 @@ public class MOSLTGGConversionHelper extends AbstractHandler
             postProcessHelper.postProcessForward(helper);
 
             TGGProject tggProject = (TGGProject) helper.getTrg();
-            if(tggProject != null)
-            	saveInternalTGGModelToXMI(tggProject, resourceSet, options, project.getName());
+            if (tggProject != null) {
+            	return saveInternalTGGModelToXMI(tggProject, resourceSet, options, project.getName());
+            }
          }
       } catch (Exception e)
       {
          e.printStackTrace();
       }
+  	return null;
    }
 
    private void addAttrCondDefLibraryReferencesToSchema(TripleGraphGrammarFile xtextParsedTGG)
@@ -240,7 +242,7 @@ public class MOSLTGGConversionHelper extends AbstractHandler
       return null;
    }
 
-   private void saveInternalTGGModelToXMI(TGGProject tggProject, XtextResourceSet resourceSet, Map<Object, Object> options, String saveTargetName)
+   private Resource saveInternalTGGModelToXMI(TGGProject tggProject, XtextResourceSet resourceSet, Map<Object, Object> options, String saveTargetName)
          throws IOException, CoreException
    {
       TripleGraphGrammar tgg = tggProject.getTgg();
@@ -270,6 +272,7 @@ public class MOSLTGGConversionHelper extends AbstractHandler
       Resource pretggXmiResource = resourceSet.createResource(pretggXmiURI);
       pretggXmiResource.getContents().add(tgg);
       pretggXmiResource.save(options);
+      return preEcoreResource;
    }
 
    private void saveXtextTGGModelToTGGFile(TripleGraphGrammarFile tggModel, IProject project, String filePath) throws IOException, CoreException

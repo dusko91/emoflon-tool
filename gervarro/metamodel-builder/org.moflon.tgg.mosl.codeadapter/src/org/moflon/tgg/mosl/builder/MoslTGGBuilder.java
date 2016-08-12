@@ -1,16 +1,31 @@
 package org.moflon.tgg.mosl.builder;
 
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
+import org.apache.log4j.Logger;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.MultiStatus;
+import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.emf.ecore.resource.Resource;
+import org.gervarro.eclipse.task.ITask;
+import org.gervarro.eclipse.task.ProgressMonitoringJob;
 import org.gervarro.eclipse.workspace.util.AntPatternCondition;
 import org.moflon.core.utilities.WorkspaceHelper;
+import org.moflon.ide.core.CoreActivator;
+import org.moflon.ide.core.runtime.ProjectDependencyAnalyzer;
 import org.moflon.ide.core.runtime.builders.AbstractVisitorBuilder;
+import org.moflon.ide.core.runtime.builders.MetamodelBuilder;
 
 public class MoslTGGBuilder extends AbstractVisitorBuilder {
+	public static final Logger logger = Logger.getLogger(MoslTGGBuilder.class);
 	public static final String BUILDER_ID = "org.moflon.tgg.mosl.codeadapter.mosltggbuilder";
 
 	public MoslTGGBuilder() {
@@ -32,8 +47,32 @@ public class MoslTGGBuilder extends AbstractVisitorBuilder {
 
 	@Override
 	protected void processResource(IResource resource, int kind, Map<String, String> args, IProgressMonitor monitor) {
-        new MOSLTGGConversionHelper().generateTGGModel(resource);
-        removeXtextMarkers();
+		try {
+			final Resource ecoreResource = new MOSLTGGConversionHelper().generateTGGModel(resource);
+			removeXtextMarkers();
+			final ProjectDependencyAnalyzer projectDependencyAnalyzer =
+					new ProjectDependencyAnalyzer(this, getProject(), getProject(), ecoreResource);
+			final Set<IProject> interestingProjects =
+					new TreeSet<IProject>(MetamodelBuilder.PROJECT_COMPARATOR);
+			for (final IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
+				interestingProjects.add(project);
+			}
+			projectDependencyAnalyzer.setInterestingProjects(interestingProjects);
+			final IStatus projectDependencyAnalyzerStatus =
+					ProgressMonitoringJob.executeSyncSubTasks(new ITask[] { projectDependencyAnalyzer },
+							new MultiStatus(CoreActivator.getModuleID(), 0, "Dependency analysis failed", null), monitor);
+			if (monitor.isCanceled()) {
+				throw new OperationCanceledException();
+			}
+			if (!projectDependencyAnalyzerStatus.isOK()) {
+				processProblemStatus(projectDependencyAnalyzerStatus, ((IFolder) resource).getFile("Schema.tgg"));
+				return;
+			}
+		} catch (CoreException e) {
+			logger.fatal("Unable to update created projects: " + e.getMessage());
+			e.printStackTrace();
+		}
+
 	}
 
 	private final void removeXtextMarkers() {

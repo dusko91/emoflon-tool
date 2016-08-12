@@ -31,18 +31,18 @@ public class ProjectDependencyAnalyzer implements ITask {
 	private final AbstractVisitorBuilder builder;
 	private final IProject metamodelProject;
 	private final IProject moflonProject;
-	private final EPackage metamodelRoot;
+	private final Resource metamodelResource;
 	private final Set<IProject> interestingProjects =
 			new TreeSet<IProject>(MetamodelBuilder.PROJECT_COMPARATOR);
 
 	public ProjectDependencyAnalyzer(final AbstractVisitorBuilder builder,
 			final IProject metamodelProject,
 			final IProject moflonProject,
-			final EPackage metamodelRoot) {
+			final Resource metamodelResource) {
 		this.builder = builder;
 		this.metamodelProject = metamodelProject;
 		this.moflonProject = moflonProject;
-		this.metamodelRoot = metamodelRoot;
+		this.metamodelResource = metamodelResource;
 	}
 	
 	public static final void analyzeDependencies(final MultiStatus status,
@@ -84,7 +84,7 @@ public class ProjectDependencyAnalyzer implements ITask {
 				new MultiStatus(CoreActivator.getModuleID(), 0, "Project dependency analysis failed", null);
 		final TreeSet<IProject> projectReferences =
 				new TreeSet<IProject>(MetamodelBuilder.PROJECT_COMPARATOR);
-		analyzeDependencies(status, projectReferences, metamodelRoot.eResource());
+		analyzeDependencies(status, projectReferences, metamodelResource);
 		
 		for (IProject reference : projectReferences) {
 			if (interestingProjects.contains(reference)) {

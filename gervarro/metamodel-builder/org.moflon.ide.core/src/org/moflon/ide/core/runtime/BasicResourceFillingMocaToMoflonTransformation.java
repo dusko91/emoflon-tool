@@ -86,7 +86,7 @@ public class BasicResourceFillingMocaToMoflonTransformation extends
 				handleOpenProject(node, workspaceProject);
 				metamodelLoaderTasks.add(new MetamodelLoader(metamodelBuilder, set, node, outermostPackage));
 				projectDependencyAnalyzerTasks.add(
-						new ProjectDependencyAnalyzer(metamodelBuilder, metamodelProject, workspaceProject, outermostPackage));
+						new ProjectDependencyAnalyzer(metamodelBuilder, metamodelProject, workspaceProject, outermostPackage.eResource()));
 			} else {
             reportError("Project %s has unknown type %s", getProjectName(node), node.getName());
 			}
