@@ -193,9 +193,16 @@ public class MetamodelLoader implements ITask {
 	}
 
 	protected URI getDefaultNamespace(final Node node) {
-		final IProject project =
-				ResourcesPlugin.getWorkspace().getRoot().getProject(getProjectName(node));
-		final URI projectURI = CodeGeneratorPlugin.lookupProjectURI(project);
+		// TODO gervarro: This is a temporary solution as EA unfortunately generates platform:/plugin/ values as defaults
+		// into the Moca tree, although the new build process relies on the knowledge whether a NsUri has been explicitly set in EA or not.
+		//
+		// If EA did not generate default URIs into the persisted Moca tree in the future, then
+		// this method could be reverted (to the original code in the comment below) and used to determine default URI
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		//	final IProject project =
+		//			ResourcesPlugin.getWorkspace().getRoot().getProject(getProjectName(node));
+		//	final URI projectURI = CodeGeneratorPlugin.lookupProjectURI(project);
+		final URI projectURI = URI.createPlatformPluginURI(getProjectName(node) + "/", true);
 		return getProjectRelativeMetamodelURI(node).resolve(projectURI);
 	}
 
@@ -204,11 +211,10 @@ public class MetamodelLoader implements ITask {
 	}
 	
 	private final int getDependencyType(URI namespaceURI) {
-		final int result = CodeGeneratorPlugin.getDependencyType(namespaceURI);
-		if (result == CodeGeneratorPlugin.UNKNOWN && isUserDefined(namespaceURI)) {
+		if (isUserDefined(namespaceURI)) {
 			return USER_DEFINED;
 		}
-		return result;
+		return CodeGeneratorPlugin.getDependencyType(namespaceURI);
 	}
 	
 	protected static final String lookupAttribute(final Node node,
