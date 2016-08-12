@@ -102,7 +102,7 @@ public class RepositoryBuilder extends AbstractVisitorBuilder {
 	}
 	
 	@Override
-	final AntPatternCondition getTriggerCondition(final IProject project) {
+	protected final AntPatternCondition getTriggerCondition(final IProject project) {
 		try {
 			if (project.hasNature(WorkspaceHelper.REPOSITORY_NATURE_ID) ||
 					project.hasNature(WorkspaceHelper.INTEGRATION_NATURE_ID)) {
