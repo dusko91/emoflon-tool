@@ -9,6 +9,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
@@ -16,139 +17,150 @@ import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.dependency.PackageRemappingDependency;
 import org.moflon.eclipse.job.IMonitoredJob;
 
-public class GenericMonitoredResourceLoader implements IMonitoredJob {
-	private static final String TASK_NAME = "Resource loading";
+public class GenericMonitoredResourceLoader implements IMonitoredJob
+{
+   private static final String TASK_NAME = "Resource loading";
 
-	protected final ResourceSet resourceSet;
-	protected final IFile file;
-	private Resource resource;
-	private List<Resource> resources; 
+   protected final ResourceSet resourceSet;
 
-	public GenericMonitoredResourceLoader(final ResourceSet resourceSet, final IFile file) {
-		this.resourceSet = resourceSet;
-		this.file = file;
-	}
+   protected final IFile file;
 
-	@Override
-	public final IStatus run(final IProgressMonitor monitor) {
-		try {
-			monitor.beginTask(TASK_NAME + " task", 20);
-			final IProject project = file.getProject();
-			monitor.subTask("Loading metamodel for project " + project.getName());
+   private Resource resource;
 
-			// Preprocess resource set
-			final IStatus preprocessingStatus = preprocessResourceSet(
-					WorkspaceHelper.createSubMonitor(monitor, 5));
-			if (preprocessingStatus.matches(IStatus.ERROR | IStatus.CANCEL)) {
-				return preprocessingStatus;
-			}
+   private List<Resource> resources;
 
-			if (isAccessible(project)) {
-				// Load the file
-				URI projectURI = URI.createPlatformResourceURI(project.getName() + "/", true);
-				URI uri = URI.createURI(file.getProjectRelativePath().toString()).resolve(projectURI);
-				resource = resourceSet.getResource(uri, true);
-				monitor.worked(5);
-				if (monitor.isCanceled()) {
-					return Status.CANCEL_STATUS;
-				}
+   public GenericMonitoredResourceLoader(final ResourceSet resourceSet, final IFile file)
+   {
+      this.resourceSet = resourceSet;
+      this.file = file;
+   }
 
-				// Postprocess resource set
-				final IStatus postprocessingStatus = postprocessResourceSet(
-						WorkspaceHelper.createSubMonitor(monitor, 5));
-				if (postprocessingStatus.matches(IStatus.ERROR | IStatus.CANCEL)) {
-					return postprocessingStatus;
-				}
+   @Override
+   public final IStatus run(final IProgressMonitor monitor)
+   {
+      final SubMonitor subMon = SubMonitor.convert(monitor, TASK_NAME + " task", 20);
+      final IProject project = file.getProject();
+      subMon.subTask("Loading metamodel for project " + project.getName());
 
-				return CodeGeneratorPlugin.validateResourceSet(resourceSet, TASK_NAME,
-						WorkspaceHelper.createSubMonitor(monitor, 5));
-			} else {
-				return new Status(IStatus.ERROR, CodeGeneratorPlugin.getModuleID(),
-						"Project " + project.getName() + " is not accessible");
-			}
-		} finally {
-			monitor.done();
-		}
-	}
+      // Preprocess resource set
+      final IStatus preprocessingStatus = preprocessResourceSet(subMon.split(5));
+      if (preprocessingStatus.matches(IStatus.ERROR | IStatus.CANCEL))
+      {
+         return preprocessingStatus;
+      }
 
-	public final List<Resource> getResources() {
-		return resources;
-	}
+      if (isAccessible(project))
+      {
+         // Load the file
+         URI projectURI = URI.createPlatformResourceURI(project.getName() + "/", true);
+         URI uri = URI.createURI(file.getProjectRelativePath().toString()).resolve(projectURI);
+         resource = resourceSet.getResource(uri, true);
+         subMon.worked(5);
+         if (subMon.isCanceled())
+         {
+            return Status.CANCEL_STATUS;
+         }
 
-	public final Resource getMainResource() {
-		return resource;
-	}
+         // Postprocess resource set
+         final IStatus postprocessingStatus = postprocessResourceSet(subMon.split(5));
+         if (postprocessingStatus.matches(IStatus.ERROR | IStatus.CANCEL))
+         {
+            return postprocessingStatus;
+         }
 
-	@Override
-	public String getTaskName() {
-		return TASK_NAME;
-	}
+         return CodeGeneratorPlugin.validateResourceSet(resourceSet, TASK_NAME, subMon.split(5));
+      } else
+      {
+         return new Status(IStatus.ERROR, CodeGeneratorPlugin.getModuleID(), "Project " + project.getName() + " is not accessible");
+      }
+   }
 
-	protected IStatus preprocessResourceSet(final IProgressMonitor monitor) {
-		try {
-			monitor.beginTask("Preprocessing resource set", 15);
-			// Prepare plugin to resource URI mapping
-			CodeGeneratorPlugin.createPluginToResourceMapping(resourceSet,
-					WorkspaceHelper.createSubMonitor(monitor, 5));
-			if (monitor.isCanceled()) {
-				return Status.CANCEL_STATUS;
-			}
+   public final List<Resource> getResources()
+   {
+      return resources;
+   }
 
-			// Create (unloaded) resources for all possibly dependent metamodels in workspace projects
-			createResourcesForWorkspaceProjects(WorkspaceHelper.createSubMonitor(monitor, 10));
-			if (monitor.isCanceled()) {
-				return Status.CANCEL_STATUS;
-			}
-			return new Status(IStatus.OK, CodeGeneratorPlugin.getModuleID(), "Preprocessing succeeded");
-		} catch (final CoreException e) {
-			return new Status(IStatus.ERROR, CodeGeneratorPlugin.getModuleID(), e.getMessage(), e);
-		} finally {
-			monitor.done();
-		}
-	}
+   public final Resource getMainResource()
+   {
+      return resource;
+   }
 
-	protected IStatus postprocessResourceSet(final IProgressMonitor monitor) {
-		// Resolve cross-references
-		final CrossReferenceResolver crossReferenceResolver =
-				new CrossReferenceResolver(resource);
-		crossReferenceResolver.run(WorkspaceHelper.createSubMonitor(monitor, 5));
-		resources = crossReferenceResolver.getResources();
-		
-        // Remove unloaded resources from resource set
-        final List<Resource> resources = resourceSet.getResources();
-        for (int i = 0; i < resources.size(); i++) {
-        	final Resource resource = resources.get(i);
-        	if (!resource.isLoaded()) {
-        		resources.remove(i--);
-        	}
-        }
-		return new Status(IStatus.OK, CodeGeneratorPlugin.getModuleID(), "Postprocessing succeeded");
-	}
+   @Override
+   public String getTaskName()
+   {
+      return TASK_NAME;
+   }
 
-	protected void createResourcesForWorkspaceProjects(final IProgressMonitor monitor) {
-		try {
-			final IProject[] workspaceProjects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
-			monitor.beginTask("Loading workspace projects", workspaceProjects.length);
-			for (final IProject workspaceProject : workspaceProjects) {
-				if (isAccessible(workspaceProject)) {
-					final URI projectURI = CodeGeneratorPlugin.lookupProjectURI(workspaceProject);
-					final URI metamodelURI = 
-							CodeGeneratorPlugin.getDefaultProjectRelativeEcoreFileURI(workspaceProject).resolve(projectURI);
-					new PackageRemappingDependency(metamodelURI, false, false).getResource(resourceSet, false, true);
-				}
-				monitor.worked(1);
-			}
-		} finally {
-			monitor.done();
-		}
-	}
+   protected IStatus preprocessResourceSet(final IProgressMonitor monitor)
+   {
+      try
+      {
+         final SubMonitor subMon = SubMonitor.convert(monitor, "Preprocessing resource set", 15);
+         // Prepare plugin to resource URI mapping
+         CodeGeneratorPlugin.createPluginToResourceMapping(resourceSet, subMon.split(5));
+         if (subMon.isCanceled())
+         {
+            return Status.CANCEL_STATUS;
+         }
 
-	protected boolean isAccessible(IProject project) {
-		try {
-			return project.isAccessible() && (project.hasNature(WorkspaceHelper.REPOSITORY_NATURE_ID) ||
-					project.hasNature(WorkspaceHelper.INTEGRATION_NATURE_ID));
-		} catch (final CoreException e) {
-			return false;
-		}
-	}
+         // Create (unloaded) resources for all possibly dependent metamodels in workspace projects
+         createResourcesForWorkspaceProjects(subMon.split(10));
+         if (subMon.isCanceled())
+         {
+            return Status.CANCEL_STATUS;
+         }
+         return new Status(IStatus.OK, CodeGeneratorPlugin.getModuleID(), "Preprocessing succeeded");
+      } catch (final CoreException e)
+      {
+         return new Status(IStatus.ERROR, CodeGeneratorPlugin.getModuleID(), e.getMessage(), e);
+      }
+   }
+
+   protected IStatus postprocessResourceSet(final IProgressMonitor monitor)
+   {
+      final SubMonitor subMon = SubMonitor.convert(monitor, "Postprocessing resource set", 5);
+      // Resolve cross-references
+      final CrossReferenceResolver crossReferenceResolver = new CrossReferenceResolver(resource);
+      crossReferenceResolver.run(subMon.split(5));
+      resources = crossReferenceResolver.getResources();
+
+      // Remove unloaded resources from resource set
+      final List<Resource> resources = resourceSet.getResources();
+      for (int i = 0; i < resources.size(); i++)
+      {
+         final Resource resource = resources.get(i);
+         if (!resource.isLoaded())
+         {
+            resources.remove(i--);
+         }
+      }
+      return new Status(IStatus.OK, CodeGeneratorPlugin.getModuleID(), "Postprocessing succeeded");
+   }
+
+   protected void createResourcesForWorkspaceProjects(final IProgressMonitor monitor)
+   {
+      final IProject[] workspaceProjects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
+      final SubMonitor subMon = SubMonitor.convert(monitor, "Loading workspace projects", workspaceProjects.length);
+      for (final IProject workspaceProject : workspaceProjects)
+      {
+         if (isAccessible(workspaceProject))
+         {
+            final URI projectURI = CodeGeneratorPlugin.lookupProjectURI(workspaceProject);
+            final URI metamodelURI = CodeGeneratorPlugin.getDefaultProjectRelativeEcoreFileURI(workspaceProject).resolve(projectURI);
+            new PackageRemappingDependency(metamodelURI, false, false).getResource(resourceSet, false, true);
+         }
+         subMon.worked(1);
+      }
+   }
+
+   protected boolean isAccessible(IProject project)
+   {
+      try
+      {
+         return project.isAccessible() && (project.hasNature(WorkspaceHelper.REPOSITORY_NATURE_ID) || project.hasNature(WorkspaceHelper.INTEGRATION_NATURE_ID));
+      } catch (final CoreException e)
+      {
+         return false;
+      }
+   }
 }

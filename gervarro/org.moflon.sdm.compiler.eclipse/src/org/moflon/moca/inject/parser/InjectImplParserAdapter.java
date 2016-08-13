@@ -14,7 +14,6 @@ import org.moflon.core.utilities.LogUtils;
 import org.moflon.moca.MocaUtil;
 
 import MocaTree.Node;
-import sun.util.logging.resources.logging;
 
 public class InjectImplParserAdapter extends ParserImpl
 {
