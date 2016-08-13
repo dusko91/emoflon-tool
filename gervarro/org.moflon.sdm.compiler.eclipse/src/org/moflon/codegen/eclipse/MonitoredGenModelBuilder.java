@@ -69,7 +69,7 @@ public final class MonitoredGenModelBuilder implements IMonitoredJob
       }
 
       // Create EMFCodegen
-      String basePackage = "";
+      String basePackage = this.moflonProperties.getProjectName();
       String modelFolder = WorkspaceHelper.GEN_FOLDER;
       String modelDirectory = project.getFolder(modelFolder).getFullPath().toString();
 
