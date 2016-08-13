@@ -2,7 +2,6 @@ package org.moflon.tgg.mosl.ui.wizards;
 
 import static org.moflon.core.utilities.WorkspaceHelper.addAllFolders;
 import static org.moflon.core.utilities.WorkspaceHelper.addAllFoldersAndFile;
-import static org.moflon.core.utilities.WorkspaceHelper.createSubmonitorWith1Tick;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -16,6 +15,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.SubMonitor;
 import org.gervarro.eclipse.workspace.autosetup.ProjectConfigurator;
 import org.gervarro.eclipse.workspace.autosetup.WorkspaceAutoSetupModule;
 import org.gervarro.eclipse.workspace.util.ProjectUtil;
@@ -47,7 +47,8 @@ public class NewIntegrationWizard extends NewRepositoryWizard implements Project
    {
       metamodelProperties.put(MetamodelProperties.TYPE_KEY, MetamodelProperties.INTEGRATION_KEY);
       MoflonProjectCreator createMoflonProject = new MoflonProjectCreator(project, metamodelProperties);
-      ResourcesPlugin.getWorkspace().run(createMoflonProject, createSubmonitorWith1Tick(monitor));
+      final SubMonitor subMon = SubMonitor.convert(monitor, "Creating project", 1);
+      ResourcesPlugin.getWorkspace().run(createMoflonProject, subMon.split(1));
 
       final ProjectNatureAndBuilderConfiguratorTask natureAndBuilderConfiguratorTask = new ProjectNatureAndBuilderConfiguratorTask(project, false);
       natureAndBuilderConfiguratorTask.updateNatureIDs(this, true);
@@ -60,9 +61,10 @@ public class NewIntegrationWizard extends NewRepositoryWizard implements Project
    {
       String defaultSchema = DefaultFilesHelper.generateDefaultSchema(project.getName());
       IPath pathToSchema = new Path("src/org/moflon/tgg/mosl/Schema.tgg");
-      addAllFoldersAndFile(project, pathToSchema, defaultSchema, createSubmonitorWith1Tick(monitor));
+      final SubMonitor subMon = SubMonitor.convert(monitor, "Generating default files", 2);
+      addAllFoldersAndFile(project, pathToSchema, defaultSchema, subMon.split(1));
 
-      addAllFolders(project, "src/org/moflon/tgg/mosl/rules", createSubmonitorWith1Tick(monitor));
+      addAllFolders(project, "src/org/moflon/tgg/mosl/rules", subMon.split(1));
 
       try
       {
@@ -71,8 +73,6 @@ public class NewIntegrationWizard extends NewRepositoryWizard implements Project
       {
          LogUtils.error(logger, e);
       }
-
-      // WorkspaceHelperUI.openDefaultEditorForFile(project.getFile(pathToSchema));
    }
 
    @Override
