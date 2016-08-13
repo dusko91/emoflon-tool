@@ -131,8 +131,9 @@ public class IntegrationCodeGenerator extends RepositoryCodeGenerator
    {
       try
       {
-         if (RepositoryCodeGenerator.getEcoreFile(project).exists())
-            RepositoryCodeGenerator.getEcoreFile(project).delete(true, new NullProgressMonitor());
+         IFile ecoreFile = RepositoryCodeGenerator.getEcoreFile(project);
+         if (ecoreFile.exists())
+            ecoreFile.delete(true, new NullProgressMonitor());
 
          // Try another build to solve many problems due to checking out a workspace
          project.build(IncrementalProjectBuilder.CLEAN_BUILD, new NullProgressMonitor());
@@ -140,7 +141,12 @@ public class IntegrationCodeGenerator extends RepositoryCodeGenerator
 
          final IFile preEcoreFile = IntegrationBuilder.getPreEcoreFile(project);
          if (preEcoreFile.exists())
-            preEcoreFile.copy(RepositoryCodeGenerator.getEcoreFile(project).getFullPath(), true, new NullProgressMonitor());
+         {
+            if (ecoreFile.exists())
+               ecoreFile.delete(true, new NullProgressMonitor());
+
+            preEcoreFile.copy(ecoreFile.getFullPath(), true, new NullProgressMonitor());
+         }
 
          final IFile tggFile = getTGGFile();
          if (tggFile.exists())
