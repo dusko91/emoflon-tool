@@ -14,6 +14,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.jdt.core.IClasspathAttribute;
 import org.eclipse.jdt.core.IClasspathEntry;
@@ -38,213 +39,206 @@ import org.moflon.util.plugins.manifest.PluginManifestConstants;
 import MoflonPropertyContainer.MoflonPropertiesContainer;
 import MoflonPropertyContainer.SDMCodeGeneratorIds;
 
-public class MoflonProjectCreator extends WorkspaceTask implements ProjectConfigurator {
-	private static final Logger logger = Logger.getLogger(MoflonProjectCreator.class);
+public class MoflonProjectCreator extends WorkspaceTask implements ProjectConfigurator
+{
+   private static final Logger logger = Logger.getLogger(MoflonProjectCreator.class);
 
-	private IProject workspaceProject;
-	private MetamodelProperties metamodelProperties;
+   private IProject workspaceProject;
 
-	public MoflonProjectCreator(final IProject project, final MetamodelProperties projectProperties) {
-		this.workspaceProject = project;
-		this.metamodelProperties = projectProperties;
-	}
+   private MetamodelProperties metamodelProperties;
 
-	@Override
-	public void run(final IProgressMonitor monitor) throws CoreException {
-		if (!workspaceProject.exists()) {
-			final String projectName = metamodelProperties.getProjectName();
-			monitor.beginTask("Creating project " + projectName, 10);
-			
-			// (1) Create project
-			final IProjectDescription description =
-					ResourcesPlugin.getWorkspace().newProjectDescription(projectName);
-			workspaceProject.create(description, WorkspaceHelper.createSubmonitorWith1Tick(monitor));
-			workspaceProject.open(WorkspaceHelper.createSubmonitorWith1Tick(monitor));
+   public MoflonProjectCreator(final IProject project, final MetamodelProperties projectProperties)
+   {
+      this.workspaceProject = project;
+      this.metamodelProperties = projectProperties;
+   }
 
-			// (2) Create folders and files in project
-			createFoldersIfNecessary(workspaceProject, WorkspaceHelper.createSubMonitor(monitor, 4));
-			addGitIgnoreFiles(workspaceProject, WorkspaceHelper.createSubMonitor(monitor, 2));
+   @Override
+   public void run(final IProgressMonitor monitor) throws CoreException
+   {
+      if (!workspaceProject.exists())
+      {
+         final String projectName = metamodelProperties.getProjectName();
+         final SubMonitor subMon = SubMonitor.convert(monitor, "Creating project " + projectName, 10);
 
-			// (3) Create MANIFEST.MF file
-			try {
-				logger.debug("Adding MANIFEST.MF");
-				new ManifestFileUpdater().processManifest(
-						workspaceProject,
-						manifest -> {
-							boolean changed = false;
-							changed |= ManifestFileUpdater.updateAttribute(manifest, PluginManifestConstants.MANIFEST_VERSION,
-									"1.0", AttributeUpdatePolicy.KEEP);
-							changed |= ManifestFileUpdater.updateAttribute(manifest,
-									PluginManifestConstants.BUNDLE_MANIFEST_VERSION, "2", AttributeUpdatePolicy.KEEP);
-							changed |= ManifestFileUpdater.updateAttribute(manifest, PluginManifestConstants.BUNDLE_NAME,
-									metamodelProperties.get(MetamodelProperties.NAME_KEY), AttributeUpdatePolicy.KEEP);
-							changed |= ManifestFileUpdater.updateAttribute(manifest,
-									PluginManifestConstants.BUNDLE_SYMBOLIC_NAME,
-									metamodelProperties.get(MetamodelProperties.PLUGIN_ID_KEY) + ";singleton:=true",
-									AttributeUpdatePolicy.KEEP);
-							changed |= ManifestFileUpdater.updateAttribute(manifest, PluginManifestConstants.BUNDLE_VERSION,
-									"1.0", AttributeUpdatePolicy.KEEP);
-							changed |= ManifestFileUpdater.updateAttribute(manifest, PluginManifestConstants.BUNDLE_VENDOR,
-									"TU Darmstadt", AttributeUpdatePolicy.KEEP);
-							changed |= ManifestFileUpdater.updateAttribute(manifest,
-									PluginManifestConstants.BUNDLE_ACTIVATION_POLICY, "lazy", AttributeUpdatePolicy.KEEP);
-							changed |= ManifestFileUpdater.updateAttribute(manifest,
-									PluginManifestConstants.BUNDLE_EXECUTION_ENVIRONMENT,
-									metamodelProperties.get(MetamodelProperties.JAVA_VERION), AttributeUpdatePolicy.KEEP);
-							return changed;
-						});
-			} catch (IOException e) {
+         // (1) Create project
+         final IProjectDescription description = ResourcesPlugin.getWorkspace().newProjectDescription(projectName);
+         workspaceProject.create(description, subMon.split(1));
+         workspaceProject.open(subMon.split(1));
+
+         // (2) Create folders and files in project
+         createFoldersIfNecessary(workspaceProject, subMon.split(4));
+         addGitIgnoreFiles(workspaceProject, subMon.split(2));
+
+         // (3) Create MANIFEST.MF file
+         try
+         {
+            logger.debug("Adding MANIFEST.MF");
+            new ManifestFileUpdater().processManifest(workspaceProject, manifest -> {
+               boolean changed = false;
+               changed |= ManifestFileUpdater.updateAttribute(manifest, PluginManifestConstants.MANIFEST_VERSION, "1.0", AttributeUpdatePolicy.KEEP);
+               changed |= ManifestFileUpdater.updateAttribute(manifest, PluginManifestConstants.BUNDLE_MANIFEST_VERSION, "2", AttributeUpdatePolicy.KEEP);
+               changed |= ManifestFileUpdater.updateAttribute(manifest, PluginManifestConstants.BUNDLE_NAME,
+                     metamodelProperties.get(MetamodelProperties.NAME_KEY), AttributeUpdatePolicy.KEEP);
+               changed |= ManifestFileUpdater.updateAttribute(manifest, PluginManifestConstants.BUNDLE_SYMBOLIC_NAME,
+                     metamodelProperties.get(MetamodelProperties.PLUGIN_ID_KEY) + ";singleton:=true", AttributeUpdatePolicy.KEEP);
+               changed |= ManifestFileUpdater.updateAttribute(manifest, PluginManifestConstants.BUNDLE_VERSION, "1.0", AttributeUpdatePolicy.KEEP);
+               changed |= ManifestFileUpdater.updateAttribute(manifest, PluginManifestConstants.BUNDLE_VENDOR, "TU Darmstadt", AttributeUpdatePolicy.KEEP);
+               changed |= ManifestFileUpdater.updateAttribute(manifest, PluginManifestConstants.BUNDLE_ACTIVATION_POLICY, "lazy", AttributeUpdatePolicy.KEEP);
+               changed |= ManifestFileUpdater.updateAttribute(manifest, PluginManifestConstants.BUNDLE_EXECUTION_ENVIRONMENT,
+                     metamodelProperties.get(MetamodelProperties.JAVA_VERION), AttributeUpdatePolicy.KEEP);
+               return changed;
+            });
+         } catch (IOException e)
+         {
             LogUtils.error(logger, e);
-			}
-			
-			// (4) Create build.properties file
-			logger.debug("Adding build.properties");
-			new BuildPropertiesFileBuilder().createBuildProperties(workspaceProject,
-					WorkspaceHelper.createSubmonitorWith1Tick(monitor));
+         }
 
-			// (5) Configure natures and builders (.project file)
-			final JavaProjectConfigurator javaProjectConfigurator =
-					new JavaProjectConfigurator();
-			final MoflonProjectConfigurator moflonProjectConfigurator =
-					new MoflonProjectConfigurator(MetamodelProperties.INTEGRATION_KEY.equals(metamodelProperties.getType()));
-			final PluginProjectConfigurator pluginProjectConfigurator =
-					new PluginProjectConfigurator();
-			final ProjectNatureAndBuilderConfiguratorTask natureAndBuilderConfiguratorTask =
-					new ProjectNatureAndBuilderConfiguratorTask(workspaceProject, false);
-			natureAndBuilderConfiguratorTask.updateNatureIDs(javaProjectConfigurator, true);
-			natureAndBuilderConfiguratorTask.updateBuildSpecs(javaProjectConfigurator, true);
-			natureAndBuilderConfiguratorTask.updateNatureIDs(moflonProjectConfigurator, true);
-			natureAndBuilderConfiguratorTask.updateBuildSpecs(moflonProjectConfigurator, true);
-			natureAndBuilderConfiguratorTask.updateNatureIDs(pluginProjectConfigurator, true);
-			natureAndBuilderConfiguratorTask.updateBuildSpecs(pluginProjectConfigurator, true);
-			WorkspaceTask.execute(natureAndBuilderConfiguratorTask, false);
+         // (4) Create build.properties file
+         logger.debug("Adding build.properties");
+         new BuildPropertiesFileBuilder().createBuildProperties(workspaceProject, subMon.split(1));
 
-			// (6) Configure Java settings (.classpath file)
-			final IJavaProject javaProject = JavaCore.create(workspaceProject);
-			final IClasspathEntry srcFolderEntry =
-					JavaCore.newSourceEntry(workspaceProject.getFolder("src").getFullPath());
-			final IClasspathEntry genFolderEntry =
-					JavaCore.newSourceEntry(workspaceProject.getFolder(WorkspaceHelper.GEN_FOLDER).getFullPath(),
-					new IPath[0], new IPath[0], null,
-					// see issue #718
-					new IClasspathAttribute[] { /* JavaCore.newClasspathAttribute("ignore_optional_problems", "true") */ });
-			final IClasspathEntry jreContainerEntry =
-					JavaCore.newContainerEntry(new Path("org.eclipse.jdt.launching.JRE_CONTAINER"));
-			final IClasspathEntry pdeContainerEntry =
-					JavaCore.newContainerEntry(new Path("org.eclipse.pde.core.requiredPlugins"));
-			javaProject.setRawClasspath(
-					new IClasspathEntry[] { srcFolderEntry, genFolderEntry, jreContainerEntry, pdeContainerEntry },
-					workspaceProject.getFolder("bin").getFullPath(),
-					true, WorkspaceHelper.createSubmonitorWith1Tick(monitor));
+         // (5) Configure natures and builders (.project file)
+         final JavaProjectConfigurator javaProjectConfigurator = new JavaProjectConfigurator();
+         final MoflonProjectConfigurator moflonProjectConfigurator = new MoflonProjectConfigurator(
+               MetamodelProperties.INTEGRATION_KEY.equals(metamodelProperties.getType()));
+         final PluginProjectConfigurator pluginProjectConfigurator = new PluginProjectConfigurator();
+         final ProjectNatureAndBuilderConfiguratorTask natureAndBuilderConfiguratorTask = new ProjectNatureAndBuilderConfiguratorTask(workspaceProject, false);
+         natureAndBuilderConfiguratorTask.updateNatureIDs(javaProjectConfigurator, true);
+         natureAndBuilderConfiguratorTask.updateBuildSpecs(javaProjectConfigurator, true);
+         natureAndBuilderConfiguratorTask.updateNatureIDs(moflonProjectConfigurator, true);
+         natureAndBuilderConfiguratorTask.updateBuildSpecs(moflonProjectConfigurator, true);
+         natureAndBuilderConfiguratorTask.updateNatureIDs(pluginProjectConfigurator, true);
+         natureAndBuilderConfiguratorTask.updateBuildSpecs(pluginProjectConfigurator, true);
+         WorkspaceTask.execute(natureAndBuilderConfiguratorTask, false);
 
-			// (7) Create Moflon properties file (moflon.properties.xmi)
-			MoflonPropertiesContainer moflonProperties =
-					MoflonPropertiesContainerHelper.createDefaultPropertiesContainer(workspaceProject.getName(),
-							metamodelProperties.getMetamodelProjectName());
-			moflonProperties.getSdmCodegeneratorHandlerId().setValue(
-					getCodeGeneratorHandler(metamodelProperties.getType()));
-			MoflonPropertiesContainerHelper.save(moflonProperties, WorkspaceHelper.createSubmonitorWith1Tick(monitor));
-		}
+         // (6) Configure Java settings (.classpath file)
+         final IJavaProject javaProject = JavaCore.create(workspaceProject);
+         final IClasspathEntry srcFolderEntry = JavaCore.newSourceEntry(workspaceProject.getFolder("src").getFullPath());
+         final IClasspathEntry genFolderEntry = JavaCore.newSourceEntry(workspaceProject.getFolder(WorkspaceHelper.GEN_FOLDER).getFullPath(), new IPath[0],
+               new IPath[0], null,
+               // see issue #718
+               new IClasspathAttribute[] { /* JavaCore.newClasspathAttribute("ignore_optional_problems", "true") */ });
+         final IClasspathEntry jreContainerEntry = JavaCore.newContainerEntry(new Path("org.eclipse.jdt.launching.JRE_CONTAINER"));
+         final IClasspathEntry pdeContainerEntry = JavaCore.newContainerEntry(new Path("org.eclipse.pde.core.requiredPlugins"));
+         javaProject.setRawClasspath(new IClasspathEntry[] { srcFolderEntry, genFolderEntry, jreContainerEntry, pdeContainerEntry },
+               workspaceProject.getFolder("bin").getFullPath(), true, subMon.split(1));
 
-		monitor.done();
-	}
-	
-	private final SDMCodeGeneratorIds getCodeGeneratorHandler(final String type) {
-		return MetamodelProperties.INTEGRATION_KEY.equals(type) ?
-				SDMCodeGeneratorIds.DEMOCLES_REVERSE_NAVI : SDMCodeGeneratorIds.DEMOCLES;
-	}
+         // (7) Create Moflon properties file (moflon.properties.xmi)
+         MoflonPropertiesContainer moflonProperties = MoflonPropertiesContainerHelper.createDefaultPropertiesContainer(workspaceProject.getName(),
+               metamodelProperties.getMetamodelProjectName());
+         moflonProperties.getSdmCodegeneratorHandlerId().setValue(getCodeGeneratorHandler(metamodelProperties.getType()));
+         MoflonPropertiesContainerHelper.save(moflonProperties, subMon.split(1));
+      }
+   }
 
-	private static void addGitIgnoreFiles(final IProject project, final IProgressMonitor monitor) throws CoreException {
-		try {
-			monitor.beginTask("Creating .gitignore files", 2);
-			IFile genGitIgnore = WorkspaceHelper.getGenFolder(project).getFile(".gitignore");
-			if (!genGitIgnore.exists()) {
-				genGitIgnore.create(new ByteArrayInputStream("*".getBytes()), true, WorkspaceHelper.createSubmonitorWith1Tick(monitor));
-			}
+   private final SDMCodeGeneratorIds getCodeGeneratorHandler(final String type)
+   {
+      return MetamodelProperties.INTEGRATION_KEY.equals(type) ? SDMCodeGeneratorIds.DEMOCLES_REVERSE_NAVI : SDMCodeGeneratorIds.DEMOCLES;
+   }
 
-			IFile modelGitIgnore = WorkspaceHelper.getModelFolder(project).getFile(".gitignore");
-			if (!modelGitIgnore.exists()) {
-				modelGitIgnore.create(new ByteArrayInputStream("*".getBytes()), true, WorkspaceHelper.createSubmonitorWith1Tick(monitor));
-			}
-		} finally {
-			monitor.done();
-		}
-	}
+   private static void addGitIgnoreFiles(final IProject project, final IProgressMonitor monitor) throws CoreException
+   {
+      final SubMonitor subMon = SubMonitor.convert(monitor, "Creating .gitignore files", 2);
+      IFile genGitIgnore = WorkspaceHelper.getGenFolder(project).getFile(".gitignore");
+      if (!genGitIgnore.exists())
+      {
+         genGitIgnore.create(new ByteArrayInputStream("*".getBytes()), true, subMon.split(1));
+      }
 
-	public static void createFoldersIfNecessary(final IProject project, final IProgressMonitor monitor) throws CoreException {
-		try {
-			monitor.beginTask("Creating folders within project", 7);
-			WorkspaceHelper.createFolderIfNotExists(project.getFolder("src"), WorkspaceHelper.createSubmonitorWith1Tick(monitor));
-			WorkspaceHelper.createFolderIfNotExists(project.getFolder("bin"), WorkspaceHelper.createSubmonitorWith1Tick(monitor));
-			WorkspaceHelper.createFolderIfNotExists(project.getFolder(WorkspaceHelper.GEN_FOLDER), WorkspaceHelper.createSubmonitorWith1Tick(monitor));
-			WorkspaceHelper.createFolderIfNotExists(project.getFolder(WorkspaceHelper.LIB_FOLDER), WorkspaceHelper.createSubmonitorWith1Tick(monitor));
-			WorkspaceHelper.createFolderIfNotExists(project.getFolder(WorkspaceHelper.MODEL_FOLDER), WorkspaceHelper.createSubmonitorWith1Tick(monitor));
-			WorkspaceHelper.createFolderIfNotExists(project.getFolder(WorkspaceHelper.INSTANCES_FOLDER), WorkspaceHelper.createSubmonitorWith1Tick(monitor));
-			WorkspaceHelper.createFolderIfNotExists(project.getFolder(WorkspaceHelper.INJECTION_FOLDER), WorkspaceHelper.createSubmonitorWith1Tick(monitor));
-		} finally {
-			monitor.done();
-		}
-	}
+      IFile modelGitIgnore = WorkspaceHelper.getModelFolder(project).getFile(".gitignore");
+      if (!modelGitIgnore.exists())
+      {
+         modelGitIgnore.create(new ByteArrayInputStream("*".getBytes()), true, subMon.split(1));
+      }
+   }
 
-	@Override
-	public String getTaskName() {
-		return "Creating Moflon project";
-	}
+   public static void createFoldersIfNecessary(final IProject project, final IProgressMonitor monitor) throws CoreException
+   {
+      final SubMonitor subMon = SubMonitor.convert(monitor, "Creating folders within project", 7);
+      WorkspaceHelper.createFolderIfNotExists(project.getFolder("src"), subMon.split(1));
+      WorkspaceHelper.createFolderIfNotExists(project.getFolder("bin"), subMon.split(1));
+      WorkspaceHelper.createFolderIfNotExists(project.getFolder(WorkspaceHelper.GEN_FOLDER), subMon.split(1));
+      WorkspaceHelper.createFolderIfNotExists(project.getFolder(WorkspaceHelper.LIB_FOLDER), subMon.split(1));
+      WorkspaceHelper.createFolderIfNotExists(project.getFolder(WorkspaceHelper.MODEL_FOLDER), subMon.split(1));
+      WorkspaceHelper.createFolderIfNotExists(project.getFolder(WorkspaceHelper.INSTANCES_FOLDER), subMon.split(1));
+      WorkspaceHelper.createFolderIfNotExists(project.getFolder(WorkspaceHelper.INJECTION_FOLDER), subMon.split(1));
+   }
 
-	@Override
-	public ISchedulingRule getRule() {
-		return ResourcesPlugin.getWorkspace().getRoot();
-	}
+   @Override
+   public String getTaskName()
+   {
+      return "Creating Moflon project";
+   }
 
-	public String[] updateNatureIDs(String[] natureIDs, final boolean added) throws CoreException {
-		final String natureID = MetamodelProperties.REPOSITORY_KEY.equals(metamodelProperties.getType()) ? 
-				WorkspaceHelper.REPOSITORY_NATURE_ID : WorkspaceHelper.INTEGRATION_NATURE_ID;
-		if (added) {
-			if (ProjectUtil.indexOf(natureIDs, natureID) < 0) {
-				natureIDs = Arrays.copyOf(natureIDs, natureIDs.length + 1);
-				natureIDs[natureIDs.length-1] = natureID;
-			}
-		} else {
-			int naturePosition = ProjectUtil.indexOf(natureIDs, natureID);
-			if (naturePosition >= 0) {
-				natureIDs = WorkspaceAutoSetupModule.remove(natureIDs, naturePosition);
-			}
-		}
-		return natureIDs;
-	}
-	
-	public ICommand[] updateBuildSpecs(final IProjectDescription description, ICommand[] buildSpecs, final boolean added) throws CoreException {
-		final String builderID = MetamodelProperties.REPOSITORY_KEY.equals(metamodelProperties.getType()) ? 
-				CoreActivator.REPOSITORY_BUILDER_ID : CoreActivator.INTEGRATION_BUILDER_ID;
-		if (added) {
-			int javaBuilderPosition = ProjectUtil.indexOf(buildSpecs, "org.eclipse.jdt.core.javabuilder");
-			int moflonBuilderPosition = ProjectUtil.indexOf(buildSpecs, builderID);
-			if (moflonBuilderPosition < 0) {
-				final ICommand manifestBuilder = description.newCommand();
-				manifestBuilder.setBuilderName(builderID);
-				buildSpecs = Arrays.copyOf(buildSpecs, buildSpecs.length + 1);
-				moflonBuilderPosition = buildSpecs.length - 1;
-				buildSpecs[moflonBuilderPosition] = manifestBuilder;
-			} 
-			if (javaBuilderPosition < moflonBuilderPosition) {
-				final ICommand moflonBuilder = buildSpecs[moflonBuilderPosition];
-				System.arraycopy(buildSpecs, javaBuilderPosition, buildSpecs, javaBuilderPosition+1, moflonBuilderPosition-javaBuilderPosition);
-				moflonBuilderPosition = javaBuilderPosition++;
-				buildSpecs[moflonBuilderPosition] = moflonBuilder;
-			}
-		} else {
-			int moflonBuilderPosition = ProjectUtil.indexOf(buildSpecs, builderID);
-			if (moflonBuilderPosition >= 0) {
-				ICommand[] oldBuilderSpecs = buildSpecs;
-				buildSpecs = new ICommand[oldBuilderSpecs.length - 1];
-				if (moflonBuilderPosition > 0) {
-					System.arraycopy(oldBuilderSpecs, 0, buildSpecs, 0, moflonBuilderPosition);
-				}
-				if (moflonBuilderPosition == buildSpecs.length) {
-					System.arraycopy(oldBuilderSpecs, moflonBuilderPosition+1, buildSpecs, moflonBuilderPosition, buildSpecs.length-moflonBuilderPosition);
-				}
-			}
-		}
-		return buildSpecs;
-	}
+   @Override
+   public ISchedulingRule getRule()
+   {
+      return ResourcesPlugin.getWorkspace().getRoot();
+   }
+
+   public String[] updateNatureIDs(String[] natureIDs, final boolean added) throws CoreException
+   {
+      final String natureID = MetamodelProperties.REPOSITORY_KEY.equals(metamodelProperties.getType()) ? WorkspaceHelper.REPOSITORY_NATURE_ID
+            : WorkspaceHelper.INTEGRATION_NATURE_ID;
+      if (added)
+      {
+         if (ProjectUtil.indexOf(natureIDs, natureID) < 0)
+         {
+            natureIDs = Arrays.copyOf(natureIDs, natureIDs.length + 1);
+            natureIDs[natureIDs.length - 1] = natureID;
+         }
+      } else
+      {
+         int naturePosition = ProjectUtil.indexOf(natureIDs, natureID);
+         if (naturePosition >= 0)
+         {
+            natureIDs = WorkspaceAutoSetupModule.remove(natureIDs, naturePosition);
+         }
+      }
+      return natureIDs;
+   }
+
+   public ICommand[] updateBuildSpecs(final IProjectDescription description, ICommand[] buildSpecs, final boolean added) throws CoreException
+   {
+      final String builderID = MetamodelProperties.REPOSITORY_KEY.equals(metamodelProperties.getType()) ? CoreActivator.REPOSITORY_BUILDER_ID
+            : CoreActivator.INTEGRATION_BUILDER_ID;
+      if (added)
+      {
+         int javaBuilderPosition = ProjectUtil.indexOf(buildSpecs, "org.eclipse.jdt.core.javabuilder");
+         int moflonBuilderPosition = ProjectUtil.indexOf(buildSpecs, builderID);
+         if (moflonBuilderPosition < 0)
+         {
+            final ICommand manifestBuilder = description.newCommand();
+            manifestBuilder.setBuilderName(builderID);
+            buildSpecs = Arrays.copyOf(buildSpecs, buildSpecs.length + 1);
+            moflonBuilderPosition = buildSpecs.length - 1;
+            buildSpecs[moflonBuilderPosition] = manifestBuilder;
+         }
+         if (javaBuilderPosition < moflonBuilderPosition)
+         {
+            final ICommand moflonBuilder = buildSpecs[moflonBuilderPosition];
+            System.arraycopy(buildSpecs, javaBuilderPosition, buildSpecs, javaBuilderPosition + 1, moflonBuilderPosition - javaBuilderPosition);
+            moflonBuilderPosition = javaBuilderPosition++;
+            buildSpecs[moflonBuilderPosition] = moflonBuilder;
+         }
+      } else
+      {
+         int moflonBuilderPosition = ProjectUtil.indexOf(buildSpecs, builderID);
+         if (moflonBuilderPosition >= 0)
+         {
+            ICommand[] oldBuilderSpecs = buildSpecs;
+            buildSpecs = new ICommand[oldBuilderSpecs.length - 1];
+            if (moflonBuilderPosition > 0)
+            {
+               System.arraycopy(oldBuilderSpecs, 0, buildSpecs, 0, moflonBuilderPosition);
+            }
+            if (moflonBuilderPosition == buildSpecs.length)
+            {
+               System.arraycopy(oldBuilderSpecs, moflonBuilderPosition + 1, buildSpecs, moflonBuilderPosition, buildSpecs.length - moflonBuilderPosition);
+            }
+         }
+      }
+      return buildSpecs;
+   }
 }

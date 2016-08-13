@@ -14,6 +14,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.emf.codegen.ecore.genmodel.GenModel;
 import org.eclipse.emf.ecore.resource.ResourceSet;
@@ -32,153 +33,147 @@ import org.moflon.util.plugins.manifest.PluginXmlUpdater;
 
 import MoflonPropertyContainer.MoflonPropertiesContainer;
 
-public class RepositoryBuilder extends AbstractVisitorBuilder {
-	public static final Logger logger = Logger.getLogger(RepositoryBuilder.class);
+public class RepositoryBuilder extends AbstractVisitorBuilder
+{
+   public static final Logger logger = Logger.getLogger(RepositoryBuilder.class);
 
-	protected boolean generateSDMs = true;
-	public static final String BUILDER_ID = "org.moflon.ide.core.runtime.builders.RepositoryBuilder";
+   protected boolean generateSDMs = true;
 
-	public RepositoryBuilder() {
-		super(new AntPatternCondition(new String[] { "model/*.ecore" }));
-	}
+   public static final String BUILDER_ID = "org.moflon.ide.core.runtime.builders.RepositoryBuilder";
 
-	public ISchedulingRule getRule(final int kind, final Map<String, String> args) {
-		return getProject();
-	}
-	
-	@Override
-	protected void processResource(IResource ecoreResource, int kind,
-			Map<String, String> args, IProgressMonitor monitor) {
-			if (isEcoreFile(ecoreResource)) {
-				final IFile ecoreFile =
-						Platform.getAdapterManager().getAdapter(ecoreResource, IFile.class);
-				try {
-					monitor.beginTask("Generating code for project " + getProject().getName(), 9);
+   public RepositoryBuilder()
+   {
+      super(new AntPatternCondition(new String[] { "model/*.ecore" }));
+   }
 
-					// Compute project dependencies
-					final IBuildConfiguration[] referencedBuildConfigs = 
-							getProject().getReferencedBuildConfigs(getProject().getActiveBuildConfig().getName(), false);
-					for (final IBuildConfiguration referencedConfig : referencedBuildConfigs) {
-						addTriggerProject(referencedConfig.getProject());
-					}
-					
-					// Remove markers and delete generated code
-					deleteProblemMarkers();
-					final CleanVisitor cleanVisitor =
-							new CleanVisitor(getProject(), new AntPatternCondition(new String[] { "gen/**" }));
-					getProject().accept(cleanVisitor, IResource.DEPTH_INFINITE, IResource.NONE);
-					
-					// Build
-					final ResourceSet resourceSet = CodeGeneratorPlugin.createDefaultResourceSet();
-					eMoflonEMFUtil.installCrossReferencers(resourceSet);
-					monitor.worked(1);
+   public ISchedulingRule getRule(final int kind, final Map<String, String> args)
+   {
+      return getProject();
+   }
 
-					final MoflonCodeGenerator codeGenerationTask = new MoflonCodeGenerator(ecoreFile, resourceSet);
-					codeGenerationTask.setValidationTimeout(EMoflonPreferencesStorage.getInstance().getValidationTimeout());
+   @Override
+   protected void processResource(IResource ecoreResource, int kind, Map<String, String> args, IProgressMonitor monitor)
+   {
+      if (isEcoreFile(ecoreResource))
+      {
+         final IFile ecoreFile = Platform.getAdapterManager().getAdapter(ecoreResource, IFile.class);
+         try
+         {
+            final SubMonitor subMon = SubMonitor.convert(monitor, "Generating code for project " + getProject().getName(), 9);
 
-					final IStatus status = codeGenerationTask.run(WorkspaceHelper.createSubmonitorWith1Tick(monitor));
-					handleErrorsAndWarnings(status, ecoreFile);
-					monitor.worked(3);
+            // Compute project dependencies
+            final IBuildConfiguration[] referencedBuildConfigs = getProject().getReferencedBuildConfigs(getProject().getActiveBuildConfig().getName(), false);
+            for (final IBuildConfiguration referencedConfig : referencedBuildConfigs)
+            {
+               addTriggerProject(referencedConfig.getProject());
+            }
 
-					final GenModel genModel = codeGenerationTask.getGenModel();
-					if (genModel != null) {
-						ExportedPackagesInManifestUpdater.updateExportedPackageInManifest(getProject(), genModel);
+            // Remove markers and delete generated code
+            deleteProblemMarkers();
+            final CleanVisitor cleanVisitor = new CleanVisitor(getProject(), new AntPatternCondition(new String[] { "gen/**" }));
+            getProject().accept(cleanVisitor, IResource.DEPTH_INFINITE, IResource.NONE);
 
-						PluginXmlUpdater.updatePluginXml(getProject(), genModel, WorkspaceHelper.createSubmonitorWith1Tick(monitor));
-						ResourcesPlugin.getWorkspace().checkpoint(false);
-					}
-				} catch (final CoreException e) {
-					final IStatus status = new Status(e.getStatus().getSeverity(),
-							CoreActivator.getModuleID(), e.getMessage(), e);
-					handleErrorsInEclipse(status, ecoreFile);
-				} finally {
-					monitor.done();
-				}
-			}
-	}
-	
-	protected boolean isEcoreFile(final IResource ecoreResource) {
-		return ecoreResource.getType() == IResource.FILE && "ecore".equals(ecoreResource.getFileExtension());
-	}
-	
-	@Override
-	protected final AntPatternCondition getTriggerCondition(final IProject project) {
-		try {
-			if (project.hasNature(WorkspaceHelper.REPOSITORY_NATURE_ID) ||
-					project.hasNature(WorkspaceHelper.INTEGRATION_NATURE_ID)) {
-				return new AntPatternCondition(new String[] { "gen/**" });
-			} else if (project.hasNature(CoreActivator.METAMODEL_NATURE_ID)) {
-				return new AntPatternCondition(new String[] { ".temp/*.moca.xmi" });
-			}
-		} catch (final CoreException e) {
-			// Do nothing
-		}
-		return new AntPatternCondition(new String[0]);
-	}
-	
-   public void clean(final IProgressMonitor monitor) throws CoreException
+            // Build
+            final ResourceSet resourceSet = CodeGeneratorPlugin.createDefaultResourceSet();
+            eMoflonEMFUtil.installCrossReferencers(resourceSet);
+            subMon.worked(1);
+
+            final MoflonCodeGenerator codeGenerationTask = new MoflonCodeGenerator(ecoreFile, resourceSet);
+            codeGenerationTask.setValidationTimeout(EMoflonPreferencesStorage.getInstance().getValidationTimeout());
+
+            final IStatus status = codeGenerationTask.run(subMon.split(1));
+            handleErrorsAndWarnings(status, ecoreFile);
+            subMon.worked(3);
+
+            final GenModel genModel = codeGenerationTask.getGenModel();
+            if (genModel != null)
+            {
+               ExportedPackagesInManifestUpdater.updateExportedPackageInManifest(getProject(), genModel);
+
+               PluginXmlUpdater.updatePluginXml(getProject(), genModel, subMon.split(1));
+               ResourcesPlugin.getWorkspace().checkpoint(false);
+            }
+         } catch (final CoreException e)
+         {
+            final IStatus status = new Status(e.getStatus().getSeverity(), CoreActivator.getModuleID(), e.getMessage(), e);
+            handleErrorsInEclipse(status, ecoreFile);
+         }
+      }
+   }
+
+   protected boolean isEcoreFile(final IResource ecoreResource)
+   {
+      return ecoreResource.getType() == IResource.FILE && "ecore".equals(ecoreResource.getFileExtension());
+   }
+
+   @Override
+   protected final AntPatternCondition getTriggerCondition(final IProject project)
    {
       try
       {
-         monitor.beginTask("Cleaning " + getProject(), 4);
-
-         final IProject project = getProject();
-
-         // Remove all problem markers
-         deleteProblemMarkers();
-         monitor.worked(1);
-
-         final CleanVisitor cleanVisitor =
-        		 new CleanVisitor(getProject(), new AntPatternCondition(new String[] { "gen/**", "debug/**" }));
-         // Remove generated code
-         project.accept(cleanVisitor,
-        		 IResource.DEPTH_INFINITE, IResource.NONE);
-
-         // Remove generated model files
-         cleanModels(project.getFolder(WorkspaceHelper.MODEL_FOLDER), WorkspaceHelper.createSubMonitor(monitor, 1));
-      } finally
+         if (project.hasNature(WorkspaceHelper.REPOSITORY_NATURE_ID) || project.hasNature(WorkspaceHelper.INTEGRATION_NATURE_ID))
+         {
+            return new AntPatternCondition(new String[] { "gen/**" });
+         } else if (project.hasNature(CoreActivator.METAMODEL_NATURE_ID))
+         {
+            return new AntPatternCondition(new String[] { ".temp/*.moca.xmi" });
+         }
+      } catch (final CoreException e)
       {
-         monitor.done();
+         // Do nothing
       }
+      return new AntPatternCondition(new String[0]);
+   }
+
+   public void clean(final IProgressMonitor monitor) throws CoreException
+   {
+      final SubMonitor subMon = SubMonitor.convert(monitor, "Cleaning " + getProject(), 4);
+
+      final IProject project = getProject();
+
+      // Remove all problem markers
+      deleteProblemMarkers();
+      subMon.worked(1);
+
+      final CleanVisitor cleanVisitor = new CleanVisitor(getProject(), new AntPatternCondition(new String[] { "gen/**", "debug/**" }));
+      // Remove generated code
+      project.accept(cleanVisitor, IResource.DEPTH_INFINITE, IResource.NONE);
+
+      // Remove generated model files
+      cleanModels(project.getFolder(WorkspaceHelper.MODEL_FOLDER), subMon.split(1));
    }
 
    // Delete generated models within model folder
    private void cleanModels(final IFolder folder, final IProgressMonitor monitor) throws CoreException
    {
-      try
-      {
-    	 if(!folder.exists())
-    		return;
-    	  
-         monitor.beginTask("Inspecting " + folder.getName(), folder.members().length);
+      if (!folder.exists())
+         return;
 
-         for (final IResource resource : folder.members())
+      final SubMonitor subMon = SubMonitor.convert(monitor, "Inspecting " + folder.getName(), folder.members().length);
+
+      for (final IResource resource : folder.members())
+      {
+         // keep SVN data
+         if (!resource.getName().startsWith("."))
          {
-            // keep SVN data
-            if (!resource.getName().startsWith("."))
+            // only delete generated models directly in folder 'model'
+            if (!WorkspaceHelper.isFolder(resource))
             {
-               // only delete generated models directly in folder 'model'
-               if (!WorkspaceHelper.isFolder(resource))
-               {
-                  MoflonPropertiesContainer properties = MoflonPropertiesContainerHelper.load(getProject(), WorkspaceHelper.createSubmonitorWith1Tick(monitor));
-                  if (properties.getReplaceGenModel().isBool() && resource.getName().endsWith(WorkspaceHelper.GEN_MODEL_EXT))
-                     resource.delete(true, WorkspaceHelper.createSubmonitorWith1Tick(monitor));
-                  else
-                     monitor.worked(1);
+               MoflonPropertiesContainer properties = MoflonPropertiesContainerHelper.load(getProject(), subMon.split(1));
+               if (properties.getReplaceGenModel().isBool() && resource.getName().endsWith(WorkspaceHelper.GEN_MODEL_EXT))
+                  resource.delete(true, subMon.split(1));
+               else
+                  monitor.worked(1);
 
-                  if (WorkspaceHelper.isIntegrationProject(getProject()) && isAGeneratedFileInIntegrationProject(resource))
-                     resource.delete(true, WorkspaceHelper.createSubmonitorWith1Tick(monitor));
-                  else
-                     monitor.worked(1);
-               }
-            } else
-            {
-               monitor.worked(1);
+               if (WorkspaceHelper.isIntegrationProject(getProject()) && isAGeneratedFileInIntegrationProject(resource))
+                  resource.delete(true, subMon.split(1));
+               else
+                  monitor.worked(1);
             }
+         } else
+         {
+            monitor.worked(1);
          }
-      } finally
-      {
-         monitor.done();
       }
    }
 
@@ -186,7 +181,7 @@ public class RepositoryBuilder extends AbstractVisitorBuilder {
    {
       return !(resource.getName().endsWith(WorkspaceHelper.PRE_ECORE_FILE_EXTENSION) || resource.getName().endsWith(WorkspaceHelper.PRE_TGG_FILE_EXTENSION));
    }
-   
+
    /**
     * Handles errors and warning produced by the code generation task
     * 

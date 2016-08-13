@@ -17,6 +17,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.emf.codegen.ecore.genmodel.GenModel;
 import org.eclipse.emf.codegen.ecore.genmodel.GenPackage;
@@ -36,18 +37,21 @@ import org.w3c.dom.NodeList;
  */
 public class PluginXmlUpdater extends WorkspaceTask
 {
-	private final IProject project;
-	private final GenModel genModel;
-	
-	private PluginXmlUpdater(final IProject project) {
-		this(project, eMoflonEMFUtil.extractGenModelFromProject(project));
-	}
-	
-	private PluginXmlUpdater(final IProject project, final GenModel genModel) {
-		this.project = project;
-		this.genModel = genModel;
-	}
-	
+   private final IProject project;
+
+   private final GenModel genModel;
+
+   private PluginXmlUpdater(final IProject project)
+   {
+      this(project, eMoflonEMFUtil.extractGenModelFromProject(project));
+   }
+
+   private PluginXmlUpdater(final IProject project, final GenModel genModel)
+   {
+      this.project = project;
+      this.genModel = genModel;
+   }
+
    private static class GeneratedPackageEntry
    {
       private String uri;
@@ -77,23 +81,17 @@ public class PluginXmlUpdater extends WorkspaceTask
     */
    public static final void updatePluginXml(final IProject currentProject, final IProgressMonitor monitor) throws CoreException
    {
-      try
-      {
-         monitor.beginTask("Create/update plugin.xml", 1);
+      final SubMonitor subMon = SubMonitor.convert(monitor, "Create/update plugin.xml", 1);
 
-         updatePluginXml(currentProject, eMoflonEMFUtil.extractGenModelFromProject(currentProject), WorkspaceHelper.createSubmonitorWith1Tick(monitor));
-
-      } finally
-      {
-         monitor.done();
-      }
+      updatePluginXml(currentProject, eMoflonEMFUtil.extractGenModelFromProject(currentProject), subMon.split(1));
    }
 
    public static final void updatePluginXml(final IProject currentProject, final GenModel genModel, final IProgressMonitor monitor) throws CoreException
    {
-	   final PluginXmlUpdater pluginXmlUpdater = new PluginXmlUpdater(currentProject, genModel);
-	   WorkspaceTask.execute(pluginXmlUpdater, false);
+      final PluginXmlUpdater pluginXmlUpdater = new PluginXmlUpdater(currentProject, genModel);
+      WorkspaceTask.execute(pluginXmlUpdater, false);
    }
+
    /**
     * Updates plugin.xml from the information in the given project and the given genmodel.
     */
@@ -101,10 +99,10 @@ public class PluginXmlUpdater extends WorkspaceTask
    {
       try
       {
-         monitor.beginTask("Updating plugin.xml from Genmodel", 3);
+         final SubMonitor subMon = SubMonitor.convert(monitor, "Updating plugin.xml from Genmodel", 3);
          final String content = readOrGetDefaultPluginXmlContent(project);
          final Document doc = XMLUtils.parseXmlDocument(content);
-         monitor.worked(1);
+         subMon.worked(1);
 
          removeExtensionPointsForGeneratedPackages(doc);
 
@@ -112,17 +110,14 @@ public class PluginXmlUpdater extends WorkspaceTask
          final Node pluginRootElement = getRootNode(doc);
          extensionElements.forEach(element -> pluginRootElement.appendChild(element));
 
-         String output = XMLUtils.formatXmlString(doc, WorkspaceHelper.createSubmonitorWith1Tick(monitor));
+         String output = XMLUtils.formatXmlString(doc, subMon.split(1));
 
-         MoflonUtil.writeContentToFile(output, getPluginXml(project), WorkspaceHelper.createSubmonitorWith1Tick(monitor));
+         MoflonUtil.writeContentToFile(output, getPluginXml(project), subMon.split(1));
 
       } catch (IOException | XPathExpressionException e)
       {
          throw new CoreException(new Status(IStatus.ERROR, MoflonUtilitiesActivator.getDefault().getPluginId(),
                "Error reading/writing plugin.xml for project " + project.getName() + ": " + e.getMessage(), e));
-      } finally
-      {
-         monitor.done();
       }
    }
 
@@ -201,12 +196,14 @@ public class PluginXmlUpdater extends WorkspaceTask
    }
 
    @Override
-   public String getTaskName() {
-	   return "Plugin.xml updater";
+   public String getTaskName()
+   {
+      return "Plugin.xml updater";
    }
 
    @Override
-   public ISchedulingRule getRule() {
-	   return project;
+   public ISchedulingRule getRule()
+   {
+      return project;
    }
 }

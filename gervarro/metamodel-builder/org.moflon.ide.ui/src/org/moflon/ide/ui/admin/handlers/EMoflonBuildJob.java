@@ -13,6 +13,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.MultiStatus;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.SubMonitor;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.ide.core.preferences.EMoflonPreferencesStorage;
 import org.moflon.ide.core.util.BuilderHelper;
@@ -35,36 +36,30 @@ public class EMoflonBuildJob extends WorkspaceJob
    @Override
    public IStatus runInWorkspace(final IProgressMonitor monitor)
    {
-      try
+      final MultiStatus resultStatus = new MultiStatus(UIActivator.getModuleID(), 0, "eMoflon Build Job failed", null);
+      final List<IProject> projectsToBeBuilt = this.projects.stream().filter(project -> shallBuildProject(project)).collect(Collectors.toList());
+
+      final SubMonitor subMon = SubMonitor.convert(monitor, "eMoflon Build Job", 2 * projectsToBeBuilt.size());
+
+      updateUserSelectedTimeoutForValidation();
+
+      for (final IProject project : projectsToBeBuilt)
       {
-         final MultiStatus resultStatus = new MultiStatus(UIActivator.getModuleID(), 0, "eMoflon Build Job failed", null);
-         final List<IProject> projectsToBeBuilt = this.projects.stream().filter(project -> shallBuildProject(project)).collect(Collectors.toList());
-         
-         monitor.beginTask("eMoflon Build Job", 2 * projectsToBeBuilt.size());
 
-         updateUserSelectedTimeoutForValidation();
-
-         for (final IProject project : projectsToBeBuilt)
+         final IStatus projectBuildStatus = cleanAndBuild(project, subMon.split(2));
+         if (!projectBuildStatus.isOK())
          {
-
-            final IStatus projectBuildStatus = cleanAndBuild(project, WorkspaceHelper.createSubMonitor(monitor, 2));
-            if (!projectBuildStatus.isOK())
-            {
-               resultStatus.add(projectBuildStatus);
-            }
+            resultStatus.add(projectBuildStatus);
          }
-
-         final IStatus codeGenerationStatus = BuilderHelper.generateCodeInOrder(WorkspaceHelper.createSubMonitor(monitor, projectsToBeBuilt.size()), projectsToBeBuilt);
-         if (!codeGenerationStatus.isOK())
-         {
-            resultStatus.add(codeGenerationStatus);
-         }
-         
-         return resultStatus.matches(Status.ERROR) ? resultStatus : Status.OK_STATUS;
-      } finally
-      {
-         monitor.done();
       }
+
+      final IStatus codeGenerationStatus = BuilderHelper.generateCodeInOrder(subMon.split(projectsToBeBuilt.size()), projectsToBeBuilt);
+      if (!codeGenerationStatus.isOK())
+      {
+         resultStatus.add(codeGenerationStatus);
+      }
+
+      return resultStatus.matches(Status.ERROR) ? resultStatus : Status.OK_STATUS;
 
    }
 
@@ -78,17 +73,18 @@ public class EMoflonBuildJob extends WorkspaceJob
       IStatus status = Status.OK_STATUS;
       try
       {
-         monitor.beginTask("Clean and build of " + project.getName(), 2);
+         final String projectName = project.getName();
+         final SubMonitor subMon = SubMonitor.convert(monitor, "Clean and build of " + projectName, 2);
 
          if (project != null && WorkspaceHelper.isMoflonOrMetamodelProject(project))
          {
 
-            logger.info("Cleaning project " + project.getName() + " - triggered manually!");
+            logger.info("Cleaning project " + projectName + " - triggered manually!");
 
-            project.build(IncrementalProjectBuilder.CLEAN_BUILD, WorkspaceHelper.createSubmonitorWith1Tick(monitor));
-            project.build(IncrementalProjectBuilder.FULL_BUILD, WorkspaceHelper.createSubmonitorWith1Tick(monitor));
+            project.build(IncrementalProjectBuilder.CLEAN_BUILD, subMon.split(1));
+            project.build(IncrementalProjectBuilder.FULL_BUILD, subMon.split(1));
 
-            logger.debug("Cleaning project " + project.getName() + " done.");
+            logger.debug("Cleaning project " + projectName + " done.");
 
          }
       } catch (final OperationCanceledException e)
@@ -97,9 +93,6 @@ public class EMoflonBuildJob extends WorkspaceJob
       } catch (final CoreException e)
       {
          status = new Status(IStatus.ERROR, UIActivator.getModuleID(), "Problem during clean and build: " + e.getMessage(), e);
-      } finally
-      {
-         monitor.done();
       }
       return status;
    }

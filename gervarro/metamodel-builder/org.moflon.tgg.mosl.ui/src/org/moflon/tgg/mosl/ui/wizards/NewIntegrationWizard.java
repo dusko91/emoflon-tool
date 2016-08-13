@@ -43,7 +43,7 @@ public class NewIntegrationWizard extends NewRepositoryWizard implements Project
    }
 
    @Override
-   void createProject(IProgressMonitor monitor, IProject project, MetamodelProperties metamodelProperties) throws CoreException
+   protected void createProject(IProgressMonitor monitor, IProject project, MetamodelProperties metamodelProperties) throws CoreException
    {
       metamodelProperties.put(MetamodelProperties.TYPE_KEY, MetamodelProperties.INTEGRATION_KEY);
       MoflonProjectCreator createMoflonProject = new MoflonProjectCreator(project, metamodelProperties);
@@ -57,7 +57,7 @@ public class NewIntegrationWizard extends NewRepositoryWizard implements Project
    }
 
    @Override
-   void generateDefaultFiles(final IProgressMonitor monitor, IProject project) throws CoreException
+   protected void generateDefaultFiles(final IProgressMonitor monitor, IProject project) throws CoreException
    {
       String defaultSchema = DefaultFilesHelper.generateDefaultSchema(project.getName());
       IPath pathToSchema = new Path("src/org/moflon/tgg/mosl/Schema.tgg");

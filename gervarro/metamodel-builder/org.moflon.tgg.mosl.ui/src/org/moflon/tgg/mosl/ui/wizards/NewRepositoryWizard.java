@@ -5,6 +5,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.SubMonitor;
 import org.moflon.core.utilities.LogUtils;
 import org.moflon.core.utilities.MoflonUtil;
 import org.moflon.core.utilities.WorkspaceHelper;
@@ -15,57 +16,63 @@ import org.moflon.tgg.mosl.defaults.DefaultFilesHelper;
 import org.moflon.util.plugins.MetamodelProperties;
 import org.moflon.util.plugins.PluginProducerWorkspaceRunnable;
 
-public class NewRepositoryWizard extends AbstractMoflonWizard {
+public class NewRepositoryWizard extends AbstractMoflonWizard
+{
    private static final Logger logger = Logger.getLogger(NewRepositoryWizard.class);
-	public static final String NEW_REPOSITORY_PROJECT_WIZARD_ID = "org.moflon.tgg.mosl.newRepositoryProject";
-	
-	protected AbstractMoflonProjectInfoPage projectInfo;
 
-	@Override
-	public void addPages() {
-		projectInfo = new NewRepositoryProjectInfoPage();
-		addPage(projectInfo);
-	}
+   public static final String NEW_REPOSITORY_PROJECT_WIZARD_ID = "org.moflon.tgg.mosl.newRepositoryProject";
 
-	@Override
-	protected void doFinish(final IProgressMonitor monitor) throws CoreException {
-		try {
-			monitor.beginTask("Creating eMoflon project", 8);
-			
-			String projectName = projectInfo.getProjectName();
-			
-			MetamodelProperties properties = new MetamodelProperties();
-			properties.setDefaultValues();
-			properties.put(MetamodelProperties.PLUGIN_ID_KEY, projectName);
-			properties.put(MetamodelProperties.NAME_KEY, projectName);
-				
-			IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(projectName);
-			createProject(monitor, project, properties);
-			monitor.worked(3);
-			
-			generateDefaultFiles(monitor, project);
-			monitor.worked(3);
-			
-			ResourcesPlugin.getWorkspace().run(new PluginProducerWorkspaceRunnable(project, properties),
-					WorkspaceHelper.createSubmonitorWith1Tick(monitor));
-			monitor.worked(2);
-		} catch (Exception e) {
+   protected AbstractMoflonProjectInfoPage projectInfo;
+
+   @Override
+   public void addPages()
+   {
+      projectInfo = new NewRepositoryProjectInfoPage();
+      addPage(projectInfo);
+   }
+
+   @Override
+   protected void doFinish(final IProgressMonitor monitor) throws CoreException
+   {
+      try
+      {
+         final SubMonitor subMon = SubMonitor.convert(monitor, "Creating eMoflon project", 8);
+
+         String projectName = projectInfo.getProjectName();
+
+         MetamodelProperties properties = new MetamodelProperties();
+         properties.setDefaultValues();
+         properties.put(MetamodelProperties.PLUGIN_ID_KEY, projectName);
+         properties.put(MetamodelProperties.NAME_KEY, projectName);
+
+         IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(projectName);
+         createProject(subMon, project, properties);
+         subMon.worked(3);
+
+         generateDefaultFiles(subMon, project);
+         subMon.worked(3);
+
+         ResourcesPlugin.getWorkspace().run(new PluginProducerWorkspaceRunnable(project, properties), subMon.split(1));
+         subMon.worked(2);
+      } catch (Exception e)
+      {
          LogUtils.error(logger, e);
-		} finally {
-			monitor.done();
-		}
-	}
+      }
+   }
 
-	void generateDefaultFiles(final IProgressMonitor monitor, IProject project) throws CoreException {
-		String defaultEcoreFile = DefaultFilesHelper.generateDefaultEPackageForProject(project.getName());
-		WorkspaceHelper.addFile(project, MoflonUtil.getDefaultPathToEcoreFileInProject(project.getName()), defaultEcoreFile,
-				WorkspaceHelper.createSubmonitorWith1Tick(monitor));
-	}
+   // The monitor is allowed to perform 1 tick
+   protected void generateDefaultFiles(final IProgressMonitor monitor, IProject project) throws CoreException
+   {
+      String defaultEcoreFile = DefaultFilesHelper.generateDefaultEPackageForProject(project.getName());
+      WorkspaceHelper.addFile(project, MoflonUtil.getDefaultPathToEcoreFileInProject(project.getName()), defaultEcoreFile,
+            SubMonitor.convert(monitor).split(1));
+   }
 
-	void createProject(IProgressMonitor monitor, IProject project, MetamodelProperties metamodelProperties) throws CoreException {
-		metamodelProperties.put(MetamodelProperties.TYPE_KEY, MetamodelProperties.REPOSITORY_KEY);
-		MoflonProjectCreator createMoflonProject =
-				new MoflonProjectCreator(project, metamodelProperties);
-		ResourcesPlugin.getWorkspace().run(createMoflonProject, WorkspaceHelper.createSubmonitorWith1Tick(monitor));
-	}
+   // The monitor is allowed to perform 1 tick
+   protected void createProject(IProgressMonitor monitor, IProject project, MetamodelProperties metamodelProperties) throws CoreException
+   {
+      metamodelProperties.put(MetamodelProperties.TYPE_KEY, MetamodelProperties.REPOSITORY_KEY);
+      MoflonProjectCreator createMoflonProject = new MoflonProjectCreator(project, metamodelProperties);
+      ResourcesPlugin.getWorkspace().run(createMoflonProject, SubMonitor.convert(monitor).split(1));
+   }
 }
