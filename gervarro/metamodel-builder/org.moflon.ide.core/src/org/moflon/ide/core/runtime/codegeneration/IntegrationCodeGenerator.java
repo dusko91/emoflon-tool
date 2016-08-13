@@ -68,7 +68,7 @@ import SDMLanguage.sdmUtil.SdmUtilFactory;
 public class IntegrationCodeGenerator extends RepositoryCodeGenerator
 {
    private static final Logger logger = Logger.getLogger(IntegrationCodeGenerator.class);
-   
+
    List<TGGConstraint> userDefinedConstraints = new ArrayList<TGGConstraint>();
 
    public static final String SUFFIX_SMA = ".sma.xmi";
@@ -112,7 +112,7 @@ public class IntegrationCodeGenerator extends RepositoryCodeGenerator
 
          CoreActivator.getDefault().setDirty(project, false);
          removeObsoleteErrorMarkers();
-         
+
          return success;
       } finally
       {
@@ -121,9 +121,10 @@ public class IntegrationCodeGenerator extends RepositoryCodeGenerator
 
    }
 
-private void removeObsoleteErrorMarkers() throws CoreException {
-	project.deleteMarkers( "org.eclipse.xtext.ui.check.fast", true, IResource.DEPTH_INFINITE);
-}
+   private void removeObsoleteErrorMarkers() throws CoreException
+   {
+      project.deleteMarkers("org.eclipse.xtext.ui.check.fast", true, IResource.DEPTH_INFINITE);
+   }
 
    private void createFilesFromPreFiles()
    {
@@ -132,20 +133,23 @@ private void removeObsoleteErrorMarkers() throws CoreException {
          if (RepositoryCodeGenerator.getEcoreFile(project).exists())
             RepositoryCodeGenerator.getEcoreFile(project).delete(true, new NullProgressMonitor());
 
-         // Try another build to solve many problems due to checking out a workspace	
+         // Try another build to solve many problems due to checking out a workspace
          project.build(IncrementalProjectBuilder.CLEAN_BUILD, new NullProgressMonitor());
          project.build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
-         
-         IntegrationBuilder.getPreEcoreFile(project).copy(RepositoryCodeGenerator.getEcoreFile(project).getFullPath(), true, new NullProgressMonitor());
 
-         if (getTGGFile().exists())
-            getTGGFile().delete(true, new NullProgressMonitor());
+         final IFile preEcoreFile = IntegrationBuilder.getPreEcoreFile(project);
+         if (preEcoreFile.exists())
+            preEcoreFile.copy(RepositoryCodeGenerator.getEcoreFile(project).getFullPath(), true, new NullProgressMonitor());
 
-         IntegrationBuilder.getPreTGGFile(project).copy(getTGGFile().getFullPath(), true, new NullProgressMonitor());
+         final IFile tggFile = getTGGFile();
+         if (tggFile.exists())
+            tggFile.delete(true, new NullProgressMonitor());
+
+         IntegrationBuilder.getPreTGGFile(project).copy(tggFile.getFullPath(), true, new NullProgressMonitor());
       } catch (Exception e)
       {
-    	 logger.error("I'm having problems building " + project.getName() + ", please refresh all projects and retry.");
-         e.printStackTrace();
+         logger.error("I'm having problems building " + project.getName() + ", please refresh all projects and retry. Details:\n"
+               + WorkspaceHelper.printStacktraceToString(e));
       }
    }
 
@@ -165,11 +169,13 @@ private void removeObsoleteErrorMarkers() throws CoreException {
          monitor.worked(5);
 
          final MonitoredMetamodelLoader metamodelLoader = new MonitoredMetamodelLoader(set, RepositoryCodeGenerator.getEcoreFile(project), moflonProperties);
-         try {
-        	 metamodelLoader.run(WorkspaceHelper.createSubMonitor(monitor, 10));
-         } catch(Exception e){
-        	 logger.error("Unable to load " + RepositoryCodeGenerator.getEcoreFile(project));
-        	 return;
+         try
+         {
+            metamodelLoader.run(WorkspaceHelper.createSubMonitor(monitor, 10));
+         } catch (Exception e)
+         {
+            logger.error("Unable to load " + RepositoryCodeGenerator.getEcoreFile(project));
+            return;
          }
 
          // Make sure all dependencies are really loaded in the resource set.
@@ -192,12 +198,13 @@ private void removeObsoleteErrorMarkers() throws CoreException {
          tgg = (TripleGraphGrammar) tggResource.getContents().get(0);
          monitor.worked(5);
 
-         if(tggIsEmpty()){
-        	 monitor.done();
-        	 logger.warn("Your TGG does not contain any rules, aborting attempt to generate code...");
-        	 return;        	 
+         if (tggIsEmpty())
+         {
+            monitor.done();
+            logger.warn("Your TGG does not contain any rules, aborting attempt to generate code...");
+            return;
          }
-         
+
          // Create and add precompiler to resourceSet so reverse navigation of links works
          TGGPrecompiler precompiler = PrecompilerFactory.eINSTANCE.createTGGPrecompiler();
          eMoflonEMFUtil.createParentResourceAndInsertIntoResourceSet(precompiler, set);
@@ -258,7 +265,8 @@ private void removeObsoleteErrorMarkers() throws CoreException {
          {
             try
             {
-               org.moflon.tgg.language.modelgenerator.Compiler compiler = org.moflon.tgg.language.modelgenerator.ModelgeneratorFactory.eINSTANCE.createCompiler();
+               org.moflon.tgg.language.modelgenerator.Compiler compiler = org.moflon.tgg.language.modelgenerator.ModelgeneratorFactory.eINSTANCE
+                     .createCompiler();
                eMoflonEMFUtil.createParentResourceAndInsertIntoResourceSet(compiler, set);
                compiler.setProperties(moflonProperties);
                compiler.setInjectionHelper(injectionHelper);
@@ -267,7 +275,7 @@ private void removeObsoleteErrorMarkers() throws CoreException {
                {
                   logger.warn(analyzerResult.getMessage() + ": " + analyzerResult.getEObject());
                }
-               
+
                // Persist compiler injections
                saveInjectionFiles(saveOptions, compiler, compilerInjectionResource);
             } catch (CSPNotSolvableException e)
@@ -313,8 +321,9 @@ private void removeObsoleteErrorMarkers() throws CoreException {
       }
    }
 
-   private boolean tggIsEmpty() {
-	   return tgg.getTggRule().isEmpty();
+   private boolean tggIsEmpty()
+   {
+      return tgg.getTggRule().isEmpty();
    }
 
    private void enrichCspsWithTypeInformation()

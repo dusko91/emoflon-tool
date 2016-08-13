@@ -71,24 +71,29 @@ public class BasicResourceFillingMocaToMoflonTransformation extends
 		final String exportAttribute = lookupAttribute(node, MOCA_TREE_ATTRIBUTE_EXPORT);
 		if (isExported(exportAttribute)) {
 			final String nodeName = node.getName();
-			if (MOCA_TREE_ATTRIBUTE_REPOSITORY_PROJECT.equals(nodeName) ||
-					MOCA_TREE_ATTRIBUTE_INTEGRATION_PROJECT.equals(nodeName)) {
-				// Handling (creating/opening) projects in Eclipse workspace
-				IProject workspaceProject = workspace.getRoot().getProject(projectName);
-				if (!workspaceProject.exists()) {
-					handleOrReportMissingProject(node, workspaceProject);
-				}
-				assert workspaceProject != null && workspaceProject.exists();
-				if (!workspaceProject.isAccessible()) {
-					handleOrReportClosedProject(node, workspaceProject);
-				}
-				assert workspaceProject.isAccessible();
-				handleOpenProject(node, workspaceProject);
-				metamodelLoaderTasks.add(new MetamodelLoader(metamodelBuilder, set, node, outermostPackage));
-				projectDependencyAnalyzerTasks.add(
-						new ProjectDependencyAnalyzer(metamodelBuilder, metamodelProject, workspaceProject, outermostPackage.eResource()));
-			} else {
-            reportError("Project %s has unknown type %s", getProjectName(node), node.getName());
+         switch (nodeName)
+         {
+         case MOCA_TREE_ATTRIBUTE_REPOSITORY_PROJECT:
+         case MOCA_TREE_ATTRIBUTE_INTEGRATION_PROJECT:
+            // Handling (creating/opening) projects in Eclipse workspace
+            IProject workspaceProject = workspace.getRoot().getProject(projectName);
+            if (!workspaceProject.exists())
+            {
+               handleOrReportMissingProject(node, workspaceProject);
+            }
+            assert workspaceProject != null && workspaceProject.exists();
+            if (!workspaceProject.isAccessible())
+            {
+               handleOrReportClosedProject(node, workspaceProject);
+            }
+            assert workspaceProject.isAccessible();
+            handleOpenProject(node, workspaceProject);
+            metamodelLoaderTasks.add(new MetamodelLoader(metamodelBuilder, set, node, outermostPackage));
+            projectDependencyAnalyzerTasks
+                  .add(new ProjectDependencyAnalyzer(metamodelBuilder, metamodelProject, workspaceProject, outermostPackage.eResource()));
+            break;
+         default:
+            reportError("Project %s has unknown type %s", projectName, nodeName);
 			}
 		} else {
 			if (!MOCA_TREE_ATTRIBUTE_REPOSITORY_PROJECT.equals(node.getName())) {

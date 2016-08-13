@@ -39,6 +39,10 @@ public class ProjectDependencyAnalyzer implements ITask {
 			final IProject metamodelProject,
 			final IProject moflonProject,
 			final Resource metamodelResource) {
+
+      if (metamodelResource == null)
+         throw new IllegalArgumentException("Resource may not be null.");
+
 		this.builder = builder;
 		this.metamodelProject = metamodelProject;
 		this.moflonProject = moflonProject;

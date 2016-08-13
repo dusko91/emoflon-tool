@@ -26,6 +26,17 @@ public final class LogUtils
       log(logger, Level.ERROR, formatString, arguments);
    }
 
+   /**
+    * This method solely logs the stacktrace of the given {@link Throwable} as an {@link Level#ERROR}.
+    * 
+    * The purpose of this method is to avoid the infamous 'e.printStackTrace()', which hides critical problems from
+    * end-users.
+    */
+   public static void logStacktrace(final Logger logger, final Throwable t)
+   {
+      error(logger, WorkspaceHelper.printStacktraceToString(t));
+   }
+
    public static void warn(final Logger logger, final String formatString, final Object... arguments)
    {
       log(logger, Level.WARN, formatString, arguments);
