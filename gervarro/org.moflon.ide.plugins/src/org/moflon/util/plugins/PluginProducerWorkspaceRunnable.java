@@ -15,6 +15,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.moflon.TGGLanguageActivator;
 import org.moflon.core.moca.tree.MocaTreePlugin;
+import org.moflon.core.utilities.LogUtils;
 import org.moflon.core.utilities.MoflonUtilitiesActivator;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.sdm.language.SDMLanguagePlugin;
@@ -57,7 +58,7 @@ public class PluginProducerWorkspaceRunnable implements IWorkspaceRunnable {
 			addPluginFeatures(project, projectProperties, monitor);
          WorkspaceHelper.addContainerToBuildPath(project, "org.eclipse.pde.core.requiredPlugins");
 		} catch (IOException e) {
-			e.printStackTrace();
+         LogUtils.error(logger, e);
 		}
 	}
 
@@ -106,7 +107,7 @@ public class PluginProducerWorkspaceRunnable implements IWorkspaceRunnable {
 										SDMLanguagePlugin.getDefault().getPluginId(), TGGLanguageActivator.getDefault().getPluginId(),
 										TGGRuntimePlugin.getDefault().getPluginId() }));
 				} catch (Exception e) {
-					e.printStackTrace();
+               LogUtils.error(logger, e);
 				}
 
 				changed |= migrateOldManifests(manifest);

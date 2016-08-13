@@ -1,9 +1,11 @@
 package org.moflon.tgg.mosl.ui.wizards;
 
+import org.apache.log4j.Logger;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.moflon.core.utilities.LogUtils;
 import org.moflon.core.utilities.MoflonUtil;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.ide.core.runtime.MoflonProjectCreator;
@@ -14,6 +16,7 @@ import org.moflon.util.plugins.MetamodelProperties;
 import org.moflon.util.plugins.PluginProducerWorkspaceRunnable;
 
 public class NewRepositoryWizard extends AbstractMoflonWizard {
+   private static final Logger logger = Logger.getLogger(NewRepositoryWizard.class);
 	public static final String NEW_REPOSITORY_PROJECT_WIZARD_ID = "org.moflon.tgg.mosl.newRepositoryProject";
 	
 	protected AbstractMoflonProjectInfoPage projectInfo;
@@ -47,7 +50,7 @@ public class NewRepositoryWizard extends AbstractMoflonWizard {
 					WorkspaceHelper.createSubmonitorWith1Tick(monitor));
 			monitor.worked(2);
 		} catch (Exception e) {
-			e.printStackTrace();
+         LogUtils.error(logger, e);
 		} finally {
 			monitor.done();
 		}

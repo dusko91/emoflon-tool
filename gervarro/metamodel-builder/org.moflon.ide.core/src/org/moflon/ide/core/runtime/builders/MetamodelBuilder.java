@@ -35,6 +35,7 @@ import org.moflon.codegen.ErrorReporter;
 import org.moflon.codegen.eclipse.CodeGeneratorPlugin;
 import org.moflon.codegen.eclipse.ValidationStatus;
 import org.moflon.core.mocatomoflon.Exporter;
+import org.moflon.core.utilities.LogUtils;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.eclipse.resource.SDMEnhancedEcoreResource;
 import org.moflon.ide.core.CoreActivator;
@@ -197,8 +198,7 @@ public class MetamodelBuilder extends AbstractVisitorBuilder {
 				
 				callPostBuildHooks(mocaToMoflonStatus, mocaTreeReader, exporter);
 			} catch (CoreException e) {
-				logger.fatal("Unable to update created projects: " + e.getMessage());
-				e.printStackTrace();
+            LogUtils.error(logger, e, "Unable to update created projects.");
 			} finally {
 				monitor.done();
 			}
@@ -303,7 +303,7 @@ public class MetamodelBuilder extends AbstractVisitorBuilder {
 				try {
 					eapFile.deleteMarkers(WorkspaceHelper.MOFLON_PROBLEM_MARKER_ID, true, IResource.DEPTH_INFINITE);
 				} catch (CoreException e) {
-					e.printStackTrace();
+               LogUtils.error(logger, e);
 				}
 				if (!validationStatus.isOK()) {
 					eclipseErrorReporter.report(validationStatus);

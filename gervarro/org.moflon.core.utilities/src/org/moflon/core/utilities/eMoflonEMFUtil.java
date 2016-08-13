@@ -96,7 +96,7 @@ public class eMoflonEMFUtil
             resourceSet.eAdapters().add(new ECrossReferenceAdapter());
          } catch (Exception e)
          {
-            e.printStackTrace();
+            LogUtils.error(logger, e);
          }
       }
    }
@@ -365,8 +365,7 @@ public class eMoflonEMFUtil
             resourceSet.eAdapters().add(new ECrossReferenceAdapter());
          } catch (Exception e)
          {
-            e.printStackTrace();
-            logger.debug(Arrays.toString(e.getStackTrace()));
+            LogUtils.error(logger, e);
          }
       }
 
@@ -483,7 +482,7 @@ public class eMoflonEMFUtil
             resource.save(saveOptions);
          } catch (IOException e)
          {
-            e.printStackTrace();
+            LogUtils.error(logger, e);
          }
       } else
       {
@@ -494,7 +493,7 @@ public class eMoflonEMFUtil
             resource.save(saveOptions);
          } catch (IOException e)
          {
-            e.printStackTrace();
+            LogUtils.error(logger, e);
          }
          uriMapping.remove(resource.getURI());
       }

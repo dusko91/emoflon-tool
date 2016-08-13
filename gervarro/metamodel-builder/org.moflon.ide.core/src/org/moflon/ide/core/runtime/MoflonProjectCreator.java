@@ -25,6 +25,7 @@ import org.gervarro.eclipse.workspace.autosetup.ProjectConfigurator;
 import org.gervarro.eclipse.workspace.autosetup.WorkspaceAutoSetupModule;
 import org.gervarro.eclipse.workspace.util.ProjectUtil;
 import org.gervarro.eclipse.workspace.util.WorkspaceTask;
+import org.moflon.core.utilities.LogUtils;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.ide.core.CoreActivator;
 import org.moflon.properties.MoflonPropertiesContainerHelper;
@@ -93,7 +94,7 @@ public class MoflonProjectCreator extends WorkspaceTask implements ProjectConfig
 							return changed;
 						});
 			} catch (IOException e) {
-				e.printStackTrace();
+            LogUtils.error(logger, e);
 			}
 			
 			// (4) Create build.properties file

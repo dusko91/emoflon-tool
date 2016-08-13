@@ -21,6 +21,7 @@ import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.moflon.codegen.eclipse.CodeGeneratorPlugin;
 import org.moflon.codegen.eclipse.MonitoredMetamodelLoader;
+import org.moflon.core.utilities.LogUtils;
 import org.moflon.core.utilities.MoflonUtil;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.core.utilities.eMoflonEMFUtil;
@@ -104,7 +105,7 @@ public class IntegrationCodeGenerator extends RepositoryCodeGenerator
             ecoreResource.save(saveOptions);
          } catch (IOException e)
          {
-            e.printStackTrace();
+            LogUtils.error(logger, e);
          }
          WorkspaceHelper.createSubMonitor(monitor, 100);
 
@@ -228,9 +229,9 @@ public class IntegrationCodeGenerator extends RepositoryCodeGenerator
          try
          {
             genTGGResource.save(saveOptions);
-         } catch (IOException e1)
+         } catch (IOException e)
          {
-            e1.printStackTrace();
+            LogUtils.error(logger, e);
          }
          monitor.worked(5);
 

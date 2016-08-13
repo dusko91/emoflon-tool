@@ -9,6 +9,7 @@ import org.eclipse.xtext.nodemodel.util.NodeModelUtils;
 import org.eclipse.xtext.ui.editor.syntaxcoloring.IHighlightedPositionAcceptor;
 import org.eclipse.xtext.ui.editor.syntaxcoloring.IHighlightingConfigurationAcceptor;
 import org.eclipse.xtext.ui.editor.utils.TextStyle;
+import org.moflon.core.utilities.LogUtils;
 import org.moflon.tgg.mosl.ui.highlighting.exceptions.IDAlreadyExistException;
 import org.moflon.tgg.mosl.ui.highlighting.utils.MOSLHighlightProviderHelper;
 
@@ -30,8 +31,7 @@ public abstract class AbstractHighlightingRule <M extends EObject>{
 		try {
 			MOSLHighlightProviderHelper.addHighlightRule(this);
 		} catch (IDAlreadyExistException e) {
-			e.printStackTrace();
-			logger.error(e.getMessage(), e);
+         LogUtils.error(logger, e);
 		}
 	}
 	

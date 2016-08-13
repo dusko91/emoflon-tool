@@ -4,7 +4,12 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 /**
- * This utility lass simplifies the printing of log messages.
+ * This utility class simplifies the printing of log messages.
+ * 
+ * Its methods support format strings (a la {@link String#format(String, Object...)}.
+ * 
+ * Additionally, a method for conveniently printing {@link Throwable}s is provided (see
+ * {@link #error(Logger, Throwable)}.
  */
 public final class LogUtils
 {
@@ -26,13 +31,18 @@ public final class LogUtils
       log(logger, Level.ERROR, formatString, arguments);
    }
 
+   public static void error(final Logger logger, final Throwable t, final String formatString, final Object... arguments)
+   {
+      log(logger, Level.ERROR, formatString + " Reason:\n%s", arguments, WorkspaceHelper.printStacktraceToString(t));
+   }
+
    /**
     * This method solely logs the stacktrace of the given {@link Throwable} as an {@link Level#ERROR}.
     * 
-    * The purpose of this method is to avoid the infamous 'e.printStackTrace()', which hides critical problems from
-    * end-users.
+    * The purpose of this method is to avoid the infamous invocations of {@link Throwable#printStackTrace()}', which
+    * hides critical problems from end-users.
     */
-   public static void logStacktrace(final Logger logger, final Throwable t)
+   public static void error(final Logger logger, final Throwable t)
    {
       error(logger, WorkspaceHelper.printStacktraceToString(t));
    }

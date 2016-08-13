@@ -35,6 +35,7 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
+import org.moflon.core.utilities.LogUtils;
 import org.moflon.core.utilities.MoflonUtilitiesActivator;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.ide.core.CoreActivator;
@@ -142,7 +143,7 @@ public class UIActivator extends AbstractUIPlugin
                });
             } catch (CoreException e)
             {
-               e.printStackTrace();
+               LogUtils.error(logger, e);
             }
          }
       }, IResourceChangeEvent.POST_CHANGE);
@@ -233,8 +234,7 @@ public class UIActivator extends AbstractUIPlugin
          IDE.openEditorOnFileStore(window.getActivePage(), fileStore);
       } catch (PartInitException e)
       {
-         logger.error("Unable to open file: " + file.getAbsolutePath());
-         e.printStackTrace();
+         LogUtils.error(logger, e, "Unable to open file: " + file.getAbsolutePath());
       }
    }
 
@@ -342,8 +342,7 @@ public class UIActivator extends AbstractUIPlugin
             FileUtils.copyURLToFile(defaultConfigFile, configFile);
          } catch (Exception e)
          {
-            logger.error("Unable to open default config file.");
-            e.printStackTrace();
+            LogUtils.error(logger, e, "Unable to open default config file.");
          }
       }
 
@@ -362,8 +361,7 @@ public class UIActivator extends AbstractUIPlugin
          configureLogging(configFile.toURI().toURL());
       } catch (MalformedURLException e)
       {
-         logger.error("URL to configFile is malformed: " + configFile);
-         e.printStackTrace();
+         LogUtils.error(logger, e, "URL to configFile is malformed: " + configFile);
       }
    }
 
@@ -397,7 +395,7 @@ public class UIActivator extends AbstractUIPlugin
          return true;
       } catch (Exception e)
       {
-         e.printStackTrace();
+         LogUtils.error(logger, e);
          return false;
       }
    }

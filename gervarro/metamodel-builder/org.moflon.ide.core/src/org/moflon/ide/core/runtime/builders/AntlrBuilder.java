@@ -26,6 +26,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.moflon.core.utilities.LogUtils;
 import org.moflon.core.utilities.MoflonUtil;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.ide.core.CoreActivator;
@@ -118,7 +119,6 @@ public class AntlrBuilder extends AbstractBuilder
                compileAntlrResource(resource.getParent().findMember(prefix + "Parser.g"));
          } catch (URISyntaxException e)
          {
-            e.printStackTrace();
             MoflonUtil.throwCoreExceptionAsError(e.getMessage(), CoreActivator.getModuleID(), e);
          }
 
@@ -168,7 +168,7 @@ public class AntlrBuilder extends AbstractBuilder
          antlr.process();
       } catch (Exception e)
       {
-         e.printStackTrace();
+         LogUtils.error(logger, e);
       }
       this.getProject().refreshLocal(IResource.DEPTH_INFINITE, null);
    }

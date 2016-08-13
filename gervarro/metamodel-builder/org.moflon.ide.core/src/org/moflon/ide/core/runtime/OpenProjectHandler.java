@@ -17,6 +17,7 @@ import org.gervarro.eclipse.workspace.autosetup.PluginProjectConfigurator;
 import org.gervarro.eclipse.workspace.util.WorkspaceTask;
 import org.moflon.TGGLanguageActivator;
 import org.moflon.core.moca.tree.MocaTreePlugin;
+import org.moflon.core.utilities.LogUtils;
 import org.moflon.core.utilities.MoflonUtil;
 import org.moflon.core.utilities.MoflonUtilitiesActivator;
 import org.moflon.core.utilities.WorkspaceHelper;
@@ -102,7 +103,7 @@ public class OpenProjectHandler extends WorkspaceTask {
 				addMetamodelDependency(moflonProperties, MoflonUtil.getDefaultURIToEcoreFileInPlugin(MocaTreePlugin.getDefault().getPluginId()));
 			}
 		} catch (final IOException e) {
-			e.printStackTrace();
+         LogUtils.error(logger, e);
 		}
 	}
 
@@ -148,7 +149,7 @@ public class OpenProjectHandler extends WorkspaceTask {
 										SDMLanguagePlugin.getDefault().getPluginId(), TGGLanguageActivator.getDefault().getPluginId(),
 										TGGRuntimePlugin.getDefault().getPluginId() }));
 				} catch (Exception e) {
-					e.printStackTrace();
+               LogUtils.error(logger, e);
 				}
 
 				changed |= migrateOldManifests(manifest);

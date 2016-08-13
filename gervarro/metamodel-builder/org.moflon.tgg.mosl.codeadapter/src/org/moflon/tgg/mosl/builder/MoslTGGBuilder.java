@@ -18,6 +18,7 @@ import org.eclipse.emf.ecore.resource.Resource;
 import org.gervarro.eclipse.task.ITask;
 import org.gervarro.eclipse.task.ProgressMonitoringJob;
 import org.gervarro.eclipse.workspace.util.AntPatternCondition;
+import org.moflon.core.utilities.LogUtils;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.ide.core.CoreActivator;
 import org.moflon.ide.core.runtime.ProjectDependencyAnalyzer;
@@ -69,8 +70,7 @@ public class MoslTGGBuilder extends AbstractVisitorBuilder {
 				return;
 			}
 		} catch (CoreException e) {
-			logger.fatal("Unable to update created projects: " + e.getMessage());
-			e.printStackTrace();
+         LogUtils.error(logger, e, "Unable to update created projects: " + e.getMessage());
 		}
 
 	}
@@ -79,7 +79,7 @@ public class MoslTGGBuilder extends AbstractVisitorBuilder {
 		try {
 			getProject().deleteMarkers(org.eclipse.xtext.ui.MarkerTypes.FAST_VALIDATION, true, IResource.DEPTH_INFINITE);
 		} catch (final CoreException e) {
-			e.printStackTrace();
+         LogUtils.error(logger, e);
 		}
 	}
 }

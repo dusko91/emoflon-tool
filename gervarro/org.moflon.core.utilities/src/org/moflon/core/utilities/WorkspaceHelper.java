@@ -501,8 +501,7 @@ public class WorkspaceHelper
          }
       } catch (JavaModelException e)
       {
-         logger.error("Unable to determine projects on buildpath for: " + project.getName());
-         e.printStackTrace();
+         LogUtils.error(logger, e, "Unable to determine projects on buildpath for: " + project.getName());
       }
 
       return projectsOnBuildPath;
@@ -549,8 +548,7 @@ public class WorkspaceHelper
          setBuildPath(iJavaProject, classpathEntries);
       } catch (JavaModelException e)
       {
-         logger.error("Unable to set classpath variable");
-         e.printStackTrace();
+         LogUtils.error(logger, e, "Unable to set classpath variable");
       }
    }
 
@@ -1053,12 +1051,9 @@ public class WorkspaceHelper
 
          origin.close();
          out.close();
-      } catch (FileNotFoundException e)
-      {
-         e.printStackTrace();
       } catch (IOException e)
       {
-         e.printStackTrace();
+         LogUtils.error(logger, e);
       }
    }
 

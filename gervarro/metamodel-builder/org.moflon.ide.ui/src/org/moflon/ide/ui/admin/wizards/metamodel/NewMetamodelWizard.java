@@ -6,6 +6,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.moflon.core.utilities.LogUtils;
 import org.moflon.core.utilities.MoflonUtilitiesActivator;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.ide.core.CoreActivator;
@@ -62,8 +63,7 @@ public class NewMetamodelWizard extends AbstractMoflonWizard
 
       } catch (Exception e)
       {
-         logger.error("Unable to add default EA project file: " + e);
-         e.printStackTrace();
+         LogUtils.error(logger, e, "Unable to add default EA project file.");
       } finally
       {
          monitor.done();

@@ -110,7 +110,7 @@ public class MOSLTGGConversionHelper extends AbstractHandler
          }
       } catch (Exception e)
       {
-         LogUtils.logStacktrace(logger, e);
+         LogUtils.error(logger, e);
       }
       return null;
    }
@@ -243,7 +243,7 @@ public class MOSLTGGConversionHelper extends AbstractHandler
          }
       } catch (Exception e)
       {
-         LogUtils.logStacktrace(logger, e);
+         LogUtils.error(logger, e);
       }
 
       return null;

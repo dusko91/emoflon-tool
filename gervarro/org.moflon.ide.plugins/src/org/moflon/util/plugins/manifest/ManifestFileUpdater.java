@@ -16,6 +16,7 @@ import java.util.jar.Attributes.Name;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 
+import org.apache.log4j.Logger;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
@@ -23,6 +24,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
+import org.moflon.core.utilities.LogUtils;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.ide.plugins.MoflonPluginsActivator;
 
@@ -32,6 +34,7 @@ import org.moflon.ide.plugins.MoflonPluginsActivator;
  */
 public class ManifestFileUpdater
 {
+   private static final Logger logger = Logger.getLogger(ManifestFileUpdater.class);
 
    public enum AttributeUpdatePolicy {
       FORCE, KEEP;
@@ -309,7 +312,7 @@ public class ManifestFileUpdater
          });
       } catch (Exception e)
       {
-         e.printStackTrace();
+         LogUtils.error(logger, e);
       }
 
       return dependencies.stream().map(dep -> extractPluginId(dep)).collect(Collectors.toList());
