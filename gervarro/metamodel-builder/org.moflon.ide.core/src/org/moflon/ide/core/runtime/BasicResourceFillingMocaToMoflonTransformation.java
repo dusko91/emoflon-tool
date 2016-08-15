@@ -10,7 +10,6 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EPackage;
-import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.gervarro.eclipse.task.ITask;
 import org.moflon.core.mocatomoflon.impl.ExporterImpl;
@@ -72,44 +71,25 @@ public class BasicResourceFillingMocaToMoflonTransformation extends
 		final String exportAttribute = lookupAttribute(node, MOCA_TREE_ATTRIBUTE_EXPORT);
 		if (isExported(exportAttribute)) {
 			final String nodeName = node.getName();
-         switch (nodeName)
-         {
-         case MOCA_TREE_ATTRIBUTE_REPOSITORY_PROJECT:
-         case MOCA_TREE_ATTRIBUTE_INTEGRATION_PROJECT:
-            // Handling (creating/opening) projects in Eclipse workspace
-            IProject workspaceProject = workspace.getRoot().getProject(projectName);
-            if (!workspaceProject.exists())
-            {
-               handleOrReportMissingProject(node, workspaceProject);
-            }
-            assert workspaceProject != null && workspaceProject.exists();
-            if (!workspaceProject.isAccessible())
-            {
-               handleOrReportClosedProject(node, workspaceProject);
-            }
-            assert workspaceProject.isAccessible();
-            handleOpenProject(node, workspaceProject);
-            metamodelLoaderTasks.add(new MetamodelLoader(metamodelBuilder, set, node, outermostPackage));
-
-            // TODO gervarro (from rkluge) This is an ugly hack because the resource of the outermost package is not
-            // properly set. Original code is commented below.
-            Resource mocaResource = null;
-            for (final Resource resource : set.getResources())
-            {
-               if (resource.getURI().toString().contains(WorkspaceHelper.MOCA_XMI_FILE_EXTENSION))
-               {
-                  mocaResource = resource;
-                  break;
-               }
-            }
-            projectDependencyAnalyzerTasks
-                  .add(new ProjectDependencyAnalyzer(metamodelBuilder, metamodelProject, workspaceProject, mocaResource));
-            // projectDependencyAnalyzerTasks
-            // .add(new ProjectDependencyAnalyzer(metamodelBuilder, metamodelProject, workspaceProject,
-            // outermostPackage.eResource()));
-            break;
-         default:
-            reportError("Project %s has unknown type %s", projectName, nodeName);
+			if (MOCA_TREE_ATTRIBUTE_REPOSITORY_PROJECT.equals(nodeName) ||
+					MOCA_TREE_ATTRIBUTE_INTEGRATION_PROJECT.equals(nodeName)) {
+				// Handling (creating/opening) projects in Eclipse workspace
+				IProject workspaceProject = workspace.getRoot().getProject(projectName);
+				if (!workspaceProject.exists()) {
+					handleOrReportMissingProject(node, workspaceProject);
+				}
+				assert workspaceProject != null && workspaceProject.exists();
+				if (!workspaceProject.isAccessible()) {
+					handleOrReportClosedProject(node, workspaceProject);
+				}
+				assert workspaceProject.isAccessible();
+				handleOpenProject(node, workspaceProject);
+				metamodelLoaderTasks.add(new MetamodelLoader(metamodelBuilder, set, node, outermostPackage));
+				projectDependencyAnalyzerTasks.add(
+						new ProjectDependencyAnalyzer(metamodelBuilder, metamodelProject, workspaceProject, outermostPackage));
+			} else {
+				reportError("Project " + getProjectName(node)
+						+ " has unknown type " + node.getName());
 			}
 		} else {
 			if (!MOCA_TREE_ATTRIBUTE_REPOSITORY_PROJECT.equals(node.getName())) {
@@ -200,9 +180,8 @@ public class BasicResourceFillingMocaToMoflonTransformation extends
 		}
 	}
 
-   protected final void reportError(final String errorMessage, final Object... arguments)
-   {
-      throw new UncheckedCoreException(String.format(errorMessage, arguments), CoreActivator.getModuleID());
+	protected final void reportError(final String errorMessage, final Object... arguments) {
+		throw new UncheckedCoreException(String.format(errorMessage, arguments), CoreActivator.getModuleID());
 	}
 
 	protected void reportError(final CoreException e) {

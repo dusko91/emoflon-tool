@@ -14,6 +14,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.MultiStatus;
 import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.gervarro.eclipse.task.ITask;
 import org.gervarro.eclipse.task.ProgressMonitoringJob;
@@ -52,7 +53,8 @@ public class MoslTGGBuilder extends AbstractVisitorBuilder {
 			final Resource ecoreResource = new MOSLTGGConversionHelper().generateTGGModel(resource);
 			removeXtextMarkers();
 			final ProjectDependencyAnalyzer projectDependencyAnalyzer =
-					new ProjectDependencyAnalyzer(this, getProject(), getProject(), ecoreResource);
+					new ProjectDependencyAnalyzer(this, getProject(), getProject(),
+							(EPackage) ecoreResource.getContents().get(0));
 			final Set<IProject> interestingProjects =
 					new TreeSet<IProject>(MetamodelBuilder.PROJECT_COMPARATOR);
 			for (final IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {

@@ -40,6 +40,7 @@ import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.eclipse.resource.SDMEnhancedEcoreResource;
 import org.moflon.ide.core.CoreActivator;
 import org.moflon.ide.core.properties.MocaTreeEAPropertiesReader;
+import org.moflon.ide.core.runtime.CleanMocaToMoflonTransformation;
 import org.moflon.ide.core.runtime.ProjectDependencyAnalyzer;
 import org.moflon.ide.core.runtime.ResourceFillingMocaToMoflonTransformation;
 import org.moflon.ide.core.runtime.builders.hooks.PostMetamodelBuilderHook;
@@ -54,163 +55,163 @@ import MocaTree.Node;
 /**
  * A metamodel builder that produces plugin projects
  */
-public class MetamodelBuilder extends AbstractVisitorBuilder
-{
+public class MetamodelBuilder extends AbstractVisitorBuilder {
 
-   public static final Logger logger = Logger.getLogger(MetamodelBuilder.class);
+	public static final Logger logger = Logger.getLogger(MetamodelBuilder.class);
 
-   public MetamodelBuilder()
-   {
-      super(new AntPatternCondition(new String[] { ".temp/*.moca.xmi" }));
-   }
+	public MetamodelBuilder() {
+		super(new AntPatternCondition(new String[] { ".temp/*.moca.xmi" }));
+	}
 
-   public void clean(final IProgressMonitor monitor) throws CoreException
-   {
-      final SubMonitor subMon = SubMonitor.convert(monitor, "Cleaning " + getProject(), 2);
+	public void clean(final IProgressMonitor monitor) throws CoreException {
+		final SubMonitor subMon = SubMonitor.convert(monitor, "Cleaning " + getProject(), 2);
+		try {
 
-      // Remove all problem markers
-      deleteProblemMarkers();
-      subMon.worked(1);
+			// Remove all problem markers
+			deleteProblemMarkers();
+			subMon.worked(1);
 
-      final IFolder tempFolder = getProject().getFolder(WorkspaceHelper.TEMP_FOLDER);
-      final IFile mocaFile = tempFolder.getFile(getProject().getName() + WorkspaceHelper.MOCA_XMI_FILE_EXTENSION);
-      if (mocaFile.isAccessible())
-      {
-         mocaFile.touch(subMon.split(1));
-      }
-   }
+			final IFolder tempFolder = getProject().getFolder(WorkspaceHelper.TEMP_FOLDER);
+			final IFile mocaFile = tempFolder.getFile(getProject().getName() + WorkspaceHelper.MOCA_XMI_FILE_EXTENSION);
+			if (mocaFile.isAccessible()) {
+				final URI workspaceURI = URI.createPlatformResourceURI("/", true);
+				final URI projectURI = URI.createURI(getProject().getName() + "/", true).resolve(workspaceURI);
 
-   @Override
-   protected void processResource(IResource mocaFile, int kind, Map<String, String> args, IProgressMonitor monitor)
-   {
-      final MultiStatus mocaToMoflonStatus = new MultiStatus(CoreActivator.getModuleID(), 0, getClass().getName() + " failed", null);
+				final ResourceSet set = CodeGeneratorPlugin.createDefaultResourceSet();
+				final URI mocaFileURI = URI.createURI(mocaFile.getProjectRelativePath().toString(), true).resolve(projectURI);
+				final Resource mocaTreeResource = set.getResource(mocaFileURI, true);
+				final Node mocaTree = (Node) mocaTreeResource.getContents().get(0);
 
-      final String mocaFilePath = WorkspaceHelper.TEMP_FOLDER + "/" + getProject().getName() + WorkspaceHelper.MOCA_XMI_FILE_EXTENSION;
-      if (mocaFile instanceof IFile && mocaFilePath.equals(mocaFile.getProjectRelativePath().toString()) && mocaFile.isAccessible())
-      {
-         logger.debug("Start processing .temp folder");
-         final SubMonitor subMon = SubMonitor.convert(monitor, "Building " + getProject().getName(), 22);
-         subMon.worked(2);
+				final CleanMocaToMoflonTransformation transformation =
+						new CleanMocaToMoflonTransformation(set, this, getProject());
+				transformation.mocaToEcore(mocaTree);
 
-         try
-         {
-            // CoreActivator.deleteMarkers(mocaFile, IMarker.PROBLEM, false, IResource.DEPTH_ZERO);
-            deleteProblemMarkers();
+				mocaFile.touch(subMon.newChild(1));
+			}
+			subMon.setWorkRemaining(0);
+		} finally {
+			subMon.done();
+		}
+	}
 
-            final URI workspaceURI = URI.createPlatformResourceURI("/", true);
-            final URI projectURI = URI.createURI(getProject().getName() + "/", true).resolve(workspaceURI);
+	@Override
+	protected void processResource(IResource mocaFile, int kind, Map<String, String> args, IProgressMonitor monitor) {
+		final MultiStatus mocaToMoflonStatus = new MultiStatus(CoreActivator.getModuleID(), 0, getClass().getName() + " failed", null);
 
-            // Create and initialize resource set
-            final ResourceSet set = CodeGeneratorPlugin.createDefaultResourceSet();
-            // eMoflonEMFUtil.installCrossReferencers(set);
+		final String mocaFilePath = WorkspaceHelper.TEMP_FOLDER + "/" + getProject().getName() + WorkspaceHelper.MOCA_XMI_FILE_EXTENSION;
+		if (mocaFile instanceof IFile && mocaFilePath.equals(mocaFile.getProjectRelativePath().toString()) && mocaFile.isAccessible()) {
+			logger.debug("Start processing .temp folder");
+			final SubMonitor subMon = SubMonitor.convert(monitor, "Building " + getProject().getName(), 20);
 
-            // Load Moca tree in read-only mode
-            final URI mocaFileURI = URI.createURI(mocaFilePath, true).resolve(projectURI);
-            final Resource mocaTreeResource = set.getResource(mocaFileURI, true);
-            final Node mocaTree = (Node) mocaTreeResource.getContents().get(0);
+			try {
+				// CoreActivator.deleteMarkers(mocaFile, IMarker.PROBLEM, false, IResource.DEPTH_ZERO);
+				deleteProblemMarkers();
 
-            final MocaTreeEAPropertiesReader mocaTreeReader = new MocaTreeEAPropertiesReader();
-            final Map<String, MetamodelProperties> properties = mocaTreeReader.getProperties(getProject());
+				final URI workspaceURI = URI.createPlatformResourceURI("/", true);
+				final URI projectURI = URI.createURI(getProject().getName() + "/", true).resolve(workspaceURI);
 
-            createInfoFile(properties, mocaTree);
-            callPreBuildHooks(properties, mocaTreeReader);
+				// Create and initialize resource set
+				final ResourceSet set = CodeGeneratorPlugin.createDefaultResourceSet();
+				// eMoflonEMFUtil.installCrossReferencers(set);
 
-            final SubMonitor exporterSubMonitor = SubMonitor.convert(subMon.split(1), "Running MOCA-to-eMoflon transformation", properties.keySet().size());
+				// Load Moca tree in read-only mode
+				final URI mocaFileURI = URI.createURI(mocaFilePath, true).resolve(projectURI);
+				final Resource mocaTreeResource = set.getResource(mocaFileURI, true);
+				final Node mocaTree = (Node) mocaTreeResource.getContents().get(0);
 
-            // Create and run exporter on Moca tree
-            final ResourceFillingMocaToMoflonTransformation exporter = new ResourceFillingMocaToMoflonTransformation(set, this, getProject(), properties,
-                  exporterSubMonitor);
-            try
-            {
-               exporter.mocaToEcore(mocaTree);
-            } catch (final Exception e)
-            {
-               throw new CoreException(new Status(IStatus.ERROR, CoreActivator.getModuleID(), "Exception during export: " + e.toString(), e));
-            }
+				final MocaTreeEAPropertiesReader mocaTreeReader = new MocaTreeEAPropertiesReader();
+				final Map<String, MetamodelProperties> properties = mocaTreeReader.getProperties(getProject());
 
-            for (final ErrorMessage message : exporter.getMocaToMoflonReport().getErrorMessages())
-            {
-               mocaToMoflonStatus.add(ValidationStatus.createValidationStatus(message));
-            }
+				createInfoFile(properties, mocaTree);
+				callPreBuildHooks(properties, mocaTreeReader);
 
-            if (exporter.getEpackages().isEmpty())
-            {
-               final String errorMessage = "Unable to transform exported files to Ecore models";
-               CoreActivator.createProblemMarker(mocaFile, errorMessage, IMarker.SEVERITY_ERROR, mocaFile.getProjectRelativePath().toString());
-               logger.error(errorMessage);
-               return;
-            }
+				// Create and run exporter on Moca tree
+				final SubMonitor exporterSubMonitor = SubMonitor.convert(subMon.newChild(10),
+						"Running MOCA-to-eMoflon transformation", properties.keySet().size());
+				final ResourceFillingMocaToMoflonTransformation exporter =
+						new ResourceFillingMocaToMoflonTransformation(set, this, getProject(), properties, exporterSubMonitor);
+				try {
+					exporter.mocaToEcore(mocaTree);
+				} catch (final OperationCanceledException e) {
+					throw e;
+				} catch (final Exception e) {
+					throw new CoreException(new Status(IStatus.ERROR, CoreActivator.getModuleID(), "Exception during export: " + e.toString(), e));
+				} finally {
+					exporterSubMonitor.done();
+				}
 
-            // Remove mocaTreeResource
-            set.getResources().remove(mocaTreeResource);
+				for (final ErrorMessage message : exporter.getMocaToMoflonReport().getErrorMessages()) {
+					mocaToMoflonStatus.add(ValidationStatus.createValidationStatus(message));
+				}
 
-            // Enforce resource change notifications to update workspace plugin information
-            ResourcesPlugin.getWorkspace().checkpoint(false);
+				if (exporter.getEpackages().isEmpty()) {
+					final String errorMessage = "Unable to transform exported files to Ecore models";
+					CoreActivator.createProblemMarker(mocaFile, errorMessage, IMarker.SEVERITY_ERROR, mocaFile.getProjectRelativePath().toString());
+					logger.error(errorMessage);
+					return;
+				}
 
-            // Load resources (metamodels and tgg files)
-            triggerProjects.clear();
-            ITask[] taskArray = new ITask[exporter.getMetamodelLoaderTasks().size()];
-            taskArray = exporter.getMetamodelLoaderTasks().toArray(taskArray);
-            final IStatus metamodelLoaderStatus = ProgressMonitoringJob.executeSyncSubTasks(taskArray,
-                  new MultiStatus(CoreActivator.getModuleID(), 0, "Resource loading failed", null), subMon);
-            // TODO@rkluge: (line above) This seems to be no proper use of the monitor. (see also further invocations in
-            // this method)
-            if (subMon.isCanceled())
-            {
-               throw new OperationCanceledException();
-            }
-            if (!metamodelLoaderStatus.isOK())
-            {
-               processProblemStatus(metamodelLoaderStatus, mocaFile);
-               return;
-            }
+				// Remove mocaTreeResource
+				set.getResources().remove(mocaTreeResource);
 
-            // Analyze project dependencies
-            ProjectDependencyAnalyzer[] dependencyAnalyzers = new ProjectDependencyAnalyzer[exporter.getProjectDependencyAnalyzerTasks().size()];
-            dependencyAnalyzers = exporter.getProjectDependencyAnalyzerTasks().toArray(dependencyAnalyzers);
-            for (ProjectDependencyAnalyzer analyzer : dependencyAnalyzers)
-            {
-               analyzer.setInterestingProjects(triggerProjects);
-            }
-            triggerProjects.clear();
-            final IStatus projectDependencyAnalyzerStatus = ProgressMonitoringJob.executeSyncSubTasks(dependencyAnalyzers,
-                  new MultiStatus(CoreActivator.getModuleID(), 0, "Dependency analysis failed", null), subMon);
-            if (subMon.isCanceled())
-            {
-               throw new OperationCanceledException();
-            }
-            if (!projectDependencyAnalyzerStatus.isOK())
-            {
-               processProblemStatus(projectDependencyAnalyzerStatus, mocaFile);
-               return;
-            }
+				// Enforce resource change notifications to update workspace plugin information
+				ResourcesPlugin.getWorkspace().checkpoint(false);
 
-            // Prepare save options
-            Map<Object, Object> saveOnlyIfChangedOption = new HashMap<Object, Object>();
-            saveOnlyIfChangedOption.put(Resource.OPTION_SAVE_ONLY_IF_CHANGED, Resource.OPTION_SAVE_ONLY_IF_CHANGED_MEMORY_BUFFER);
-            saveOnlyIfChangedOption.put(SDMEnhancedEcoreResource.SAVE_GENERATED_PACKAGE_CROSSREF_URIS, true);
+				// Load resources (metamodels and tgg files)
+				triggerProjects.clear();
+				ITask[] taskArray = new ITask[exporter.getMetamodelLoaderTasks().size()];
+				taskArray = exporter.getMetamodelLoaderTasks().toArray(taskArray);
+				final IStatus metamodelLoaderStatus = ProgressMonitoringJob.executeSyncSubTasks(taskArray,
+						new MultiStatus(CoreActivator.getModuleID(), 0, "Resource loading failed", null), subMon.newChild(5));
+				if (subMon.isCanceled()) {
+					throw new OperationCanceledException();
+				}
+				if (!metamodelLoaderStatus.isOK()) {
+					processProblemStatus(metamodelLoaderStatus, mocaFile);
+					return;
+				}
 
-            // Persist resources (metamodels, tgg files and moflon.properties files)
-            for (Resource resource : set.getResources())
-            {
-               try
-               {
-                  resource.save(saveOnlyIfChangedOption);
-               } catch (IOException e)
-               {
-                  logger.debug(e.getMessage(), e);
-               }
-            }
+				// Analyze project dependencies
+				ProjectDependencyAnalyzer[] dependencyAnalyzers = new ProjectDependencyAnalyzer[exporter.getProjectDependencyAnalyzerTasks().size()];
+				dependencyAnalyzers = exporter.getProjectDependencyAnalyzerTasks().toArray(dependencyAnalyzers);
+				for (ProjectDependencyAnalyzer analyzer : dependencyAnalyzers) {
+					analyzer.setInterestingProjects(triggerProjects);
+				}
+				triggerProjects.clear();
+				final IStatus projectDependencyAnalyzerStatus = ProgressMonitoringJob.executeSyncSubTasks(dependencyAnalyzers,
+						new MultiStatus(CoreActivator.getModuleID(), 0, "Dependency analysis failed", null), subMon.newChild(5));
+				if (subMon.isCanceled()) {
+					throw new OperationCanceledException();
+				}
+				if (!projectDependencyAnalyzerStatus.isOK()) {
+					processProblemStatus(projectDependencyAnalyzerStatus, mocaFile);
+					return;
+				}
 
-            callPostBuildHooks(mocaToMoflonStatus, mocaTreeReader, exporter);
-         } catch (CoreException e)
-         {
-            LogUtils.error(logger, e, "Unable to update created projects.");
-         }
+				// Prepare save options
+				Map<Object, Object> saveOnlyIfChangedOption = new HashMap<Object, Object>();
+				saveOnlyIfChangedOption.put(Resource.OPTION_SAVE_ONLY_IF_CHANGED, Resource.OPTION_SAVE_ONLY_IF_CHANGED_MEMORY_BUFFER);
+				saveOnlyIfChangedOption.put(SDMEnhancedEcoreResource.SAVE_GENERATED_PACKAGE_CROSSREF_URIS, true);
 
-         handleErrorsInEclipse(mocaToMoflonStatus);
-      }
-   }
+				// Persist resources (metamodels, tgg files and moflon.properties files)
+				for (Resource resource : set.getResources()) {
+					try {
+						resource.save(saveOnlyIfChangedOption);
+					} catch (IOException e) {
+						logger.debug(e.getMessage(), e);
+					}
+				}
+
+				callPostBuildHooks(mocaToMoflonStatus, mocaTreeReader, exporter);
+
+				handleErrorsInEclipse(mocaToMoflonStatus);
+			} catch (CoreException e) {
+				LogUtils.error(logger, e, "Unable to update created projects.");
+			} finally {
+				subMon.done();
+			}
+		}
+	}
 
    @Override
    protected final AntPatternCondition getTriggerCondition(final IProject project)

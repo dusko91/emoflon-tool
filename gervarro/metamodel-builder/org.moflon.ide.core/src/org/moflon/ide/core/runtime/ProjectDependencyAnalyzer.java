@@ -20,7 +20,6 @@ import org.eclipse.emf.ecore.EDataType;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
-import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ExtensibleURIConverterImpl.URIMap;
 import org.gervarro.eclipse.task.ITask;
 import org.moflon.codegen.eclipse.CodeGeneratorPlugin;
@@ -32,31 +31,23 @@ public class ProjectDependencyAnalyzer implements ITask {
 	private final AbstractVisitorBuilder builder;
 	private final IProject metamodelProject;
 	private final IProject moflonProject;
-	private final Resource metamodelResource;
+	private final EPackage metamodelRoot;
 	private final Set<IProject> interestingProjects =
 			new TreeSet<IProject>(MetamodelBuilder.PROJECT_COMPARATOR);
-
-   private ResourceSet metamodelResourceSet;
 
 	public ProjectDependencyAnalyzer(final AbstractVisitorBuilder builder,
 			final IProject metamodelProject,
 			final IProject moflonProject,
-			final Resource metamodelResource) {
-
-      if (metamodelResource == null)
-         throw new IllegalArgumentException("Resource may not be null.");
-
+			final EPackage metamodelRoot) {
 		this.builder = builder;
 		this.metamodelProject = metamodelProject;
 		this.moflonProject = moflonProject;
-		this.metamodelResource = metamodelResource;
-      this.metamodelResourceSet = metamodelResource.getResourceSet();
+		this.metamodelRoot = metamodelRoot;
 	}
 	
 	public static final void analyzeDependencies(final MultiStatus status,
-         final TreeSet<IProject> projectReferences, final Resource resource, final ResourceSet resourceSet)
-   {
-      final URIMap uriMap = (URIMap) resourceSet.getURIConverter().getURIMap();
+			final TreeSet<IProject> projectReferences, final Resource resource) {
+		final URIMap uriMap = (URIMap) resource.getResourceSet().getURIConverter().getURIMap();
 		for (TreeIterator<EObject> j = resource.getAllContents(); j.hasNext(); ) {
 			EObject eObject = j.next();
 			if (eObject instanceof EDataType) {
@@ -67,7 +58,6 @@ public class ProjectDependencyAnalyzer implements ITask {
 					final EPackage referencedEPackage = ((EClassifier) eCrossReference).getEPackage();
 					if (resource != referencedEPackage.eResource()) {
 						final URI uri = CodeGeneratorPlugin.getResolvedPlatformResourceURI(uriMap, referencedEPackage.eResource().getURI());
-                  // TODO@rkluge: Refactor the ">= 2" term into a centralized utility method sometime in the future.
 						if (uri.isPlatformResource() && uri.segmentCount() >= 2) {
 							final IProject project = CodeGeneratorPlugin.getWorkspaceProject(uri);
 							if (project != null) {
@@ -93,7 +83,7 @@ public class ProjectDependencyAnalyzer implements ITask {
 				new MultiStatus(CoreActivator.getModuleID(), 0, "Project dependency analysis failed", null);
 		final TreeSet<IProject> projectReferences =
 				new TreeSet<IProject>(MetamodelBuilder.PROJECT_COMPARATOR);
-      analyzeDependencies(status, projectReferences, metamodelResource, metamodelResourceSet);
+		analyzeDependencies(status, projectReferences, metamodelRoot.eResource());
 		
 		for (IProject reference : projectReferences) {
 			if (interestingProjects.contains(reference)) {
@@ -121,7 +111,7 @@ public class ProjectDependencyAnalyzer implements ITask {
 			description.setBuildConfigReferences(IBuildConfiguration.DEFAULT_CONFIG_NAME, buildConfigArray);
 			moflonProject.setDescription(description, monitor);
 		} catch (CoreException e) {
-			return new Status(IStatus.WARNING, CoreActivator.getModuleID(),
+			return new Status(IStatus.WARNING, CoreActivator.getModuleID(), 
 					"Unable to set build configuration references for project " + moflonProject.getName(), e);
 		}
 		return Status.OK_STATUS;
