@@ -14,6 +14,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.MultiStatus;
 import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.gervarro.eclipse.task.ITask;
@@ -52,27 +53,33 @@ public class MoslTGGBuilder extends AbstractVisitorBuilder {
 		try {
 			final Resource ecoreResource = new MOSLTGGConversionHelper().generateTGGModel(resource);
 			removeXtextMarkers();
-			final ProjectDependencyAnalyzer projectDependencyAnalyzer =
-					new ProjectDependencyAnalyzer(this, getProject(), getProject(),
-							(EPackage) ecoreResource.getContents().get(0));
-			final Set<IProject> interestingProjects =
-					new TreeSet<IProject>(MetamodelBuilder.PROJECT_COMPARATOR);
-			for (final IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
-				interestingProjects.add(project);
-			}
-			projectDependencyAnalyzer.setInterestingProjects(interestingProjects);
-			final IStatus projectDependencyAnalyzerStatus =
-					ProgressMonitoringJob.executeSyncSubTasks(new ITask[] { projectDependencyAnalyzer },
-							new MultiStatus(CoreActivator.getModuleID(), 0, "Dependency analysis failed", null), monitor);
-			if (monitor.isCanceled()) {
-				throw new OperationCanceledException();
-			}
-			if (!projectDependencyAnalyzerStatus.isOK()) {
-				processProblemStatus(projectDependencyAnalyzerStatus, ((IFolder) resource).getFile("Schema.tgg"));
-				return;
+			if (ecoreResource != null && ecoreResource.getContents().get(0) instanceof EPackage) {
+				final ProjectDependencyAnalyzer projectDependencyAnalyzer =
+						new ProjectDependencyAnalyzer(this, getProject(), getProject(),
+								(EPackage) ecoreResource.getContents().get(0));
+				final Set<IProject> interestingProjects =
+						new TreeSet<IProject>(MetamodelBuilder.PROJECT_COMPARATOR);
+				for (final IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
+					interestingProjects.add(project);
+				}
+				projectDependencyAnalyzer.setInterestingProjects(interestingProjects);
+				final IStatus projectDependencyAnalyzerStatus =
+						ProgressMonitoringJob.executeSyncSubTasks(new ITask[] { projectDependencyAnalyzer },
+								new MultiStatus(CoreActivator.getModuleID(), 0, "Dependency analysis failed", null), monitor);
+				if (monitor.isCanceled()) {
+					throw new OperationCanceledException();
+				}
+				if (!projectDependencyAnalyzerStatus.isOK()) {
+					processProblemStatus(projectDependencyAnalyzerStatus, ((IFolder) resource).getFile("Schema.tgg"));
+					return;
+				}
+			} else {
+				processProblemStatus(new Status(IStatus.ERROR, CoreActivator.getModuleID(),
+						"Unable to construct the correspondence metamodel from the Xtext specification", null),
+						((IFolder) resource).getFile("Schema.tgg"));
 			}
 		} catch (CoreException e) {
-         LogUtils.error(logger, e, "Unable to update created projects: " + e.getMessage());
+			LogUtils.error(logger, e, "Unable to update created projects: " + e.getMessage());
 		}
 
 	}

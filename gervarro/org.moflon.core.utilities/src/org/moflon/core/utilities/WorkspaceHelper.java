@@ -36,6 +36,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
@@ -1012,15 +1013,16 @@ public class WorkspaceHelper
    }
 
    /**
-    * Checks whether the given monitor has been canceled and throws an InterruptedException to signal the cancellation.
+    * Checks whether the given monitor has been canceled and throws an OperationCancelledException to signal the cancellation.
     * 
-    * @throws InterruptedException
+    * @throws OperationCancelledException
     *            if the monitor has been cancelled
     */
-   public static void checkCanceledAndThrowInterruptedException(final IProgressMonitor monitor) throws InterruptedException
+   public static void checkCanceledAndThrowException(final IProgressMonitor monitor) 
    {
-      if (monitor.isCanceled())
-         throw new InterruptedException();
+      if (monitor.isCanceled()) {
+    	  throw new OperationCanceledException();
+      }
    }
 
    /**

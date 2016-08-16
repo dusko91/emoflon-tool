@@ -60,12 +60,8 @@ import MoflonPropertyContainer.MoflonPropertiesContainer;
 import SDMLanguage.sdmUtil.CompilerInjection;
 import SDMLanguage.sdmUtil.SdmUtilFactory;
 
-public class IntegrationBuilder extends RepositoryBuilder
-{
-   public static final String BUILDER_ID = "org.moflon.ide.core.runtime.builders.IntegrationBuilder";
-
+public class IntegrationBuilder extends RepositoryBuilder {
    public static final String SUFFIX_SMA = ".sma.xmi";
-
    private static final Logger logger = Logger.getLogger(IntegrationBuilder.class);
 
    List<TGGConstraint> userDefinedConstraints = new ArrayList<TGGConstraint>();
@@ -73,34 +69,30 @@ public class IntegrationBuilder extends RepositoryBuilder
    private TripleGraphGrammar tgg;
 
    @Override
-   protected void processResource(IResource resource, int kind, Map<String, String> args, IProgressMonitor monitor)
-   {
-      try
-      {
+   protected void processResource(IResource resource, int kind, Map<String, String> args, IProgressMonitor monitor) {
+      try {
          final SubMonitor subMon = SubMonitor.convert(monitor, "Generating code", 500);
-         final IStatus tggCompilationStatus = processTGG(subMon.split(250));
-         if (tggCompilationStatus.matches(IStatus.ERROR))
-         {
+         final IStatus tggCompilationStatus = processTGG(subMon.newChild(250));
+         if (tggCompilationStatus.matches(IStatus.ERROR)) {
             handleErrorsInEclipse(tggCompilationStatus, (IFile) resource);
          }
 
          final IFile ecoreFile = getProject().getFolder(WorkspaceHelper.MODEL_FOLDER)
                .getFile(MoflonUtil.lastCapitalizedSegmentOf(getProject().getName()) + WorkspaceHelper.ECORE_FILE_EXTENSION);
-         super.processResource(ecoreFile, kind, args, subMon.split(250));
-      } catch (final CoreException e)
-      {
+         super.processResource(ecoreFile, kind, args, subMon.newChild(250));
+      } catch (final CoreException e) {
          final IStatus status = new Status(e.getStatus().getSeverity(), CoreActivator.getModuleID(), e.getMessage(), e);
          handleErrorsInEclipse(status, (IFile) resource);
       }
    }
 
-   private IStatus processTGG(final IProgressMonitor monitor) throws CoreException
-   {
+   private IStatus processTGG(final IProgressMonitor monitor) throws CoreException {
       final SubMonitor subMon = SubMonitor.convert(monitor, "Processing TGGs", 66);
 
       final ResourceSet set = CodeGeneratorPlugin.createDefaultResourceSet();
       eMoflonEMFUtil.installCrossReferencers(set);
-      final MoflonPropertiesContainer moflonProperties = MoflonPropertiesContainerHelper.load(getProject(), subMon.split(5));
+      final MoflonPropertiesContainer moflonProperties =
+    		  MoflonPropertiesContainerHelper.load(getProject(), subMon.newChild(5));
 
       // Load TGG file
       final IFolder modelFolder = getProject().getFolder(WorkspaceHelper.MODEL_FOLDER);
@@ -120,7 +112,7 @@ public class IntegrationBuilder extends RepositoryBuilder
       uriMapping.put(ecoreFileURI, preEcoreFileURI);
 
       final MonitoredMetamodelLoader metamodelLoader = new MonitoredMetamodelLoader(set, tggFile, moflonProperties);
-      metamodelLoader.run(subMon.split(10));
+      metamodelLoader.run(subMon.newChild(10));
       final Resource tggResource = metamodelLoader.getMainResource();
       final Resource ecoreResource = set.getResource(ecoreFileURI, false);
       tgg = (TripleGraphGrammar) tggResource.getContents().get(0);
@@ -128,8 +120,7 @@ public class IntegrationBuilder extends RepositoryBuilder
       uriMapping.remove(ecoreFileURI);
       subMon.worked(5);
 
-      if (tgg.getTggRule().isEmpty())
-      {
+      if (tgg.getTggRule().isEmpty()) {
          return new Status(IStatus.WARNING, CoreActivator.getModuleID(), IStatus.WARNING,
                "Your TGG does not contain any rules, aborting attempt to generate code...", null);
       }
@@ -155,11 +146,9 @@ public class IntegrationBuilder extends RepositoryBuilder
       saveOptions.put(SDMEnhancedEcoreResource.SAVE_GENERATED_PACKAGE_CROSSREF_URIS, Boolean.valueOf(true));
       saveOptions.put(Resource.OPTION_SAVE_ONLY_IF_CHANGED, Resource.OPTION_SAVE_ONLY_IF_CHANGED_MEMORY_BUFFER);
 
-      try
-      {
+      try {
          tggResource.save(saveOptions);
-      } catch (final IOException e)
-      {
+      } catch (final IOException e) {
          return new Status(IStatus.ERROR, CoreActivator.getModuleID(), IStatus.ERROR, e.getMessage(), e);
       }
       subMon.worked(5);
@@ -173,8 +162,7 @@ public class IntegrationBuilder extends RepositoryBuilder
       injectionHelper.setCompilerInjection(compilerInjection);
       subMon.worked(5);
 
-      if (isSynchronizationMode(moflonProperties))
-      {
+      if (isSynchronizationMode(moflonProperties)) {
          TGGCompiler compiler = CompilerFactory.eINSTANCE.createTGGCompiler();
          eMoflonEMFUtil.createParentResourceAndInsertIntoResourceSet(compiler, set);
 
@@ -187,15 +175,12 @@ public class IntegrationBuilder extends RepositoryBuilder
          URI smaFileURI = URI.createURI(tggResource.getURI().toString().replace(WorkspaceHelper.TGG_FILE_EXTENSION, SUFFIX_SMA));
          PackageRemappingDependency smaFile = new PackageRemappingDependency(smaFileURI);
          Resource smaResource = smaFile.getResource(set, false);
-         if (staticAnalysis != null)
-         {
+         if (staticAnalysis != null) {
             smaResource.getContents().add(staticAnalysis);
          }
-         try
-         {
+         try {
             smaResource.save(saveOptions);
-         } catch (final IOException e)
-         {
+         } catch (final IOException e) {
             return new Status(IStatus.ERROR, CoreActivator.getModuleID(), IStatus.ERROR, e.getMessage(), e);
          }
 
@@ -204,35 +189,29 @@ public class IntegrationBuilder extends RepositoryBuilder
       }
       subMon.worked(5);
 
-      if (isModelGenMode(moflonProperties))
-      {
-         try
-         {
+      if (isModelGenMode(moflonProperties)) {
+         try {
             org.moflon.tgg.language.modelgenerator.Compiler compiler = org.moflon.tgg.language.modelgenerator.ModelgeneratorFactory.eINSTANCE.createCompiler();
             eMoflonEMFUtil.createParentResourceAndInsertIntoResourceSet(compiler, set);
             compiler.setProperties(moflonProperties);
             compiler.setInjectionHelper(injectionHelper);
             compiler.compileModelgenerationSdms(tgg);
-            for (RuleAnalyzerResult analyzerResult : compiler.getRuleAnalyzer().getRuleAnalyzerResult())
-            {
+            for (RuleAnalyzerResult analyzerResult : compiler.getRuleAnalyzer().getRuleAnalyzerResult()) {
                logger.warn(analyzerResult.getMessage() + ": " + analyzerResult.getEObject());
             }
 
             // Persist compiler injections
             saveInjectionFiles(saveOptions, compiler, compilerInjectionResource);
-         } catch (CSPNotSolvableException e)
-         {
+         } catch (CSPNotSolvableException e) {
             logger.warn("CSPs could not be solved for modelgenerator: " + e.getMessage(), e);
          }
       }
       subMon.worked(5);
 
-      try
-      {
+      try {
          // Persist ecore resource
          ecoreResource.save(saveOptions);
-      } catch (final IOException e)
-      {
+      } catch (final IOException e) {
          return new Status(IStatus.ERROR, CoreActivator.getModuleID(), IStatus.ERROR, e.getMessage(), e);
       }
       subMon.worked(5);

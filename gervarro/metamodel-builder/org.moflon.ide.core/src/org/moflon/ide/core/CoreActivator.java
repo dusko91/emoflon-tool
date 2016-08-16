@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
+import org.eclipse.core.resources.IBuildConfiguration;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
@@ -49,13 +50,17 @@ public class CoreActivator extends EMoflonPlugin
 
    public static final String REPOSITORY_BUILDER_ID = "org.moflon.ide.core.runtime.builders.RepositoryBuilder";
 
-   public static final String METAMODEL_NATURE_ID = "org.moflon.ide.ui.runtime.natures.MetamodelNature";
+   /**
+    * @deprecated Use WorkspaceHelper.METAMODEL_NATURE_ID directly
+    */
+   @Deprecated 
+   public static final String METAMODEL_NATURE_ID = "org.moflon.ide.core.runtime.natures.MetamodelNature";
 
    public static final String METAMODEL_BUILDER_ID = "org.moflon.ide.core.runtime.builders.MetamodelBuilder";
 
    public static final String INTEGRATION_BUILDER_ID = "org.moflon.ide.core.runtime.builders.IntegrationBuilder";
 
-   public static final String ANTLR_NATURE_ID = "org.moflon.ide.ui.runtime.natures.AntlrNature";
+   public static final String ANTLR_NATURE_ID = "org.moflon.ide.core.runtime.natures.AntlrNature";
 
    public static final String ANTLR_BUILDER_ID = "org.moflon.ide.core.runtime.builders.AntlrBuilder";
 
@@ -221,5 +226,38 @@ public class CoreActivator extends EMoflonPlugin
 	public static final IFile getEcoreFile(final IProject project) {
 		final String ecoreFileName = MoflonUtil.getDefaultNameOfFileInProjectWithoutExtension(project.getName());
 		return project.getFolder(WorkspaceHelper.MODEL_FOLDER).getFile(ecoreFileName + WorkspaceHelper.ECORE_FILE_EXTENSION);
+	}
+	
+	public static final IProject[] getMetamodelProjects(final IProject[] projects) {
+		final List<IProject> result = new ArrayList<IProject>(projects.length);
+		for (final IProject project : projects) {
+			if (project.isAccessible() && WorkspaceHelper.isMetamodelProjectNoThrow(project)) {
+				result.add(project);
+			}
+		}
+		return result.toArray(new IProject[result.size()]);
+	}
+	
+	public static final IProject[] getRepositoryAndIntegrationProjects(final IProject[] projects) {
+		final List<IProject> result = new ArrayList<IProject>(projects.length);
+		for (final IProject project : projects) {
+			if (project.isAccessible() && WorkspaceHelper.isMoflonProjectNoThrow(project)) {
+				result.add(project);
+			}
+		}
+		return result.toArray(new IProject[result.size()]);
+	}
+	
+	public static final IBuildConfiguration[] getDefaultBuildConfigurations(final IProject[] projects) {
+		final List<IBuildConfiguration> result =
+				new ArrayList<IBuildConfiguration>(projects.length);
+		for (int i = 0; i < projects.length; i++) {
+			try {
+				result.add(projects[i].getBuildConfig(IBuildConfiguration.DEFAULT_CONFIG_NAME));
+			} catch (final CoreException e) {
+				// Do nothing (i.e., ignore erroneous projects)
+			}
+		}
+		return result.toArray(new IBuildConfiguration[result.size()]);
 	}
 }
