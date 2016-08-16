@@ -7,6 +7,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.core.runtime.jobs.MultiRule;
@@ -51,9 +52,10 @@ public final class EnterpriseArchitectModelExporterTask extends WorkspaceTask {
 			for (int i = 0; i < metamodelProjects.length; i++) {
 				final SubMonitor loopMonitor = SubMonitor.convert(subMonitor, 11);
 				try {
+					loopMonitor.setTaskName("Exporting from Enterprise Architect");
 					if (shouldExport(metamodelProjects[i])) {
-						EnterpriseArchitectHelper.exportEcoreFilesFromEAP(metamodelProjects[i],
-								loopMonitor.newChild(10));
+						EnterpriseArchitectHelper.exportEcoreFilesFromEAP(metamodelProjects[i], new NullProgressMonitor());
+						loopMonitor.worked(10);
 					}
 					loopMonitor.setWorkRemaining(1);
 					metamodelProjects[i].refreshLocal(IResource.DEPTH_INFINITE,

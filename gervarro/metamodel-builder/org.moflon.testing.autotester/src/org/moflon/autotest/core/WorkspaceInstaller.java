@@ -24,6 +24,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfiguration;
@@ -209,30 +210,30 @@ public class WorkspaceInstaller
 		   }
 	   }
 
-	   final IProgressMonitor groupMonitor = Job.getJobManager().createProgressGroup();
-	   groupMonitor.beginTask("", jobs.size());
 	   final Job mainInstallerJob = new Job("Installing " + label + "...") {
 
 		   @Override
 		   protected IStatus run(final IProgressMonitor monitor) {
 			   try {
 				   logger.info("Installing " + label + "...");
+				   final SubMonitor subMonitor = SubMonitor.convert(monitor, "Installing " + label, jobs.size());
 				   final boolean isAutoBuilding = switchAutoBuilding(false);
 				   try {
 					   for (int i = 0; i < jobs.size(); i++) {
 						   final Job job = jobs.get(i);
-						   job.setProgressGroup(groupMonitor, 1);
 						   job.setUser(true);
 						   job.schedule();
-						   while (!job.join(1000, groupMonitor)) {
+						   while (!job.join(1000, monitor)) {
 							   // Do nothing: wait for job to terminate
 						   }
+						   monitor.worked(1);
 					   }
 				   } catch (OperationCanceledException e) {
 					   throw e;
 				   } catch (InterruptedException e) {
 					   throw new OperationCanceledException();
 				   } finally {
+					   subMonitor.done();
 					   if (isAutoBuilding ^ ResourcesPlugin.getWorkspace().isAutoBuilding()) {
 						   // Do nothing: User explicitly switched auto-building flag during the build
 					   } else {
@@ -261,7 +262,7 @@ public class WorkspaceInstaller
 			   }
 		   }
 	   };
-	   mainInstallerJob.setUser(true);
+	   mainInstallerJob.setSystem(true);
 	   mainInstallerJob.schedule();
    }
 
