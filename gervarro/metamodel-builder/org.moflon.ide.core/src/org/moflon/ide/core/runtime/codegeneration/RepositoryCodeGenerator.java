@@ -38,6 +38,9 @@ import org.moflon.ide.core.util.BuilderHelper;
 import org.moflon.util.plugins.manifest.ExportedPackagesInManifestUpdater;
 import org.moflon.util.plugins.manifest.PluginXmlUpdater;
 
+/**
+ * @deprecated Use the standard Eclipse build framework (ResourcesPlugin.getWorkspace().build())
+ */
 @Deprecated
 @SuppressWarnings("restriction")
 public class RepositoryCodeGenerator
