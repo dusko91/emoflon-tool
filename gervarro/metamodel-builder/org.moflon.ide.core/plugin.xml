@@ -29,6 +29,12 @@
       <builder
             id="org.moflon.ide.core.runtime.builders.RepositoryBuilder">
       </builder>
+      <one-of-nature
+            id="org.moflon.ide.core.runtime.natures.MoflonNature">
+      </one-of-nature>
+      <requires-nature
+            id="org.eclipse.jdt.core.javanature">
+      </requires-nature>
    </extension>
    <extension
          id="org.moflon.ide.core.runtime.natures.IntegrationNature"
@@ -38,12 +44,19 @@
          <run class="org.moflon.ide.core.runtime.natures.IntegrationNature">
          </run>
       </runtime>
-      <builder
+      
+      <requires-nature
+            id="org.eclipse.jdt.core.javanature">
+      </requires-nature><builder
             id="org.moflon.ide.core.runtime.builders.IntegrationBuilder">
       </builder>
+      <one-of-nature
+            id="org.moflon.ide.core.runtime.natures.MoflonNature">
+      </one-of-nature>
    </extension>
    <extension
          id="org.moflon.ide.core.runtime.natures.AntlrNature"
+         name="ANTLR Nature"
          point="org.eclipse.core.resources.natures">
       <runtime>
          <run
@@ -53,6 +66,9 @@
       <builder
             id="org.moflon.ide.core.runtime.builders.AntlrBuilder">
       </builder>
+      <requires-nature
+            id="org.eclipse.jdt.core.javanature">
+      </requires-nature>
    </extension>
    <extension
          id="org.moflon.ide.core.runtime.builders.MetamodelBuilder"

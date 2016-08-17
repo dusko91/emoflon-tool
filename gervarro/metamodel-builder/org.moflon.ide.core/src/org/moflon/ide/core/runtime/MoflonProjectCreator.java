@@ -29,6 +29,7 @@ import org.gervarro.eclipse.workspace.util.WorkspaceTask;
 import org.moflon.core.utilities.LogUtils;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.ide.core.CoreActivator;
+import org.moflon.ide.core.runtime.natures.MoflonProjectConfigurator;
 import org.moflon.properties.MoflonPropertiesContainerHelper;
 import org.moflon.util.plugins.BuildPropertiesFileBuilder;
 import org.moflon.util.plugins.MetamodelProperties;

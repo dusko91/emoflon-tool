@@ -1,17 +1,16 @@
-package org.moflon.ide.core.runtime;
+package org.moflon.ide.core.runtime.natures;
 
 import java.util.Arrays;
 
 import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.runtime.CoreException;
-import org.gervarro.eclipse.workspace.autosetup.ProjectConfigurator;
 import org.gervarro.eclipse.workspace.autosetup.WorkspaceAutoSetupModule;
 import org.gervarro.eclipse.workspace.util.ProjectUtil;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.ide.core.CoreActivator;
 
-public class MoflonProjectConfigurator implements ProjectConfigurator {
+public class MoflonProjectConfigurator extends ProjectConfiguratorNature {
 	private final String natureID;
 	private final String builderID;
 
@@ -22,6 +21,7 @@ public class MoflonProjectConfigurator implements ProjectConfigurator {
 				CoreActivator.INTEGRATION_BUILDER_ID : CoreActivator.REPOSITORY_BUILDER_ID;
 	}
 
+	@Override
 	public String[] updateNatureIDs(String[] natureIDs, final boolean added) throws CoreException {
 		if (added) {
 			if (ProjectUtil.indexOf(natureIDs, natureID) < 0) {
@@ -36,17 +36,18 @@ public class MoflonProjectConfigurator implements ProjectConfigurator {
 		}
 		return natureIDs;
 	}
-	
+
+	@Override
 	public ICommand[] updateBuildSpecs(final IProjectDescription description, ICommand[] buildSpecs, final boolean added) throws CoreException {
 		if (added) {
 			int javaBuilderPosition = ProjectUtil.indexOf(buildSpecs, "org.eclipse.jdt.core.javabuilder");
 			int moflonBuilderPosition = ProjectUtil.indexOf(buildSpecs, builderID);
 			if (moflonBuilderPosition < 0) {
-				final ICommand manifestBuilder = description.newCommand();
-				manifestBuilder.setBuilderName(builderID);
+				final ICommand moflonBuilder = description.newCommand();
+				moflonBuilder.setBuilderName(builderID);
 				buildSpecs = Arrays.copyOf(buildSpecs, buildSpecs.length + 1);
 				moflonBuilderPosition = buildSpecs.length - 1;
-				buildSpecs[moflonBuilderPosition] = manifestBuilder;
+				buildSpecs[moflonBuilderPosition] = moflonBuilder;
 			} 
 			if (javaBuilderPosition < moflonBuilderPosition) {
 				final ICommand moflonBuilder = buildSpecs[moflonBuilderPosition];

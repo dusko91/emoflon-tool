@@ -22,6 +22,7 @@ import org.moflon.core.utilities.LogUtils;
 import org.moflon.core.utilities.MoflonUtil;
 import org.moflon.core.utilities.MoflonUtilitiesActivator;
 import org.moflon.core.utilities.WorkspaceHelper;
+import org.moflon.ide.core.runtime.natures.MoflonProjectConfigurator;
 import org.moflon.sdm.language.SDMLanguagePlugin;
 import org.moflon.tgg.runtime.TGGRuntimePlugin;
 import org.moflon.util.plugins.BuildPropertiesFileBuilder;
@@ -73,7 +74,8 @@ public class OpenProjectHandler extends WorkspaceTask
       final MoflonProjectConfigurator moflonProjectConfigurator = new MoflonProjectConfigurator(
             MetamodelProperties.INTEGRATION_KEY.equals(metamodelProperties.getType()));
       final PluginProjectConfigurator pluginProjectConfigurator = new PluginProjectConfigurator();
-      final ProjectNatureAndBuilderConfiguratorTask natureAndBuilderConfiguratorTask = new ProjectNatureAndBuilderConfiguratorTask(project, false);
+      final ProjectNatureAndBuilderConfiguratorTask natureAndBuilderConfiguratorTask =
+    		  new ProjectNatureAndBuilderConfiguratorTask(project, false);
       natureAndBuilderConfiguratorTask.updateNatureIDs(javaProjectConfigurator, true);
       natureAndBuilderConfiguratorTask.updateBuildSpecs(javaProjectConfigurator, true);
       natureAndBuilderConfiguratorTask.updateNatureIDs(moflonProjectConfigurator, true);
