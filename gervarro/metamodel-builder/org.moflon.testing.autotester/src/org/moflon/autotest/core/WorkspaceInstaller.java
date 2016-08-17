@@ -18,6 +18,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceDescription;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.resources.WorkspaceJob;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -39,7 +40,6 @@ import org.eclipse.team.internal.ui.wizards.ImportProjectSetOperation;
 import org.eclipse.ui.IWorkingSet;
 import org.eclipse.ui.IWorkingSetManager;
 import org.eclipse.ui.PlatformUI;
-import org.gervarro.eclipse.workspace.util.WorkspaceTaskJob;
 import org.moflon.autotest.AutoTestActivator;
 import org.moflon.core.utilities.LogUtils;
 import org.moflon.core.utilities.MoflonUtil;
@@ -143,97 +143,34 @@ public class WorkspaceInstaller
 		   return;
 	   }
 	   
+	   ResourcesPlugin.getWorkspace().checkpoint(false);
 	   
 	   final List<Job> jobs = new ArrayList<Job>();
-	   if (exportingEapFilesRequired(label)) {
-		   final IProject[] metamodelProjects = CoreActivator.getMetamodelProjects(
-				   ResourcesPlugin.getWorkspace().getRoot().getProjects());
-		   if (metamodelProjects.length > 0) {
-			   final EnterpriseArchitectModelExporterTask eaModelExporter =
-					   new EnterpriseArchitectModelExporterTask(metamodelProjects, false);
-			   jobs.add(new WorkspaceTaskJob(eaModelExporter));
-		   }
-		   final IBuildConfiguration[] buildConfigurations = 
-				   CoreActivator.getDefaultBuildConfigurations(metamodelProjects);
-		   if (buildConfigurations.length > 0) {
-			   final IncrementalProjectBuilderTask metamodelBuilder =
-					   new IncrementalProjectBuilderTask(buildConfigurations);
-			   jobs.add(new WorkspaceTaskJob(metamodelBuilder));
-		   }
-	   }
-
-	   final IProject[] moflonProjects = CoreActivator.getRepositoryAndIntegrationProjects(
-			   ResourcesPlugin.getWorkspace().getRoot().getProjects());
-	   final IBuildConfiguration[] buildConfigurations = 
-			   CoreActivator.getDefaultBuildConfigurations(moflonProjects);
-	   if (buildConfigurations.length > 0) {
-		   final IncrementalProjectBuilderTask visualMetamodelBuilder =
-				   new IncrementalProjectBuilderTask(buildConfigurations);
-		   jobs.add(new WorkspaceTaskJob(visualMetamodelBuilder));
-	   }
-
-	   try {
-		   final ILaunchManager manager = DebugPlugin.getDefault().getLaunchManager();
-		   final ILaunchConfigurationType type =
-				   manager.getLaunchConfigurationType("org.eclipse.emf.mwe2.launch.Mwe2LaunchConfigurationType");
-		   final ILaunchConfiguration[] configurations =
-				   manager.getLaunchConfigurations(type);
-		   for (int i = 0; i < configurations.length; i++) {
-			   final ILaunchConfiguration config = configurations[i];
-			   jobs.add(new LaunchInvocationJob(config));
-		   }
-		   if (configurations.length > 0 && buildConfigurations.length > 0) {
-			   final IncrementalProjectBuilderTask textualMetamodelBuilder =
-					   new IncrementalProjectBuilderTask(buildConfigurations);
-			   jobs.add(new WorkspaceTaskJob(textualMetamodelBuilder));
-		   }
-	   } catch (final CoreException e) {
-		   // Do nothing
-	   }
-
-	   if (isRunningJUnitTestsRequired(label)) {
-		   final Collection<IProject> testProjects = collectTestProjects();
-		   try {
-			   for (final IProject testProject : testProjects) {
-				   final List<IFile> selectedLaunchConfigurations = Arrays.asList(testProject.members()).stream()//
-						   .filter(m -> m instanceof IFile) //
-						   .map(m -> (IFile) m.getAdapter(IFile.class))//
-						   .filter(f -> f.getName().matches(JUNIT_TEST_LAUNCHER_FILE_NAME_PATTERN))//
-						   .collect(Collectors.toList());
-				   final ILaunchManager mgr = DebugPlugin.getDefault().getLaunchManager();
-				   for (final IFile file : selectedLaunchConfigurations) {
-					   jobs.add(new LaunchInvocationJob(mgr.getLaunchConfiguration(file)));
-				   }
-			   }
-		   } catch (final CoreException e) {
-			   // Do nothing: Ignore test projects in case of errors
-		   }
-	   }
-
 	   final Job mainInstallerJob = new Job("Installing " + label + "...") {
-
 		   @Override
 		   protected IStatus run(final IProgressMonitor monitor) {
 			   try {
 				   logger.info("Installing " + label + "...");
-				   final SubMonitor subMonitor = SubMonitor.convert(monitor, "Installing " + label, jobs.size());
 				   final boolean isAutoBuilding = switchAutoBuilding(false);
 				   try {
+					   final SubMonitor subMonitor = SubMonitor.convert(monitor,
+							   "Installing " + label, jobs.size());
 					   for (int i = 0; i < jobs.size(); i++) {
 						   final Job job = jobs.get(i);
-						   job.setUser(true);
 						   job.schedule();
-						   while (!job.join(1000, monitor)) {
+						   while (!job.join(0, monitor)) {
 							   // Do nothing: wait for job to terminate
 						   }
-						   monitor.worked(1);
+						   subMonitor.worked(1);
 					   }
 				   } catch (OperationCanceledException e) {
+					   Job.getJobManager().cancel(this);
 					   throw e;
 				   } catch (InterruptedException e) {
+					   Job.getJobManager().cancel(this);
 					   throw new OperationCanceledException();
 				   } finally {
-					   subMonitor.done();
+					   monitor.done();
 					   if (isAutoBuilding ^ ResourcesPlugin.getWorkspace().isAutoBuilding()) {
 						   // Do nothing: User explicitly switched auto-building flag during the build
 					   } else {
@@ -262,7 +199,149 @@ public class WorkspaceInstaller
 			   }
 		   }
 	   };
-	   mainInstallerJob.setSystem(true);
+
+	   if (exportingEapFilesRequired(label)) {
+		   final IProject[] metamodelProjects = CoreActivator.getMetamodelProjects(
+				   ResourcesPlugin.getWorkspace().getRoot().getProjects());
+		   if (metamodelProjects.length > 0) {
+			   final EnterpriseArchitectModelExporterTask eaModelExporter =
+					   new EnterpriseArchitectModelExporterTask(metamodelProjects, false);
+			   jobs.add(new WorkspaceJob(eaModelExporter.getTaskName()) {
+
+				   @Override
+				   public IStatus runInWorkspace(final IProgressMonitor monitor) throws CoreException {
+					   eaModelExporter.run(monitor);
+					   return Status.OK_STATUS;
+				   }
+				   
+				   public boolean belongsTo(Object family) {
+					   return family == mainInstallerJob;
+				   }
+				   
+				   protected void canceling() {
+					   mainInstallerJob.cancel();
+				   }
+			   });
+		   }
+		   final IBuildConfiguration[] buildConfigurations = 
+				   CoreActivator.getDefaultBuildConfigurations(metamodelProjects);
+		   if (buildConfigurations.length > 0) {
+			   final IncrementalProjectBuilderTask metamodelBuilder =
+					   new IncrementalProjectBuilderTask(buildConfigurations);
+			   jobs.add(new WorkspaceJob(metamodelBuilder.getTaskName()) {
+
+				   @Override
+				   public IStatus runInWorkspace(final IProgressMonitor monitor) throws CoreException {
+					   metamodelBuilder.run(monitor);
+					   return Status.OK_STATUS;
+				   }
+				   
+				   public boolean belongsTo(Object family) {
+					   return family == mainInstallerJob;
+				   }
+				   
+				   protected void canceling() {
+					   mainInstallerJob.cancel();
+				   }
+			   });
+		   }
+	   }
+
+	   final IProject[] moflonProjects = CoreActivator.getRepositoryAndIntegrationProjects(
+			   ResourcesPlugin.getWorkspace().getRoot().getProjects());
+	   final IBuildConfiguration[] buildConfigurations = 
+			   CoreActivator.getDefaultBuildConfigurations(moflonProjects);
+	   if (buildConfigurations.length > 0) {
+		   final IncrementalProjectBuilderTask visualMetamodelBuilder =
+				   new IncrementalProjectBuilderTask(buildConfigurations);
+		   jobs.add(new WorkspaceJob(visualMetamodelBuilder.getTaskName()) {
+
+			   @Override
+			   public IStatus runInWorkspace(final IProgressMonitor monitor) throws CoreException {
+				   visualMetamodelBuilder.run(monitor);
+				   return Status.OK_STATUS;
+			   }
+			   
+			   public boolean belongsTo(Object family) {
+				   return family == mainInstallerJob;
+			   }
+			   
+			   protected void canceling() {
+				   mainInstallerJob.cancel();
+			   }
+		   });
+	   }
+
+	   try {
+		   final ILaunchManager manager = DebugPlugin.getDefault().getLaunchManager();
+		   final ILaunchConfigurationType type =
+				   manager.getLaunchConfigurationType("org.eclipse.emf.mwe2.launch.Mwe2LaunchConfigurationType");
+		   final ILaunchConfiguration[] configurations =
+				   manager.getLaunchConfigurations(type);
+		   for (int i = 0; i < configurations.length; i++) {
+			   final ILaunchConfiguration config = configurations[i];
+			   jobs.add(new LaunchInvocationJob(config) {
+				   
+				   public boolean belongsTo(Object family) {
+					   return family == mainInstallerJob;
+				   }
+				   
+				   protected void canceling() {
+					   mainInstallerJob.cancel();
+				   }
+			   });
+		   }
+		   if (configurations.length > 0 && buildConfigurations.length > 0) {
+			   final IncrementalProjectBuilderTask textualMetamodelBuilder =
+					   new IncrementalProjectBuilderTask(buildConfigurations);
+			   jobs.add(new WorkspaceJob(textualMetamodelBuilder.getTaskName()) {
+
+				   @Override
+				   public IStatus runInWorkspace(final IProgressMonitor monitor) throws CoreException {
+					   textualMetamodelBuilder.run(monitor);
+					   return Status.OK_STATUS;
+				   }
+				   
+				   public boolean belongsTo(Object family) {
+					   return family == mainInstallerJob;
+				   }
+				   
+				   protected void canceling() {
+					   mainInstallerJob.cancel();
+				   }
+			   });
+		   }
+	   } catch (final CoreException e) {
+		   // Do nothing
+	   }
+
+	   if (isRunningJUnitTestsRequired(label)) {
+		   final Collection<IProject> testProjects = collectTestProjects();
+		   try {
+			   for (final IProject testProject : testProjects) {
+				   final List<IFile> selectedLaunchConfigurations = Arrays.asList(testProject.members()).stream()//
+						   .filter(m -> m instanceof IFile) //
+						   .map(m -> (IFile) m.getAdapter(IFile.class))//
+						   .filter(f -> f.getName().matches(JUNIT_TEST_LAUNCHER_FILE_NAME_PATTERN))//
+						   .collect(Collectors.toList());
+				   final ILaunchManager mgr = DebugPlugin.getDefault().getLaunchManager();
+				   for (final IFile file : selectedLaunchConfigurations) {
+					   jobs.add(new LaunchInvocationJob(mgr.getLaunchConfiguration(file)) {
+						   public boolean belongsTo(Object family) {
+							   return family == mainInstallerJob;
+						   }
+						   
+						   protected void canceling() {
+							   mainInstallerJob.cancel();
+						   }
+					   });
+				   }
+			   }
+		   } catch (final CoreException e) {
+			   // Do nothing: Ignore test projects in case of errors
+		   }
+	   }
+	   mainInstallerJob.setUser(true);
 	   mainInstallerJob.schedule();
    }
 

@@ -14,7 +14,7 @@ import org.eclipse.debug.core.ILaunchManager;
 import org.moflon.autotest.AutoTestActivator;
 import org.moflon.core.utilities.LogUtils;
 
-public final class LaunchInvocationJob extends Job {
+public class LaunchInvocationJob extends Job {
 	private static final Logger logger = Logger.getLogger(LaunchInvocationJob.class);
 	private final ILaunchConfiguration launchConfiguration;
 	
