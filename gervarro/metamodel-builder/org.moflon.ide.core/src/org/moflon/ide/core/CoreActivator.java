@@ -11,6 +11,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
@@ -20,7 +21,6 @@ import org.eclipse.emf.ecore.resource.URIConverter;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.pde.core.plugin.IPluginModelBase;
 import org.eclipse.pde.core.plugin.PluginRegistry;
-import org.gervarro.eclipse.workspace.util.WorkspaceObservationLifecycleManager;
 import org.gervarro.eclipse.workspace.util.WorkspaceTask;
 import org.moflon.codegen.eclipse.CodeGeneratorPlugin;
 import org.moflon.core.utilities.EMoflonPlugin;
@@ -97,13 +97,15 @@ public class CoreActivator extends EMoflonPlugin
       dirtyProjectListeners = new ArrayList<>();
 
       natureMigrator = new NatureMigrator();
-      WorkspaceTask.execute(new WorkspaceObservationLifecycleManager(natureMigrator), false);
+      WorkspaceTask.execute(new WorkspaceObservationLifecycleManager(
+    		  ResourcesPlugin.getWorkspace(), natureMigrator, true), false);
    }
 
    @Override
    public void stop(final BundleContext context) throws Exception
    {
-	   WorkspaceTask.execute(new WorkspaceObservationLifecycleManager(), false);
+	   WorkspaceTask.execute(new WorkspaceObservationLifecycleManager(
+			   ResourcesPlugin.getWorkspace(), natureMigrator, false), false);
       dirtyProjectListeners = null;
       super.stop(context);
    }

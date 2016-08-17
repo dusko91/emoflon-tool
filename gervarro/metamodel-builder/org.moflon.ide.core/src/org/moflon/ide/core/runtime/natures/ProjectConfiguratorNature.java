@@ -6,8 +6,8 @@ import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IProjectNature;
 import org.eclipse.core.runtime.CoreException;
 import org.gervarro.eclipse.workspace.autosetup.ProjectConfigurator;
-import org.gervarro.eclipse.workspace.autosetup.ProjectNatureAndBuilderConfiguratorTask;
 import org.gervarro.eclipse.workspace.util.WorkspaceTask;
+import org.moflon.ide.core.runtime.ProjectNatureAndBuilderConfiguratorTask;
 
 abstract public class ProjectConfiguratorNature implements IProjectNature, ProjectConfigurator {
 	private IProject project;
