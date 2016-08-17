@@ -10,6 +10,7 @@ import org.gervarro.eclipse.workspace.autosetup.JavaProjectConfigurator;
 import org.gervarro.eclipse.workspace.autosetup.PluginProjectConfigurator;
 import org.gervarro.eclipse.workspace.autosetup.ProjectConfigurator;
 import org.gervarro.eclipse.workspace.util.ProjectStateObserver;
+import org.gervarro.eclipse.workspace.util.ProjectUtil;
 import org.gervarro.eclipse.workspace.util.WorkspaceTask;
 import org.moflon.ide.core.runtime.ProjectNatureAndBuilderConfiguratorTask;
 import org.moflon.ide.core.runtime.natures.AntlrNature;
@@ -51,7 +52,7 @@ public class NatureMigrator extends ProjectStateObserver implements ProjectConfi
 			if ("org.eclipse.pde.PluginNature".equals(natureIDs[i])) {
 				buildSpecs = new PluginProjectConfigurator().updateBuildSpecs(description, buildSpecs, added);
 			}
-			if (CoreActivator.ANTLR_NATURE_ID.equals(natureIDs[i])) {
+			if (ProjectUtil.indexOf(buildSpecs, CoreActivator.ANTLR_BUILDER_ID) >= 0) {
 				buildSpecs = new AntlrNature().updateBuildSpecs(description, buildSpecs, added);
 			}
 		}
