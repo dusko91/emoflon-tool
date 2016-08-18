@@ -63,7 +63,7 @@ public class EnterpriseArchitectHelper
       {
          final SubMonitor subMon = SubMonitor.convert(monitor, importExport + " project " + project.getName(), 2);
          Runtime rt = Runtime.getRuntime();
-         clParser.setMonitor(subMon.split(20));
+         clParser.setMonitor(subMon.newChild(20));
 
          logger.debug("Executing '" + command + "'");
 

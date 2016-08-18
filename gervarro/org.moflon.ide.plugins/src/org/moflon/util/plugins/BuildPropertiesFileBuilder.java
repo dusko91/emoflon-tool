@@ -45,10 +45,10 @@ public class BuildPropertiesFileBuilder
 
             if (!file.exists())
             {
-               WorkspaceHelper.addFile(currentProject, BUILD_PROPERTIES_NAME, stream.toString(), subMon.split(1));
+               WorkspaceHelper.addFile(currentProject, BUILD_PROPERTIES_NAME, stream.toString(), subMon.newChild(1));
             } else
             {
-               file.setContents(new ByteArrayInputStream(stream.toByteArray()), true, true, subMon.split(1));
+               file.setContents(new ByteArrayInputStream(stream.toByteArray()), true, true, subMon.newChild(1));
             }
          }
       } catch (IOException e)

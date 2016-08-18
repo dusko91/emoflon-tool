@@ -58,7 +58,7 @@ public final class MonitoredGenModelBuilder implements IMonitoredJob
 
       if (this.moflonProperties == null)
       {
-         this.moflonProperties = MoflonPropertiesContainerHelper.load(project, subMon.split(5));
+         this.moflonProperties = MoflonPropertiesContainerHelper.load(project, subMon.newChild(5));
 
       }
       subMon.setWorkRemaining(90);
@@ -102,7 +102,7 @@ public final class MonitoredGenModelBuilder implements IMonitoredJob
       }
 
       // Validate resource set
-      IStatus resourceSetStatus = CodeGeneratorPlugin.validateResourceSet(resourceSet, "GenModel building", subMon.split(10));
+      IStatus resourceSetStatus = CodeGeneratorPlugin.validateResourceSet(resourceSet, "GenModel building", subMon.newChild(10));
       if (subMon.isCanceled())
       {
          return Status.CANCEL_STATUS;

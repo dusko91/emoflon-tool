@@ -27,14 +27,14 @@ public class NewTGGRuleWizard extends AbstractMoflonWizard implements INewWizard
 
 	@Override
 	protected void doFinish(IProgressMonitor monitor) throws CoreException {
-	   IProject project = projectInfo.getRuleLocation().getProject();
+		IProject project = projectInfo.getRuleLocation().getProject();
 		String ruleContent = DefaultFilesHelper.generateDefaultRule(projectInfo.getSchema(), projectInfo.getRuleName());
 		IPath pathToFile = projectInfo.getRuleLocation().getProjectRelativePath().append(projectInfo.getRuleName()).addFileExtension("tgg");
-      addAllFoldersAndFile(project, pathToFile, ruleContent, SubMonitor.convert(monitor).split(1));
-		
+		addAllFoldersAndFile(project, pathToFile, ruleContent, SubMonitor.convert(monitor).newChild(1));
+
 		IFile file = project.getFile(pathToFile);
-		
-      WorkspaceHelperUI.openDefaultEditorForFile(file);
+
+		WorkspaceHelperUI.openDefaultEditorForFile(file);
 	}
 
 }

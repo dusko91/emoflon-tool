@@ -46,21 +46,21 @@ public class NewMetamodelWizard extends AbstractMoflonWizard
 
          // Create project
          IProject newProjectHandle = WorkspaceHelper.createProject(projectName, UIActivator.getModuleID(), location,
-               subMon.split(1));
+               subMon.newChild(1));
 
          // generate default files
          WorkspaceHelper.addFile(newProjectHandle, projectName + ".eap",
                MoflonUtilitiesActivator.getPathRelToPlugIn("resources/defaultFiles/EAEMoflon.eap", UIActivator.getModuleID()), UIActivator.getModuleID(),
-               subMon.split(1));
+               subMon.newChild(1));
 
-         WorkspaceHelper.addFile(newProjectHandle, ".gitignore", ".temp", subMon.split(1));
+         WorkspaceHelper.addFile(newProjectHandle, ".gitignore", ".temp", subMon.newChild(1));
 
          // Add Nature and Builders
-         WorkspaceHelper.addNature(newProjectHandle, CoreActivator.METAMODEL_NATURE_ID, subMon.split(1));
+         WorkspaceHelper.addNature(newProjectHandle, CoreActivator.METAMODEL_NATURE_ID, subMon.newChild(1));
 
          WorkspaceHelperUI.moveProjectToWorkingSet(newProjectHandle, SPECIFICATION_WORKINGSET_NAME);
 
-         newProjectHandle.refreshLocal(IResource.DEPTH_INFINITE, subMon.split(1));
+         newProjectHandle.refreshLocal(IResource.DEPTH_INFINITE, subMon.newChild(1));
 
       } catch (Exception e)
       {

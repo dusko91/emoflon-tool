@@ -64,12 +64,12 @@ public class MoflonProjectCreator extends WorkspaceTask implements ProjectConfig
 
          // (1) Create project
          final IProjectDescription description = ResourcesPlugin.getWorkspace().newProjectDescription(projectName);
-         workspaceProject.create(description, subMon.split(1));
-         workspaceProject.open(subMon.split(1));
+         workspaceProject.create(description, subMon.newChild(1));
+         workspaceProject.open(subMon.newChild(1));
 
          // (2) Create folders and files in project
-         createFoldersIfNecessary(workspaceProject, subMon.split(4));
-         addGitIgnoreFiles(workspaceProject, subMon.split(2));
+         createFoldersIfNecessary(workspaceProject, subMon.newChild(4));
+         addGitIgnoreFiles(workspaceProject, subMon.newChild(2));
 
          // (3) Create MANIFEST.MF file
          try
@@ -97,7 +97,7 @@ public class MoflonProjectCreator extends WorkspaceTask implements ProjectConfig
 
          // (4) Create build.properties file
          logger.debug("Adding build.properties");
-         new BuildPropertiesFileBuilder().createBuildProperties(workspaceProject, subMon.split(1));
+         new BuildPropertiesFileBuilder().createBuildProperties(workspaceProject, subMon.newChild(1));
 
          // (5) Configure natures and builders (.project file)
          final JavaProjectConfigurator javaProjectConfigurator = new JavaProjectConfigurator();
@@ -123,13 +123,13 @@ public class MoflonProjectCreator extends WorkspaceTask implements ProjectConfig
          final IClasspathEntry jreContainerEntry = JavaCore.newContainerEntry(new Path("org.eclipse.jdt.launching.JRE_CONTAINER"));
          final IClasspathEntry pdeContainerEntry = JavaCore.newContainerEntry(new Path("org.eclipse.pde.core.requiredPlugins"));
          javaProject.setRawClasspath(new IClasspathEntry[] { srcFolderEntry, genFolderEntry, jreContainerEntry, pdeContainerEntry },
-               workspaceProject.getFolder("bin").getFullPath(), true, subMon.split(1));
+               workspaceProject.getFolder("bin").getFullPath(), true, subMon.newChild(1));
 
          // (7) Create Moflon properties file (moflon.properties.xmi)
          MoflonPropertiesContainer moflonProperties = MoflonPropertiesContainerHelper.createDefaultPropertiesContainer(workspaceProject.getName(),
                metamodelProperties.getMetamodelProjectName());
          moflonProperties.getSdmCodegeneratorHandlerId().setValue(getCodeGeneratorHandler(metamodelProperties.getType()));
-         MoflonPropertiesContainerHelper.save(moflonProperties, subMon.split(1));
+         MoflonPropertiesContainerHelper.save(moflonProperties, subMon.newChild(1));
       }
    }
 
@@ -144,26 +144,28 @@ public class MoflonProjectCreator extends WorkspaceTask implements ProjectConfig
       IFile genGitIgnore = WorkspaceHelper.getGenFolder(project).getFile(".gitignore");
       if (!genGitIgnore.exists())
       {
-         genGitIgnore.create(new ByteArrayInputStream("*".getBytes()), true, subMon.split(1));
+         genGitIgnore.create(new ByteArrayInputStream("*".getBytes()), true, subMon.newChild(1));
+         CoreActivator.checkCancellation(subMon);
       }
 
       IFile modelGitIgnore = WorkspaceHelper.getModelFolder(project).getFile(".gitignore");
       if (!modelGitIgnore.exists())
       {
-         modelGitIgnore.create(new ByteArrayInputStream("*".getBytes()), true, subMon.split(1));
+         modelGitIgnore.create(new ByteArrayInputStream("*".getBytes()), true, subMon.newChild(1));
+         CoreActivator.checkCancellation(subMon);
       }
    }
 
    public static void createFoldersIfNecessary(final IProject project, final IProgressMonitor monitor) throws CoreException
    {
       final SubMonitor subMon = SubMonitor.convert(monitor, "Creating folders within project", 7);
-      WorkspaceHelper.createFolderIfNotExists(project.getFolder("src"), subMon.split(1));
-      WorkspaceHelper.createFolderIfNotExists(project.getFolder("bin"), subMon.split(1));
-      WorkspaceHelper.createFolderIfNotExists(project.getFolder(WorkspaceHelper.GEN_FOLDER), subMon.split(1));
-      WorkspaceHelper.createFolderIfNotExists(project.getFolder(WorkspaceHelper.LIB_FOLDER), subMon.split(1));
-      WorkspaceHelper.createFolderIfNotExists(project.getFolder(WorkspaceHelper.MODEL_FOLDER), subMon.split(1));
-      WorkspaceHelper.createFolderIfNotExists(project.getFolder(WorkspaceHelper.INSTANCES_FOLDER), subMon.split(1));
-      WorkspaceHelper.createFolderIfNotExists(project.getFolder(WorkspaceHelper.INJECTION_FOLDER), subMon.split(1));
+      WorkspaceHelper.createFolderIfNotExists(project.getFolder("src"), subMon.newChild(1));
+      WorkspaceHelper.createFolderIfNotExists(project.getFolder("bin"), subMon.newChild(1));
+      WorkspaceHelper.createFolderIfNotExists(project.getFolder(WorkspaceHelper.GEN_FOLDER), subMon.newChild(1));
+      WorkspaceHelper.createFolderIfNotExists(project.getFolder(WorkspaceHelper.LIB_FOLDER), subMon.newChild(1));
+      WorkspaceHelper.createFolderIfNotExists(project.getFolder(WorkspaceHelper.MODEL_FOLDER), subMon.newChild(1));
+      WorkspaceHelper.createFolderIfNotExists(project.getFolder(WorkspaceHelper.INSTANCES_FOLDER), subMon.newChild(1));
+      WorkspaceHelper.createFolderIfNotExists(project.getFolder(WorkspaceHelper.INJECTION_FOLDER), subMon.newChild(1));
    }
 
    @Override

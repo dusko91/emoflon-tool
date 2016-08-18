@@ -166,7 +166,7 @@ public class OpenProjectHandler extends WorkspaceTask
       subMon.worked(1);
 
       logger.debug("Adding build.properties " + project.getName());
-      buildPropertiesFileBuilder.createBuildProperties(project, subMon.split(1));
+      buildPropertiesFileBuilder.createBuildProperties(project, subMon.newChild(1));
    }
 
    /**

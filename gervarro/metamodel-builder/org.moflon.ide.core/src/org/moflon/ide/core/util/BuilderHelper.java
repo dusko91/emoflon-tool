@@ -82,7 +82,7 @@ public class BuilderHelper
       {
          final SubMonitor subMon = SubMonitor.convert(monitor, "Generating code in order", 1 + 100 * projects.size());
          
-         Job.getJobManager().join(ResourcesPlugin.FAMILY_AUTO_BUILD, subMon.split(1));
+         Job.getJobManager().join(ResourcesPlugin.FAMILY_AUTO_BUILD, subMon.newChild(1));
 
          final List<Status> collectedErrorStatus = new ArrayList<>();
          final ProjectOrder order = ResourcesPlugin.getWorkspace().computeProjectOrder(projects.stream().toArray(IProject[]::new));
@@ -106,7 +106,7 @@ public class BuilderHelper
 
                if (codeGenerator != null)
                {
-                  codeGenerator.generateCode(subMon.split(100));
+                  codeGenerator.generateCode(subMon.newChild(100));
                }
                
             } catch (final CoreException e)

@@ -72,7 +72,7 @@ public class RepositoryBuilder extends AbstractVisitorBuilder {
 				final MoflonCodeGenerator codeGenerationTask = new MoflonCodeGenerator(ecoreFile, resourceSet);
 				codeGenerationTask.setValidationTimeout(EMoflonPreferencesStorage.getInstance().getValidationTimeout());
 
-				final IStatus status = codeGenerationTask.run(subMon.split(1));
+				final IStatus status = codeGenerationTask.run(subMon.newChild(1));
 				handleErrorsAndWarnings(status, ecoreFile);
 				subMon.worked(3);
 
@@ -80,7 +80,7 @@ public class RepositoryBuilder extends AbstractVisitorBuilder {
 				if (genModel != null) {
 					ExportedPackagesInManifestUpdater.updateExportedPackageInManifest(getProject(), genModel);
 
-					PluginXmlUpdater.updatePluginXml(getProject(), genModel, subMon.split(1));
+					PluginXmlUpdater.updatePluginXml(getProject(), genModel, subMon.newChild(1));
 					ResourcesPlugin.getWorkspace().checkpoint(false);
 				}
 			} catch (final CoreException e) {
@@ -122,7 +122,7 @@ public class RepositoryBuilder extends AbstractVisitorBuilder {
 		project.accept(cleanVisitor, IResource.DEPTH_INFINITE, IResource.NONE);
 
 		// Remove generated model files
-		cleanModels(project.getFolder(WorkspaceHelper.MODEL_FOLDER), subMon.split(1));
+		cleanModels(project.getFolder(WorkspaceHelper.MODEL_FOLDER), subMon.newChild(1));
 	}
 
 	// Delete generated models within model folder
@@ -137,7 +137,7 @@ public class RepositoryBuilder extends AbstractVisitorBuilder {
 			if (!resource.getName().startsWith(".")) {
 				// only delete generated models directly in folder 'model'
 				if (!WorkspaceHelper.isFolder(resource)) {
-					MoflonPropertiesContainer properties = MoflonPropertiesContainerHelper.load(getProject(), subMon.split(1));
+					MoflonPropertiesContainer properties = MoflonPropertiesContainerHelper.load(getProject(), subMon.newChild(1));
 					if (properties.getReplaceGenModel().isBool() && resource.getName().endsWith(WorkspaceHelper.GEN_MODEL_EXT)) {
 						resource.delete(true, subMon.newChild(1));
 					} else {

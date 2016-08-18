@@ -46,14 +46,14 @@ public class EMoflonBuildJob extends WorkspaceJob
       for (final IProject project : projectsToBeBuilt)
       {
 
-         final IStatus projectBuildStatus = cleanAndBuild(project, subMon.split(2));
+         final IStatus projectBuildStatus = cleanAndBuild(project, subMon.newChild(2));
          if (!projectBuildStatus.isOK())
          {
             resultStatus.add(projectBuildStatus);
          }
       }
 
-      final IStatus codeGenerationStatus = BuilderHelper.generateCodeInOrder(subMon.split(projectsToBeBuilt.size()), projectsToBeBuilt);
+      final IStatus codeGenerationStatus = BuilderHelper.generateCodeInOrder(subMon.newChild(projectsToBeBuilt.size()), projectsToBeBuilt);
       if (!codeGenerationStatus.isOK())
       {
          resultStatus.add(codeGenerationStatus);
@@ -81,8 +81,8 @@ public class EMoflonBuildJob extends WorkspaceJob
 
             logger.info("Cleaning project " + projectName + " - triggered manually!");
 
-            project.build(IncrementalProjectBuilder.CLEAN_BUILD, subMon.split(1));
-            project.build(IncrementalProjectBuilder.FULL_BUILD, subMon.split(1));
+            project.build(IncrementalProjectBuilder.CLEAN_BUILD, subMon.newChild(1));
+            project.build(IncrementalProjectBuilder.FULL_BUILD, subMon.newChild(1));
 
             logger.debug("Cleaning project " + projectName + " done.");
 

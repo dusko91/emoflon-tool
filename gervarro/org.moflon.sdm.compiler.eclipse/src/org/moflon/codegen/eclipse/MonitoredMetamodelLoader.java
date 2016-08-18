@@ -41,7 +41,7 @@ public class MonitoredMetamodelLoader extends GenericMonitoredResourceLoader
    protected IStatus preprocessResourceSet(final IProgressMonitor monitor)
    {
       final SubMonitor subMon = SubMonitor.convert(monitor, "Preprocessing resource set", 40);
-      final IStatus preprocessingStatus = super.preprocessResourceSet(subMon.split(15));
+      final IStatus preprocessingStatus = super.preprocessResourceSet(subMon.newChild(15));
       if (preprocessingStatus.matches(IStatus.ERROR | IStatus.CANCEL))
       {
          return preprocessingStatus;
@@ -58,14 +58,14 @@ public class MonitoredMetamodelLoader extends GenericMonitoredResourceLoader
       }
 
       // Create resources for the user-defined dependent metamodels
-      final List<Resource> resourcesToLoad = createResourcesForUserDefinedMetamodels(subMon.split(10));
+      final List<Resource> resourcesToLoad = createResourcesForUserDefinedMetamodels(subMon.newChild(10));
       if (subMon.isCanceled())
       {
          return Status.CANCEL_STATUS;
       }
 
       // Load the user-defined dependent metamodels
-      final IStatus userDefinedMetamodelLoaderStatus = loadUserDefinedMetamodels(resourcesToLoad, subMon.split(10));
+      final IStatus userDefinedMetamodelLoaderStatus = loadUserDefinedMetamodels(resourcesToLoad, subMon.newChild(10));
       if (!userDefinedMetamodelLoaderStatus.isOK())
       {
          return userDefinedMetamodelLoaderStatus;
@@ -88,7 +88,7 @@ public class MonitoredMetamodelLoader extends GenericMonitoredResourceLoader
          final URI uri = URI.createURI(userDefinedMetamodel.getValue());
          final PackageRemappingDependency dependency = new PackageRemappingDependency(uri, true, false);
          resourcesToLoad.add(dependency.getResource(resourceSet, false));
-         subMon.split(1);
+         subMon.newChild(1);
       }
       return resourcesToLoad;
    }
