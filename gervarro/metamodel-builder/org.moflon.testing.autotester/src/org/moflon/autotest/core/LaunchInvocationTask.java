@@ -6,25 +6,23 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
+import org.gervarro.eclipse.task.ITask;
 import org.moflon.autotest.AutoTestActivator;
 import org.moflon.core.utilities.LogUtils;
 
-public class LaunchInvocationJob extends Job {
-	private static final Logger logger = Logger.getLogger(LaunchInvocationJob.class);
+public class LaunchInvocationTask implements ITask {
+	private static final Logger logger = Logger.getLogger(LaunchInvocationTask.class);
 	private final ILaunchConfiguration launchConfiguration;
 	
-	public LaunchInvocationJob(final ILaunchConfiguration launchConfiguration) {
-		super("Launching configuration " + launchConfiguration.getName());
+	public LaunchInvocationTask(final ILaunchConfiguration launchConfiguration) {
 		this.launchConfiguration = launchConfiguration;
 	}
 	
-	@Override
-	protected IStatus run(final IProgressMonitor monitor) {
+	public IStatus run(final IProgressMonitor monitor) {
 		try {
 			final ILaunch launch = launchConfiguration.launch(
 					ILaunchManager.RUN_MODE, monitor, true);
@@ -57,5 +55,10 @@ public class LaunchInvocationJob extends Job {
 			LogUtils.warn(logger, "Unable to terminate %s", launchConfiguration.getName());
 		}
 		throw new OperationCanceledException();
+	}
+
+	@Override
+	public final String getTaskName() {
+		return "Launching configuration " + launchConfiguration.getName();
 	}
 }

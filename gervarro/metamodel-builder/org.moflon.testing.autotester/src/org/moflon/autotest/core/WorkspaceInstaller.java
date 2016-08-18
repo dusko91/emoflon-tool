@@ -7,6 +7,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -18,15 +19,16 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceDescription;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.resources.WorkspaceJob;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.MultiStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.core.runtime.OperationCanceledException;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
+import org.eclipse.core.runtime.jobs.IJobChangeEvent;
+import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.core.runtime.jobs.JobChangeAdapter;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationType;
@@ -40,7 +42,8 @@ import org.eclipse.team.internal.ui.wizards.ImportProjectSetOperation;
 import org.eclipse.ui.IWorkingSet;
 import org.eclipse.ui.IWorkingSetManager;
 import org.eclipse.ui.PlatformUI;
-import org.moflon.autotest.AutoTestActivator;
+import org.gervarro.eclipse.workspace.util.WorkspaceTask;
+import org.gervarro.eclipse.workspace.util.WorkspaceTaskJob;
 import org.moflon.core.utilities.LogUtils;
 import org.moflon.core.utilities.MoflonUtil;
 import org.moflon.core.utilities.MoflonUtilitiesActivator;
@@ -49,6 +52,7 @@ import org.moflon.ide.core.CoreActivator;
 import org.moflon.ide.workspaceinstaller.psf.EMoflonStandardWorkspaces;
 import org.moflon.ide.workspaceinstaller.psf.PSFPlugin;
 import org.moflon.ide.workspaceinstaller.psf.PsfFileUtils;
+import org.osgi.framework.FrameworkUtil;
 
 @SuppressWarnings("restriction")
 public class WorkspaceInstaller
@@ -139,210 +143,206 @@ public class WorkspaceInstaller
 		   e.printStackTrace();
 		   return;
 	   } catch (final CoreException e) {
-		   e.printStackTrace();
+		   final String message = "Sorry, I was unable to check out the projects in the PSF file.\n"//
+				   + "  If you did not explicitly cancel then please check the following (most probable first):\n"//
+				   + "      (1) SVN: Ensure you have switched to SVNKit (Window/Preferences/Team/SVN) or make sure JavaHL is working.\n"//
+				   + "      (2) Git: Ensure that the Git repositories appearing in the error message below are clean or do not exist (Window/Perspective/Open Perspective/Other.../Git)\n" //
+				   + "      (3) If possible, start with an empty, fresh workspace. Although the PSF import offers to delete the projects this may fail, especially on Windows.\n"//
+				   + "      (4) Are you sure you have access to all the projects (if they do not support anonymous access)?\n"//
+				   + "      (5) The PSF file might be outdated - please check for an update of the test plugin\n"//
+				   + "      (6) If it's quite late in the night, our server might be down performing a back-up - try again in a few hours.\n"//
+				   + "      (7) If none of these helped, write us a mail to contact@emoflon.org :)\n" //
+				   + "\n" //
+				   + "Exception of type " + e.getClass().getName() + ", Message: " + MoflonUtil.displayExceptionAsString(e);
+		   logger.error(message);
+//		   return new Status(IStatus.ERROR, AutoTestActivator.getModuleID(),
+//				   "Installing workspace failed. Please consult the eMoflon console for further information.", e);
 		   return;
 	   }
 	   
 	   ResourcesPlugin.getWorkspace().checkpoint(false);
-	   
-	   final List<Job> jobs = new ArrayList<Job>();
-	   final Job mainInstallerJob = new Job("Installing " + label + "...") {
-		   @Override
-		   protected IStatus run(final IProgressMonitor monitor) {
-			   try {
-				   logger.info("Installing " + label + "...");
-				   final boolean isAutoBuilding = switchAutoBuilding(false);
-				   try {
-					   final SubMonitor subMonitor = SubMonitor.convert(monitor,
-							   "Installing " + label, jobs.size());
-					   for (int i = 0; i < jobs.size(); i++) {
-						   final Job job = jobs.get(i);
-						   job.schedule();
-						   while (!job.join(0, monitor)) {
-							   // Do nothing: wait for job to terminate
-						   }
-						   subMonitor.worked(1);
-					   }
-				   } catch (OperationCanceledException e) {
-					   Job.getJobManager().cancel(this);
-					   throw e;
-				   } catch (InterruptedException e) {
-					   Job.getJobManager().cancel(this);
-					   throw new OperationCanceledException();
-				   } finally {
-					   monitor.done();
-					   if (isAutoBuilding ^ ResourcesPlugin.getWorkspace().isAutoBuilding()) {
-						   // Do nothing: User explicitly switched auto-building flag during the build
-					   } else {
-						   switchAutoBuilding(isAutoBuilding);
-					   }
-					   
-				   }
-				   return Status.OK_STATUS;
-//			   } catch (final InterruptedException e) {
-//				   return new Status(IStatus.ERROR, AutoTestActivator.getModuleID(), "Failed to install workspace", e);
-			   } catch (final CoreException e) {
-				   final String message = "Sorry, I was unable to check out the projects in the PSF file.\n"//
-						   + "  If you did not explicitly cancel then please check the following (most probable first):\n"//
-						   + "      (1) SVN: Ensure you have switched to SVNKit (Window/Preferences/Team/SVN) or make sure JavaHL is working.\n"//
-						   + "      (2) Git: Ensure that the Git repositories appearing in the error message below are clean or do not exist (Window/Perspective/Open Perspective/Other.../Git)\n" //
-						   + "      (3) If possible, start with an empty, fresh workspace. Although the PSF import offers to delete the projects this may fail, especially on Windows.\n"//
-						   + "      (4) Are you sure you have acess to all the projects (if they do not support anonymous access)?\n"//
-						   + "      (5) The PSF file might be outdated - please check for an update of the test plugin\n"//
-						   + "      (6) If it's quite late in the night, our server might be down performing a back-up - try again in a few hours.\n"//
-						   + "      (7) If none of these helped, write us a mail to contact@emoflon.org :)\n" //
-						   + "\n" //
-						   + "Exception of type " + e.getClass().getName() + ", Message: " + MoflonUtil.displayExceptionAsString(e);
-				   logger.error(message);
-				   return new Status(IStatus.ERROR, AutoTestActivator.getModuleID(),
-						   "Installing workspace failed. Please consult the eMoflon console for further information.", e);
-			   }
-		   }
-	   };
 
+	   final List<Job> jobs = new ArrayList<Job>();
 	   if (exportingEapFilesRequired(label)) {
 		   final IProject[] metamodelProjects = CoreActivator.getMetamodelProjects(
 				   ResourcesPlugin.getWorkspace().getRoot().getProjects());
 		   if (metamodelProjects.length > 0) {
 			   final EnterpriseArchitectModelExporterTask eaModelExporter =
 					   new EnterpriseArchitectModelExporterTask(metamodelProjects, false);
-			   jobs.add(new WorkspaceJob(eaModelExporter.getTaskName()) {
-
-				   @Override
-				   public IStatus runInWorkspace(final IProgressMonitor monitor) throws CoreException {
-					   eaModelExporter.run(monitor);
-					   return Status.OK_STATUS;
-				   }
-				   
-				   public boolean belongsTo(Object family) {
-					   return family == mainInstallerJob;
-				   }
-				   
-				   protected void canceling() {
-					   mainInstallerJob.cancel();
-				   }
-			   });
+			   jobs.add(new WorkspaceTaskJob(eaModelExporter));
 		   }
 		   final IBuildConfiguration[] buildConfigurations = 
 				   CoreActivator.getDefaultBuildConfigurations(metamodelProjects);
 		   if (buildConfigurations.length > 0) {
 			   final IncrementalProjectBuilderTask metamodelBuilder =
 					   new IncrementalProjectBuilderTask(buildConfigurations);
-			   jobs.add(new WorkspaceJob(metamodelBuilder.getTaskName()) {
-
-				   @Override
-				   public IStatus runInWorkspace(final IProgressMonitor monitor) throws CoreException {
-					   metamodelBuilder.run(monitor);
-					   return Status.OK_STATUS;
-				   }
-				   
-				   public boolean belongsTo(Object family) {
-					   return family == mainInstallerJob;
-				   }
-				   
-				   protected void canceling() {
-					   mainInstallerJob.cancel();
-				   }
-			   });
+			   jobs.add(new WorkspaceTaskJob(metamodelBuilder));
 		   }
 	   }
 
 	   final IProject[] moflonProjects = CoreActivator.getRepositoryAndIntegrationProjects(
 			   ResourcesPlugin.getWorkspace().getRoot().getProjects());
-	   final IBuildConfiguration[] buildConfigurations = 
-			   CoreActivator.getDefaultBuildConfigurations(moflonProjects);
-	   if (buildConfigurations.length > 0) {
-		   final IncrementalProjectBuilderTask visualMetamodelBuilder =
-				   new IncrementalProjectBuilderTask(buildConfigurations);
-		   jobs.add(new WorkspaceJob(visualMetamodelBuilder.getTaskName()) {
+	   final IProject[] graphicalMoflonProjects =
+			   CoreActivator.getProjectsWithGraphicalSyntax(moflonProjects);
+	   final IProject[] textualMoflonProjects =
+			   CoreActivator.getProjectsWithGraphicalSyntax(moflonProjects);
+	   if (textualMoflonProjects.length > 0) {
+		   final WorkspaceTask mainTask = new WorkspaceTask() {
 
 			   @Override
-			   public IStatus runInWorkspace(final IProgressMonitor monitor) throws CoreException {
-				   visualMetamodelBuilder.run(monitor);
-				   return Status.OK_STATUS;
-			   }
-			   
-			   public boolean belongsTo(Object family) {
-				   return family == mainInstallerJob;
-			   }
-			   
-			   protected void canceling() {
-				   mainInstallerJob.cancel();
-			   }
-		   });
-	   }
+			   public void run(final IProgressMonitor monitor) throws CoreException {
+				   try {
+					   final SubMonitor taskMonitor = SubMonitor.convert(monitor, 12);
+					   // (1) Closing projects with textual syntax
+					   final SubMonitor closingMonitor = SubMonitor.convert(taskMonitor.newChild(1),
+							   "Closing projects", textualMoflonProjects.length);
+					   for (int i = 0; i < textualMoflonProjects.length; i++) {
+						   textualMoflonProjects[i].close(closingMonitor.newChild(1));
+						   CoreActivator.checkCancellation(closingMonitor);
+					   }
 
-	   try {
-		   final ILaunchManager manager = DebugPlugin.getDefault().getLaunchManager();
-		   final ILaunchConfigurationType type =
-				   manager.getLaunchConfigurationType("org.eclipse.emf.mwe2.launch.Mwe2LaunchConfigurationType");
-		   final ILaunchConfiguration[] configurations =
-				   manager.getLaunchConfigurations(type);
-		   for (int i = 0; i < configurations.length; i++) {
-			   final ILaunchConfiguration config = configurations[i];
-			   jobs.add(new LaunchInvocationJob(config) {
-				   
-				   public boolean belongsTo(Object family) {
-					   return family == mainInstallerJob;
+					   // (2) Building projects with graphical syntax
+					   final IncrementalProjectBuilderTask graphicalProjectBuilderTask =
+							   new IncrementalProjectBuilderTask(
+									   CoreActivator.getDefaultBuildConfigurations(graphicalMoflonProjects));
+					   ResourcesPlugin.getWorkspace().run(graphicalProjectBuilderTask,
+							   graphicalProjectBuilderTask.getRule(), IWorkspace.AVOID_UPDATE,
+							   taskMonitor.newChild(3));
+					   CoreActivator.checkCancellation(taskMonitor);
+
+					   // (3) Launching MWE2 workflows to generate Xtext metamodels
+					   final ILaunchManager manager = DebugPlugin.getDefault().getLaunchManager();
+					   final ILaunchConfigurationType type =
+							   manager.getLaunchConfigurationType("org.eclipse.emf.mwe2.launch.Mwe2LaunchConfigurationType");
+					   final ILaunchConfiguration[] configurations =
+							   manager.getLaunchConfigurations(type);
+					   final SubMonitor mweWorkflowExecutionMonitor = SubMonitor.convert(
+							   taskMonitor.newChild(2), "Executing MWE2 workflows", configurations.length);
+					   for (int i = 0; i < configurations.length; i++) {
+						   final ILaunchConfiguration config = configurations[i];
+						   final LaunchInvocationTask launchInvocationTask =
+								   new LaunchInvocationTask(config);
+						   launchInvocationTask.run(mweWorkflowExecutionMonitor.newChild(1));
+						   CoreActivator.checkCancellation(mweWorkflowExecutionMonitor);
+					   }
+
+					   // (4) Opening projects with textual syntax
+					   final SubMonitor openingMonitor = SubMonitor.convert(taskMonitor.newChild(1),
+							   "Opening projects", textualMoflonProjects.length);
+					   for (int i = 0; i < textualMoflonProjects.length; i++) {
+						   textualMoflonProjects[i].open(openingMonitor.newChild(1));
+						   CoreActivator.checkCancellation(openingMonitor);
+					   }
+
+					   if (configurations.length > 0) {
+						   // (5) Building projects with textual syntax
+						   final IncrementalProjectBuilderTask textualProjectBuilderTask =
+								   new IncrementalProjectBuilderTask(
+										   CoreActivator.getDefaultBuildConfigurations(textualMoflonProjects));
+						   ResourcesPlugin.getWorkspace().run(textualProjectBuilderTask,
+								   textualProjectBuilderTask.getRule(), IWorkspace.AVOID_UPDATE,
+								   taskMonitor.newChild(5));
+					   }
+					   taskMonitor.setWorkRemaining(0);
+				   } finally {
+					   SubMonitor.done(monitor);
 				   }
-				   
-				   protected void canceling() {
-					   mainInstallerJob.cancel();
-				   }
-			   });
-		   }
-		   if (configurations.length > 0 && buildConfigurations.length > 0) {
-			   final IncrementalProjectBuilderTask textualMetamodelBuilder =
+			   }
+
+			   @Override
+			   public String getTaskName() {
+				   return "Building eMoflon projects";
+			   }
+
+			   @Override
+			   public ISchedulingRule getRule() {
+				   return ResourcesPlugin.getWorkspace().getRoot();
+			   }
+		   };
+		   jobs.add(new WorkspaceTaskJob(mainTask));
+	   } else {
+		   final IBuildConfiguration[] buildConfigurations = 
+				   CoreActivator.getDefaultBuildConfigurations(graphicalMoflonProjects);
+		   if (buildConfigurations.length > 0) {
+			   final IncrementalProjectBuilderTask visualMetamodelBuilder =
 					   new IncrementalProjectBuilderTask(buildConfigurations);
-			   jobs.add(new WorkspaceJob(textualMetamodelBuilder.getTaskName()) {
-
-				   @Override
-				   public IStatus runInWorkspace(final IProgressMonitor monitor) throws CoreException {
-					   textualMetamodelBuilder.run(monitor);
-					   return Status.OK_STATUS;
-				   }
-				   
-				   public boolean belongsTo(Object family) {
-					   return family == mainInstallerJob;
-				   }
-				   
-				   protected void canceling() {
-					   mainInstallerJob.cancel();
-				   }
-			   });
+			   jobs.add(new WorkspaceTaskJob(visualMetamodelBuilder));
 		   }
-	   } catch (final CoreException e) {
-		   // Do nothing
 	   }
 
 	   if (isRunningJUnitTestsRequired(label)) {
-		   final Collection<IProject> testProjects = collectTestProjects();
-		   try {
-			   for (final IProject testProject : testProjects) {
+		   final List<IFile> launchConfigurations =
+				   new LinkedList<IFile>();
+		   for (final IProject testProject : collectTestProjects()) {
+			   try {
 				   final List<IFile> selectedLaunchConfigurations = Arrays.asList(testProject.members()).stream()//
 						   .filter(m -> m instanceof IFile) //
 						   .map(m -> (IFile) m.getAdapter(IFile.class))//
 						   .filter(f -> f.getName().matches(JUNIT_TEST_LAUNCHER_FILE_NAME_PATTERN))//
 						   .collect(Collectors.toList());
-				   final ILaunchManager mgr = DebugPlugin.getDefault().getLaunchManager();
-				   for (final IFile file : selectedLaunchConfigurations) {
-					   jobs.add(new LaunchInvocationJob(mgr.getLaunchConfiguration(file)) {
-						   public boolean belongsTo(Object family) {
-							   return family == mainInstallerJob;
-						   }
-						   
-						   protected void canceling() {
-							   mainInstallerJob.cancel();
-						   }
-					   });
-				   }
+				   launchConfigurations.addAll(selectedLaunchConfigurations);
+			   } catch (final CoreException e) {
+				   // Do nothing: Ignore test project in case of errors
 			   }
-		   } catch (final CoreException e) {
-			   // Do nothing: Ignore test projects in case of errors
+		   }
+		   if (!launchConfigurations.isEmpty()) {
+			   jobs.add(new Job("Launching test configurations") {
+				
+				@Override
+				protected IStatus run(final IProgressMonitor monitor) {
+					try {
+						final MultiStatus result = new MultiStatus(FrameworkUtil.getBundle(getClass()).getSymbolicName(),
+								IStatus.OK, "Test configurations executed succesfully", null);
+						final ILaunchManager mgr = DebugPlugin.getDefault().getLaunchManager();
+						final SubMonitor subMonitor = SubMonitor.convert(monitor, launchConfigurations.size());
+						for (final IFile file : launchConfigurations) {
+							final ILaunchConfiguration config = mgr.getLaunchConfiguration(file);
+							final LaunchInvocationTask launchInvocationTask =
+									new LaunchInvocationTask(config);
+							result.add(launchInvocationTask.run(subMonitor.newChild(1)));
+							CoreActivator.checkCancellation(subMonitor);
+						}
+						return result;
+					} finally {
+						monitor.done();
+					}
+				}
+			});
 		   }
 	   }
-	   mainInstallerJob.setUser(true);
-	   mainInstallerJob.schedule();
+
+	   if (jobs.size() > 0) {
+		   try {
+			   final boolean isAutoBuilding = switchAutoBuilding(false);
+			   final JobChangeAdapter jobExecutor = new JobChangeAdapter() {
+				   
+				   @Override
+				   public void done(final IJobChangeEvent event) {
+					   final IStatus result = event.getResult();
+					   if (result.isOK() && !jobs.isEmpty()) {
+						   final Job nextJob = jobs.remove(0);
+						   nextJob.addJobChangeListener(this);
+						   nextJob.schedule();
+						   return;
+					   }
+					   try {
+						   if (isAutoBuilding ^ ResourcesPlugin.getWorkspace().isAutoBuilding()) {
+							   // Do nothing: User explicitly switched auto-building flag during the build
+						   } else {
+							   WorkspaceInstaller.switchAutoBuilding(isAutoBuilding);
+						   }
+					   } catch (CoreException e) {
+						   // TODO: Unable to reset auto-building flag
+					   }
+				   }
+			   };
+			   final Job firstJob = jobs.get(0);
+			   firstJob.addJobChangeListener(jobExecutor);
+			   firstJob.schedule();
+		   } catch (final CoreException e) {
+			   // TODO: Unable to switch off auto-building
+		   } 
+	   }
    }
 
    /**
