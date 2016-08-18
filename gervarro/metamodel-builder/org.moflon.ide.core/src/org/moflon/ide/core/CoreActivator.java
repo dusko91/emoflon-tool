@@ -14,7 +14,9 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.URIConverter;
@@ -250,6 +252,34 @@ public class CoreActivator extends EMoflonPlugin
 		return result.toArray(new IProject[result.size()]);
 	}
 	
+	public static final IProject[] getProjectsWithTextualSyntax(final IProject[] projects) {
+		final List<IProject> result = new ArrayList<IProject>(projects.length);
+		for (final IProject project : projects) {
+			try {
+				if (project.isAccessible() && project.hasNature("org.moflon.tgg.mosl.codeadapter.moslTGGNature")) {
+					result.add(project);
+				}
+			} catch (CoreException e) {
+				// Do nothing: Skip erroneous projects
+			}
+		}
+		return result.toArray(new IProject[result.size()]);
+	}
+	
+	public static final IProject[] getProjectsWithGraphicalSyntax(final IProject[] projects) {
+		final List<IProject> result = new ArrayList<IProject>(projects.length);
+		for (final IProject project : projects) {
+			try {
+				if (project.isAccessible() && !project.hasNature("org.moflon.tgg.mosl.codeadapter.moslTGGNature")) {
+					result.add(project);
+				}
+			} catch (CoreException e) {
+				// Do nothing: Skip erroneous projects
+			}
+		}
+		return result.toArray(new IProject[result.size()]);
+	}
+	
 	public static final IBuildConfiguration[] getDefaultBuildConfigurations(final IProject[] projects) {
 		final List<IBuildConfiguration> result =
 				new ArrayList<IBuildConfiguration>(projects.length);
@@ -261,5 +291,11 @@ public class CoreActivator extends EMoflonPlugin
 			}
 		}
 		return result.toArray(new IBuildConfiguration[result.size()]);
+	}
+	
+	public static final void checkCancellation(final IProgressMonitor monitor) {
+		if (monitor != null && monitor.isCanceled()) {
+			throw new OperationCanceledException();
+		}
 	}
 }
