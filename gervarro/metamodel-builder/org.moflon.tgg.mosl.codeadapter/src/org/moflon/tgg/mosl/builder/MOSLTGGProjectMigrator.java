@@ -10,6 +10,7 @@ import org.gervarro.eclipse.workspace.util.ProjectStateObserver;
 import org.gervarro.eclipse.workspace.util.WorkspaceTask;
 import org.moflon.ide.core.runtime.ProjectNatureAndBuilderConfiguratorTask;
 
+// TODO@rkluge Disable later
 public class MOSLTGGProjectMigrator extends ProjectStateObserver implements ProjectConfigurator {
 	
 	protected void handleResourceChange(final IResource resource, final boolean added) {

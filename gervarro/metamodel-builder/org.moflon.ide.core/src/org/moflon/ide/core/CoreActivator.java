@@ -126,6 +126,7 @@ public class CoreActivator extends EMoflonPlugin
       return getStateLocation().append(filename);
    }
 
+   // TODO@rkluge
    public boolean isDirty(final IProject project)
    {
       return project != null && isDirty(project.getName());

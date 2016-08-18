@@ -24,9 +24,9 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.MultiStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.runtime.jobs.IJobChangeEvent;
-import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.jobs.JobChangeAdapter;
 import org.eclipse.debug.core.DebugPlugin;
@@ -42,7 +42,6 @@ import org.eclipse.team.internal.ui.wizards.ImportProjectSetOperation;
 import org.eclipse.ui.IWorkingSet;
 import org.eclipse.ui.IWorkingSetManager;
 import org.eclipse.ui.PlatformUI;
-import org.gervarro.eclipse.workspace.util.WorkspaceTask;
 import org.gervarro.eclipse.workspace.util.WorkspaceTaskJob;
 import org.moflon.core.utilities.LogUtils;
 import org.moflon.core.utilities.MoflonUtil;
@@ -174,8 +173,8 @@ public class WorkspaceInstaller
 		   final IBuildConfiguration[] buildConfigurations = 
 				   CoreActivator.getDefaultBuildConfigurations(metamodelProjects);
 		   if (buildConfigurations.length > 0) {
-			   final IncrementalProjectBuilderTask metamodelBuilder =
-					   new IncrementalProjectBuilderTask(buildConfigurations);
+			   final ProjectBuilderTask metamodelBuilder =
+					   new ProjectBuilderTask(buildConfigurations);
 			   jobs.add(new WorkspaceTaskJob(metamodelBuilder));
 		   }
 	   }
@@ -185,89 +184,95 @@ public class WorkspaceInstaller
 	   final IProject[] graphicalMoflonProjects =
 			   CoreActivator.getProjectsWithGraphicalSyntax(moflonProjects);
 	   final IProject[] textualMoflonProjects =
-			   CoreActivator.getProjectsWithGraphicalSyntax(moflonProjects);
+			   CoreActivator.getProjectsWithTextualSyntax(moflonProjects);
 	   if (textualMoflonProjects.length > 0) {
-		   final WorkspaceTask mainTask = new WorkspaceTask() {
+			try {
+				final ILaunchManager manager = DebugPlugin.getDefault().getLaunchManager();
+				final ILaunchConfigurationType type =
+						manager.getLaunchConfigurationType("org.eclipse.emf.mwe2.launch.Mwe2LaunchConfigurationType");
+				final ILaunchConfiguration[] configurations = manager.getLaunchConfigurations(type);
+				if (configurations.length > 0) {
+					// (1) Closing projects with textual syntax (without workspace lock)
+					jobs.add(new Job("Closing projects") {
 
-			   @Override
-			   public void run(final IProgressMonitor monitor) throws CoreException {
-				   try {
-					   final SubMonitor taskMonitor = SubMonitor.convert(monitor, 12);
-					   // (1) Closing projects with textual syntax
-					   final SubMonitor closingMonitor = SubMonitor.convert(taskMonitor.newChild(1),
-							   "Closing projects", textualMoflonProjects.length);
-					   for (int i = 0; i < textualMoflonProjects.length; i++) {
-						   textualMoflonProjects[i].close(closingMonitor.newChild(1));
-						   CoreActivator.checkCancellation(closingMonitor);
-					   }
+						@Override
+						protected IStatus run(IProgressMonitor monitor) {
+							final SubMonitor closingMonitor = SubMonitor.convert(monitor,
+									"Closing projects", textualMoflonProjects.length);
+							try {
+								for (int i = 0; i < textualMoflonProjects.length; i++) {
+									textualMoflonProjects[i].close(closingMonitor.newChild(1));
+									CoreActivator.checkCancellation(closingMonitor);
+								}
+							} catch (final CoreException e) {
+								return new Status(IStatus.ERROR, FrameworkUtil.getBundle(getClass()).getSymbolicName(),
+										e.getMessage(), e);
+							} finally {
+								SubMonitor.done(monitor);
+							}
+							return new Status(IStatus.OK, FrameworkUtil.getBundle(getClass()).getSymbolicName(),
+									"eMoflon projects with textual syntax have been successfully closed");
+						}
+					});
+					// (2) Building projects with graphical syntax (with workspace lock)
+					prepareIncrementalProjectBuilderJob(jobs, graphicalMoflonProjects);
+					// (3) Launching MWE2 workflows to generate Xtext metamodels (without workspace lock)
+					jobs.add(new Job("Launching MWE2 workflows") {
+						
+						@Override
+						public IStatus run(final IProgressMonitor monitor) {
+							final SubMonitor mweWorkflowExecutionMonitor = SubMonitor.convert(
+									monitor, "Executing MWE2 workflows", configurations.length);
+							try {
+								for (int i = 0; i < configurations.length; i++) {
+									final ILaunchConfiguration config = configurations[i];
+									final LaunchInvocationTask launchInvocationTask =
+											new LaunchInvocationTask(config);
+									launchInvocationTask.run(mweWorkflowExecutionMonitor.newChild(1));
+									CoreActivator.checkCancellation(mweWorkflowExecutionMonitor);
+								}
+							} finally {
+								SubMonitor.done(monitor);
+							}
+							return new Status(IStatus.OK, FrameworkUtil.getBundle(getClass()).getSymbolicName(),
+									"MWE2 workflows have been successfully executed");
+						}
+					});
+					// (4) Opening projects with textual syntax (without workspace lock)
+					jobs.add(new Job("Opening projects") {
 
-					   // (2) Building projects with graphical syntax
-					   final IncrementalProjectBuilderTask graphicalProjectBuilderTask =
-							   new IncrementalProjectBuilderTask(
-									   CoreActivator.getDefaultBuildConfigurations(graphicalMoflonProjects));
-					   ResourcesPlugin.getWorkspace().run(graphicalProjectBuilderTask,
-							   graphicalProjectBuilderTask.getRule(), IWorkspace.AVOID_UPDATE,
-							   taskMonitor.newChild(3));
-					   CoreActivator.checkCancellation(taskMonitor);
-
-					   // (3) Launching MWE2 workflows to generate Xtext metamodels
-					   final ILaunchManager manager = DebugPlugin.getDefault().getLaunchManager();
-					   final ILaunchConfigurationType type =
-							   manager.getLaunchConfigurationType("org.eclipse.emf.mwe2.launch.Mwe2LaunchConfigurationType");
-					   final ILaunchConfiguration[] configurations =
-							   manager.getLaunchConfigurations(type);
-					   final SubMonitor mweWorkflowExecutionMonitor = SubMonitor.convert(
-							   taskMonitor.newChild(2), "Executing MWE2 workflows", configurations.length);
-					   for (int i = 0; i < configurations.length; i++) {
-						   final ILaunchConfiguration config = configurations[i];
-						   final LaunchInvocationTask launchInvocationTask =
-								   new LaunchInvocationTask(config);
-						   launchInvocationTask.run(mweWorkflowExecutionMonitor.newChild(1));
-						   CoreActivator.checkCancellation(mweWorkflowExecutionMonitor);
-					   }
-
-					   // (4) Opening projects with textual syntax
-					   final SubMonitor openingMonitor = SubMonitor.convert(taskMonitor.newChild(1),
-							   "Opening projects", textualMoflonProjects.length);
-					   for (int i = 0; i < textualMoflonProjects.length; i++) {
-						   textualMoflonProjects[i].open(openingMonitor.newChild(1));
-						   CoreActivator.checkCancellation(openingMonitor);
-					   }
-
-					   if (configurations.length > 0) {
-						   // (5) Building projects with textual syntax
-						   final IncrementalProjectBuilderTask textualProjectBuilderTask =
-								   new IncrementalProjectBuilderTask(
-										   CoreActivator.getDefaultBuildConfigurations(textualMoflonProjects));
-						   ResourcesPlugin.getWorkspace().run(textualProjectBuilderTask,
-								   textualProjectBuilderTask.getRule(), IWorkspace.AVOID_UPDATE,
-								   taskMonitor.newChild(5));
-					   }
-					   taskMonitor.setWorkRemaining(0);
-				   } finally {
-					   SubMonitor.done(monitor);
-				   }
-			   }
-
-			   @Override
-			   public String getTaskName() {
-				   return "Building eMoflon projects";
-			   }
-
-			   @Override
-			   public ISchedulingRule getRule() {
-				   return ResourcesPlugin.getWorkspace().getRoot();
-			   }
-		   };
-		   jobs.add(new WorkspaceTaskJob(mainTask));
+						@Override
+						protected IStatus run(IProgressMonitor monitor) {
+							final SubMonitor openingMonitor = SubMonitor.convert(monitor,
+									"Opening projects", textualMoflonProjects.length);
+							try {
+								for (int i = 0; i < textualMoflonProjects.length; i++) {
+									textualMoflonProjects[i].open(openingMonitor.newChild(1));
+									CoreActivator.checkCancellation(openingMonitor);
+								}
+							} catch (final CoreException e) {
+								return new Status(IStatus.ERROR, FrameworkUtil.getBundle(getClass()).getSymbolicName(),
+										e.getMessage(), e);
+							} finally {
+								SubMonitor.done(monitor);
+							}
+							return new Status(IStatus.OK, FrameworkUtil.getBundle(getClass()).getSymbolicName(),
+									"eMoflon projects with textual syntax have been successfully opened");
+						}
+					});
+					// (5) Building projects with textual syntax (with workspace lock)
+					prepareIncrementalProjectBuilderJob(jobs, textualMoflonProjects);
+				} else {
+					// Building projects with graphical syntax (with workspace lock)
+					prepareIncrementalProjectBuilderJob(jobs, graphicalMoflonProjects);
+				}
+			} catch (final CoreException e) {
+				// Building projects with graphical syntax (with workspace lock)
+				prepareIncrementalProjectBuilderJob(jobs, graphicalMoflonProjects);
+			}
 	   } else {
-		   final IBuildConfiguration[] buildConfigurations = 
-				   CoreActivator.getDefaultBuildConfigurations(graphicalMoflonProjects);
-		   if (buildConfigurations.length > 0) {
-			   final IncrementalProjectBuilderTask visualMetamodelBuilder =
-					   new IncrementalProjectBuilderTask(buildConfigurations);
-			   jobs.add(new WorkspaceTaskJob(visualMetamodelBuilder));
-		   }
+			// Building projects with graphical syntax (with workspace lock)
+			prepareIncrementalProjectBuilderJob(jobs, graphicalMoflonProjects);
 	   }
 
 	   if (isRunningJUnitTestsRequired(label)) {
@@ -336,12 +341,22 @@ public class WorkspaceInstaller
 					   }
 				   }
 			   };
-			   final Job firstJob = jobs.get(0);
+			   final Job firstJob = jobs.remove(0);
 			   firstJob.addJobChangeListener(jobExecutor);
 			   firstJob.schedule();
 		   } catch (final CoreException e) {
 			   // TODO: Unable to switch off auto-building
 		   } 
+	   }
+   }
+   
+   private final void prepareIncrementalProjectBuilderJob(final List<Job> jobs, final IProject[] projects) {
+	   final IBuildConfiguration[] buildConfigurations = 
+			   CoreActivator.getDefaultBuildConfigurations(projects);
+	   if (buildConfigurations.length > 0) {
+		   final ProjectBuilderTask builder =
+				   new ProjectBuilderTask(buildConfigurations);
+		   jobs.add(new WorkspaceTaskJob(builder));
 	   }
    }
 

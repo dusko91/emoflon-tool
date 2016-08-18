@@ -15,6 +15,7 @@ import org.gervarro.eclipse.workspace.util.WorkspaceTask;
 import org.moflon.ide.core.runtime.ProjectNatureAndBuilderConfiguratorTask;
 import org.moflon.ide.core.runtime.natures.AntlrNature;
 
+// TODO@rkluge Disable later
 public class NatureMigrator extends ProjectStateObserver implements ProjectConfigurator {
 	
 	protected void handleResourceChange(final IResource resource, final boolean added) {
@@ -54,6 +55,16 @@ public class NatureMigrator extends ProjectStateObserver implements ProjectConfi
 			}
 			if (ProjectUtil.indexOf(buildSpecs, CoreActivator.ANTLR_BUILDER_ID) >= 0) {
 				buildSpecs = new AntlrNature().updateBuildSpecs(description, buildSpecs, added);
+			}
+			if ("org.moflon.tgg.mosl".equals(description.getName())) {
+				int javaBuilderPosition = ProjectUtil.indexOf(buildSpecs, JavaCore.BUILDER_ID);
+				int xtextBuilderPosition = ProjectUtil.indexOf(buildSpecs, "org.eclipse.xtext.ui.shared.xtextBuilder");
+				if (javaBuilderPosition >= 0 && xtextBuilderPosition >= 0 && javaBuilderPosition < xtextBuilderPosition) {
+					final ICommand xtextBuilder = buildSpecs[xtextBuilderPosition];
+					System.arraycopy(buildSpecs, javaBuilderPosition, buildSpecs, javaBuilderPosition+1, xtextBuilderPosition-javaBuilderPosition);
+					xtextBuilderPosition = javaBuilderPosition++;
+					buildSpecs[xtextBuilderPosition] = xtextBuilder;
+				}
 			}
 		}
 		return buildSpecs;

@@ -23,7 +23,6 @@ public class ProjectNatureAndBuilderConfiguratorTask extends org.gervarro.eclips
 			final IWorkspace workspace = project.getWorkspace();
 			final IStatus status = workspace.validateNatureSet(natureIDs);
 			if (status.isOK()) {
-				natureIDs = workspace.sortNatureSet(natureIDs);
 				description.setNatureIds(natureIDs);
 				description.setBuildSpec(buildSpecs);
 				project.setDescription(description, monitor);

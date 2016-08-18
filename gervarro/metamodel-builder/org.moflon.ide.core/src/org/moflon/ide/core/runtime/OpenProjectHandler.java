@@ -68,7 +68,7 @@ public class OpenProjectHandler extends WorkspaceTask
    @Override
    public void run(final IProgressMonitor monitor) throws CoreException
    {
-      // TODO The execution of the natureAndBuilderConfiguratorTask should be removed
+      // TODO@rkluge The execution of the natureAndBuilderConfiguratorTask should be removed
       // when the order of builders has been fixed in the eMoflon developer workspace.
       final JavaProjectConfigurator javaProjectConfigurator = new JavaProjectConfigurator();
       final MoflonProjectConfigurator moflonProjectConfigurator = new MoflonProjectConfigurator(

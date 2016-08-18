@@ -17,6 +17,7 @@ final class EMoflonBuildJobForDirtyProjects extends EMoflonBuildJob
    @Override
    protected boolean shallBuildProject(final IProject project)
    {
+	   // TODO@rkluge org.moflon.autotest.core.WorkspaceInstaller.prepareIncrementalProjectBuilderJob(List<Job>, IProject[])
       return CoreActivator.getDefault().isDirty(project) && project.isAccessible() && !WorkspaceHelper.isMetamodelProjectNoThrow(project);
    }
 
