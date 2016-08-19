@@ -1,0 +1,61 @@
+#using org.moflon.ide.visualization.dot.tgg.delta.*
+#using AttrCondDefLibrary.*
+
+#abstract #rule HandleEdges #with org.moflon.ide.visualization.dot.tgg.delta
+
+#source {
+	directedGraph:DirectedGraph{
+		++ - nodes -> trg
+		++ - nodes -> src
+		++ - edges -> edge
+	}
+
+	++edge:EdgeCommand{
+		++ - source -> src
+		++ - target -> trg
+	}
+
+	++trg:Record
+
+	++src:Record
+}
+
+#target {
+	delta:DeltaSpecification
+
+	++eMoflonEdge:EMoflonEdge{
+		++ - src -> srcNode
+		++ - trg -> trgNode
+	}
+
+    srcNode : EObject
+
+	trgNode:EObject
+}
+
+#correspondence {
+	graphToDelta :DirectedGraphToDeltaSpecification{
+		#src->directedGraph
+		#trg->delta
+	}
+
+	++ srcRecordToNode : RecordToNode{
+		#src->src
+		#trg->srcNode
+	}
+	 
+	++ trgRecordToNode :RecordToNode{
+		#src->trg
+		#trg->trgNode
+	}
+
+	++ edgeToEdge :EdgeCommandToEMoflonEdge {
+		#src->edge
+		#trg->eMoflonEdge
+	}
+}
+
+#attributeConditions {
+	eq(edge.label, eMoflonEdge.name)
+}
+
