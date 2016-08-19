@@ -1,4 +1,4 @@
-package org.moflon.compiler.sdm;
+package org.moflon.moca.inject;
 
 import java.util.ArrayList;
 import java.util.List;
