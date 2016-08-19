@@ -31,7 +31,7 @@ public class MOSLTGGPlugin extends EMoflonPlugin{
 	}
 	
 	public static MOSLTGGPlugin getDefault(){
-		// TODO@rkluge
+		// TODO@rkluge: Refactor to use the following code.
 		// return FrameworkUtil.getBundle(MOSLTGGPlugin.class);
 		MOSLTGGPlugin plugin = getPlugin(MOSLTGGPlugin.class);
 		if (plugin == null)

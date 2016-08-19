@@ -47,7 +47,7 @@ public class CoreActivator extends EMoflonPlugin
    /**
     * @deprecated Use JavaCore.NATURE_ID directly (since eMoflon 2.2.1)
     */
-   @Deprecated 
+   @Deprecated
    public static final String JAVA_NATURE_ID = JavaCore.NATURE_ID;
 
    public static final String REPOSITORY_BUILDER_ID = "org.moflon.ide.core.runtime.builders.RepositoryBuilder";
@@ -55,7 +55,7 @@ public class CoreActivator extends EMoflonPlugin
    /**
     * @deprecated Use WorkspaceHelper.METAMODEL_NATURE_ID directly
     */
-   @Deprecated 
+   @Deprecated
    public static final String METAMODEL_NATURE_ID = "org.moflon.ide.core.runtime.natures.MetamodelNature";
 
    public static final String METAMODEL_BUILDER_ID = "org.moflon.ide.core.runtime.builders.MetamodelBuilder";
@@ -126,7 +126,7 @@ public class CoreActivator extends EMoflonPlugin
       return getStateLocation().append(filename);
    }
 
-   // TODO@rkluge
+   // TODO@rkluge: Fix the 'dirty project' framework
    public boolean isDirty(final IProject project)
    {
       return project != null && isDirty(project.getName());
@@ -164,11 +164,11 @@ public class CoreActivator extends EMoflonPlugin
     * More precisely: If the given project is a plugin project, the following mapping is added to the map
     * 
     * platform:/plugin/[project-plugin-ID]/ to platform:/resource/[project-name]
-    *  
+    * 
     * @param project the project to be added
     */
    @Deprecated
-   public static void addMappingForProject(final IProject project) 
+   public static void addMappingForProject(final IProject project)
    {
       if (project.isAccessible())
       {
