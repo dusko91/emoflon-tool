@@ -1,4 +1,4 @@
-package org.moflon.codegen.eclipse.ui;
+package org.moflon.compiler.sdm.democles.stringtemplate;
 
 import org.apache.log4j.Logger;
 import org.stringtemplate.v4.STErrorListener;
