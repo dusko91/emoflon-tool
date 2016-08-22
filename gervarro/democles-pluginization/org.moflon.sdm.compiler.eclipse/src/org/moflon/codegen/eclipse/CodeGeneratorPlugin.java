@@ -126,16 +126,6 @@ public class CodeGeneratorPlugin implements BundleActivator
       return handlerId.getLiteral();
    }
 
-   public static final String getInterfaceName(final GenClass genClass)
-   {
-      return genClass.getGenPackage().getInterfacePackageName() + "." + genClass.getInterfaceName();
-   }
-
-   public static final String getClassName(final GenClass genClass)
-   {
-      return genClass.getGenPackage().getClassPackageName() + "." + genClass.getClassName();
-   }
-
    public static final List<EClass> getEClasses(final EPackage ePackage)
    {
       final List<EClass> result = new LinkedList<EClass>();

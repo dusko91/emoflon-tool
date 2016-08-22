@@ -16,6 +16,7 @@ Require-Bundle:
  SDMLanguage,
  org.stringtemplate;bundle-version="[4.2.1,5.0.0)",
  org.moflon.sdm.democles.patternmatcher;bundle-version="[0.4.0,0.5.0)",
+ org.moflon.core.moca.inject,
  org.moflon.sdm.runtime.democles,
  org.moflon.sdm.democles.literalexpressionsolver,
  org.moflon.core.dfs,
