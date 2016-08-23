@@ -135,11 +135,8 @@ public class WorkspaceInstaller
 	   } catch (final InterruptedException e) {
 		   // Operation cancelled by the user on the GUI
 		   return;
-	   } catch (final InvocationTargetException e) {
-		   e.printStackTrace();
-		   return;
-	   } catch (final IOException e) {
-		   e.printStackTrace();
+	   } catch (final InvocationTargetException | IOException e) {
+		   LogUtils.error(logger, e);
 		   return;
 	   } catch (final CoreException e) {
 		   final String message = "Sorry, I was unable to check out the projects in the PSF file.\n"//
@@ -154,8 +151,6 @@ public class WorkspaceInstaller
 				   + "\n" //
 				   + "Exception of type " + e.getClass().getName() + ", Message: " + MoflonUtil.displayExceptionAsString(e);
 		   logger.error(message);
-//		   return new Status(IStatus.ERROR, AutoTestActivator.getModuleID(),
-//				   "Installing workspace failed. Please consult the eMoflon console for further information.", e);
 		   return;
 	   }
 	   
@@ -170,7 +165,7 @@ public class WorkspaceInstaller
 					   new EnterpriseArchitectModelExporterTask(metamodelProjects, false);
 			   jobs.add(new WorkspaceTaskJob(eaModelExporter));
 		   }
-		   final IBuildConfiguration[] buildConfigurations = 
+		   final IBuildConfiguration[] buildConfigurations =
 				   CoreActivator.getDefaultBuildConfigurations(metamodelProjects);
 		   if (buildConfigurations.length > 0) {
 			   final ProjectBuilderTask metamodelBuilder =
@@ -346,12 +341,12 @@ public class WorkspaceInstaller
 			   firstJob.schedule();
 		   } catch (final CoreException e) {
 			   // TODO: Unable to switch off auto-building
-		   } 
+		   }
 	   }
    }
    
    private final void prepareIncrementalProjectBuilderJob(final List<Job> jobs, final IProject[] projects) {
-	   final IBuildConfiguration[] buildConfigurations = 
+	   final IBuildConfiguration[] buildConfigurations =
 			   CoreActivator.getDefaultBuildConfigurations(projects);
 	   if (buildConfigurations.length > 0) {
 		   final ProjectBuilderTask builder =
