@@ -1,0 +1,8 @@
+#using org.moflon.ide.visualization.dot.tgg.delta.*
+#using AttrCondDefLibrary.*
+
+#rule DeletedEdgeForExistingSourceRule #extends 
+	DeletedEdgeForAllNewRule,
+	DeletedSrcNode,
+	ExistingSrcNode
+	#with org.moflon.ide.visualization.dot.tgg.delta

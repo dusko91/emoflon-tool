@@ -1,0 +1,38 @@
+#using org.moflon.ide.visualization.dot.ecore.epackageviz.*
+#using AttrCondDefLibrary.*
+
+#abstract #rule EdgeAbstractSourceOnlyRule #with org.moflon.ide.visualization.dot.ecore.epackageviz
+
+#source {
+	graph:ClassGraph
+
+	srcClassNode:PNode{
+		- graph -> graph
+	}
+}
+
+#target {
+	ePackage:EPackage
+
+	srcClass:EClass{
+		- ePackage -> ePackage
+	}
+}
+
+#correspondence {
+	graphToPackage :ClassGraphToEPackage {
+		#src->graph
+		#trg->ePackage
+	}
+
+	srcNodeToClassifier :PNodeToEClassifier{
+		#src->srcClassNode
+		#trg->srcClass
+	}
+}
+
+#attributeConditions {
+	
+}
+
+

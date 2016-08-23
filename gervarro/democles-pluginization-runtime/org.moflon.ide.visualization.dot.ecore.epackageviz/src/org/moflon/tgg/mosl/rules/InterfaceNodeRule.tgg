@@ -1,0 +1,24 @@
+#using org.moflon.ide.visualization.dot.ecore.epackageviz.*
+#using AttrCondDefLibrary.*
+
+#rule InterfaceNodeRule #extends NodeAbstractRule #with org.moflon.ide.visualization.dot.ecore.epackageviz
+
+#source {
+	++node:PInterface
+}
+
+#target {
+	++eClassifier:EClass{
+		interface := true
+	}
+}
+
+#correspondence {
+
+}
+
+#attributeConditions {
+	
+}
+
+

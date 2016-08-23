@@ -1,0 +1,44 @@
+#using org.moflon.ide.visualization.dot.ecore.epackageviz.*
+#using AttrCondDefLibrary.*
+
+#rule PackageAxiom #with org.moflon.ide.visualization.dot.ecore.epackageviz
+
+#source {
+	++graph:ClassGraph{
+		++ -skinparams -> classBackgroundParam
+		++ -skinparams -> classArrowColorParam
+		++ -skinparams -> classBorderColorParam
+	}
+
+	++classBackgroundParam:ClassSkinParam{
+		color :=enum::DotColor::white
+		value :=enum::ClassSkinParamValues::classBackgroundColor
+	}
+	
+	++classBorderColorParam:ClassSkinParam{
+		color :=enum::DotColor::black
+		value :=enum::ClassSkinParamValues::classBorderColor
+	}
+	
+	++classArrowColorParam:ClassSkinParam{
+		color := enum::DotColor::black
+		value := enum::ClassSkinParamValues::classArrowColor
+	}
+}
+
+#target {
+	++rootPackage:EPackage
+}
+
+#correspondence {
+	++ grapgToPackage :ClassGraphToEPackage {
+		#src->graph
+		#trg->rootPackage
+	}
+}
+
+#attributeConditions {
+	
+}
+
+
