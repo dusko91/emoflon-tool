@@ -24,6 +24,7 @@ import org.eclipse.emf.ecore.impl.EPackageRegistryImpl;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceFactoryRegistryImpl;
+import org.eclipse.emf.ecore.util.ECrossReferenceEList;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.dependency.PackageRemappingDependency;
@@ -128,25 +129,36 @@ public abstract class AbstractMonitoredMetamodelLoader implements IMonitoredJob
                   {
                      j.prune();
                   }
-                  for (final EObject eCrossReference : eObject.eCrossReferences())
-                  {
-                     if (eCrossReference instanceof EClass)
-                     {
-                        if (eCrossReference.eIsProxy())
-                        {
-                           final String proxyURI = eCrossReference instanceof InternalEObject ? ((InternalEObject) eCrossReference).eProxyURI().toString()
-                                 + " " : "";
-                           crossReferenceResolutionStatus.add(new Status(IStatus.ERROR, CodeGeneratorPlugin.getModuleID(), "Unresolved cross reference "
-                                 + proxyURI + "in " + EcoreUtil.getURI(eObject)));
-                        } else
-                        {
-                           final EPackage referencedEPackage = ((EClass) eCrossReference).getEPackage();
-                           if (resource != referencedEPackage.eResource())
-                           {
-                              resources.add(referencedEPackage.eResource());
-                           }
-                        }
-                     }
+                  
+                  final ECrossReferenceEList<EObject> crossReferences = 
+                		  ECrossReferenceEList.createECrossReferenceEList(eObject);
+                  for (int k = 0; k < crossReferences.size(); k++) {
+                	  final EObject eCrossReferenceCandidate = crossReferences.basicGet(k);
+                	  if (eCrossReferenceCandidate instanceof InternalEObject && eCrossReferenceCandidate.eIsProxy()) {
+                		  final URI uri = ((InternalEObject) eCrossReferenceCandidate).eProxyURI().trimFragment();
+                		  if (CodeGeneratorPlugin.getDependencyType(uri) == CodeGeneratorPlugin.DEPLOYED_PLUGIN && !containsProject(uri)) {
+                              new PackageRemappingDependency(uri, false, false).getResource(resourceSet, false, true);
+                		  }
+                	  }
+                	  final EObject eCrossReference = crossReferences.get(k);
+                	  if (eCrossReference instanceof EClass)
+                	  {
+                		  if (eCrossReference.eIsProxy())
+                		  {
+                			  final String proxyURI = eCrossReference instanceof InternalEObject ? ((InternalEObject) eCrossReference).eProxyURI().toString()
+                					  + " " : "";
+                			  crossReferenceResolutionStatus.add(new Status(IStatus.ERROR, CodeGeneratorPlugin.getModuleID(), "Unresolved cross reference "
+                					  + proxyURI + "in " + EcoreUtil.getURI(eObject)));
+                		  } else
+                		  {
+                			  final EPackage referencedEPackage = ((EClass) eCrossReference).getEPackage();
+                			  if (resource != referencedEPackage.eResource())
+                			  {
+                				  resources.add(referencedEPackage.eResource());
+                			  }
+                		  }
+                	  }
+
                   }
                }
             }
@@ -252,5 +264,14 @@ public abstract class AbstractMonitoredMetamodelLoader implements IMonitoredJob
       {
          monitor.done();
       }
+   }
+   
+   private final boolean containsProject(final URI uri) {
+	   for (final Resource resource : resourceSet.getResources()) {
+		   if (resource.getURI().equals(uri)) {
+			   return true;
+		   }
+	   }
+	   return false;
    }
 }
