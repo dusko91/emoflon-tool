@@ -21,6 +21,7 @@ Require-Bundle:
  org.eclipse.pde.ui;bundle-version="3.6.100",
  org.gervarro.eclipse.task;bundle-version="[1.0.1,2.0.0)",
  org.gervarro.eclipse.workspace.util;bundle-version="[2.0.0,3.0.0)",
+ org.gervarro.eclipse.workspace.autosetup;bundle-version="[1.0.0,2.0.0)",
  org.moflon.core.utilities,
  org.moflon.ide.core,
  org.eclipse.ui.ide.application;bundle-version="1.0.400",
