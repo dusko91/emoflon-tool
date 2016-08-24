@@ -105,6 +105,12 @@ public class WorkspaceInstaller
       }
    }
    
+   /**
+    * 
+    * @param newAutoBuildValue
+    * @return the previous auto-building flag
+    * @throws CoreException
+    */
    private static final boolean switchAutoBuilding(final boolean newAutoBuildValue) throws CoreException {
 	   final IWorkspace workspace = ResourcesPlugin.getWorkspace();
 	   final IWorkspaceDescription description = workspace.getDescription();
@@ -384,13 +390,12 @@ public class WorkspaceInstaller
 						   return;
 					   }
 					   try {
+					      // Only do something if auto-building flags differ
 						   if (isAutoBuilding ^ ResourcesPlugin.getWorkspace().isAutoBuilding()) {
-							   // Do nothing: User explicitly switched auto-building flag during the build
-						   } else {
-							   WorkspaceInstaller.switchAutoBuilding(isAutoBuilding);
-						   }
+						      WorkspaceInstaller.switchAutoBuilding(isAutoBuilding);
+						   } 
 					   } catch (CoreException e) {
-						   // TODO: Unable to reset auto-building flag
+						   LogUtils.error(logger, e);
 					   }
 				   }
 			   };
@@ -398,7 +403,7 @@ public class WorkspaceInstaller
 			   firstJob.addJobChangeListener(jobExecutor);
 			   firstJob.schedule();
 		   } catch (final CoreException e) {
-			   // TODO: Unable to switch off auto-building
+		      LogUtils.error(logger, e);
 		   }
 	   }
    }
