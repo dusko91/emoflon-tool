@@ -16,13 +16,13 @@ import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.ui.statushandlers.StatusManager;
+import org.gervarro.eclipse.task.ITask;
 import org.moflon.core.utilities.WorkspaceHelper;
-import org.moflon.eclipse.job.IMonitoredJob;
 import org.moflon.properties.MoflonPropertiesContainerHelper;
 
 import MoflonPropertyContainer.MoflonPropertiesContainer;
 
-public final class MonitoredGenModelBuilder implements IMonitoredJob
+public final class MonitoredGenModelBuilder implements ITask
 {
    private static final String TASK_NAME = "GenModel building";
 

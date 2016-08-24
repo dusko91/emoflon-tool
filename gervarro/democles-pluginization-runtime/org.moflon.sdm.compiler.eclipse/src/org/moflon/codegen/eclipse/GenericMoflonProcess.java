@@ -21,8 +21,8 @@ import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.common.util.WrappedException;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
+import org.gervarro.eclipse.task.ITask;
 import org.moflon.core.utilities.WorkspaceHelper;
-import org.moflon.eclipse.job.IMonitoredJob;
 import org.moflon.properties.MoflonPropertiesContainerHelper;
 
 import MoflonPropertyContainer.MoflonPropertiesContainer;
@@ -32,7 +32,7 @@ import MoflonPropertyContainer.MoflonPropertiesContainer;
  * 
  * @see #run(IProgressMonitor)
  */
-abstract public class GenericMoflonProcess implements IMonitoredJob
+abstract public class GenericMoflonProcess implements ITask
 {
    private final IFile ecoreFile;
 

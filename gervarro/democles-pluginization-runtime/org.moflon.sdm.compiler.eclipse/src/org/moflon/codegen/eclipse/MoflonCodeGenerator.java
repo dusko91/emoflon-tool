@@ -20,10 +20,10 @@ import org.eclipse.emf.common.util.BasicMonitor;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
+import org.gervarro.eclipse.task.ITask;
 import org.moflon.codegen.CodeGenerator;
 import org.moflon.codegen.MethodBodyHandler;
 import org.moflon.core.utilities.WorkspaceHelper;
-import org.moflon.eclipse.job.IMonitoredJob;
 import org.moflon.moca.inject.CodeInjector;
 import org.moflon.moca.inject.CodeInjectorImpl;
 import org.moflon.moca.inject.InjectionManager;
@@ -86,7 +86,7 @@ public class MoflonCodeGenerator extends GenericMoflonProcess
          }
 
          // (2) Validate metamodel (including SDMs)
-         final IMonitoredJob validator = methodBodyHandler.createValidator(ePackage);
+         final ITask validator = methodBodyHandler.createValidator(ePackage);
          // final IStatus validatorStatus = validator.run(WorkspaceHelper.createSubMonitor(monitor, 10));
          final WorkspaceJob validationJob = new WorkspaceJob(engineID) {
             @Override
@@ -153,7 +153,7 @@ public class MoflonCodeGenerator extends GenericMoflonProcess
 
          // (5) Process GenModel
          monitor.subTask("Processing SDMs for project " + project.getName());
-         final IMonitoredJob genModelProcessor = methodBodyHandler.createGenModelProcessor(this, resource);
+         final ITask genModelProcessor = methodBodyHandler.createGenModelProcessor(this, resource);
          final IStatus genModelProcessorStatus = genModelProcessor.run(WorkspaceHelper.createSubMonitor(monitor, 35));
          if (monitor.isCanceled())
          {
