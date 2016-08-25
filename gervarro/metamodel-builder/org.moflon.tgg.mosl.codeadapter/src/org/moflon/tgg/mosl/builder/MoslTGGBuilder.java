@@ -84,6 +84,7 @@ public class MoslTGGBuilder extends AbstractVisitorBuilder {
 
 	}
 
+   // Hack related to Issue #781 (see https://github.com/eMoflon/emoflon-issues/issues/781) (rkluge)
 	private final void removeXtextMarkers() {
 		try {
 			getProject().deleteMarkers(org.eclipse.xtext.ui.MarkerTypes.FAST_VALIDATION, true, IResource.DEPTH_INFINITE);
