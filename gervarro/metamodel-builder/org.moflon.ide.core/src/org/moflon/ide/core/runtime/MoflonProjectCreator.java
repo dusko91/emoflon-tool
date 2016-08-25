@@ -9,6 +9,8 @@ import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -64,14 +66,28 @@ public class MoflonProjectCreator extends WorkspaceTask implements ProjectConfig
 
          // (1) Create project
          final IProjectDescription description = ResourcesPlugin.getWorkspace().newProjectDescription(projectName);
-         workspaceProject.create(description, subMon.newChild(1));
-         workspaceProject.open(subMon.newChild(1));
+         workspaceProject.create(description, IWorkspace.AVOID_UPDATE, subMon.newChild(1));
+         workspaceProject.open(IWorkspace.AVOID_UPDATE, subMon.newChild(1));
 
-         // (2) Create folders and files in project
+         // (2) Configure natures and builders (.project file)
+         final JavaProjectConfigurator javaProjectConfigurator = new JavaProjectConfigurator();
+         final MoflonProjectConfigurator moflonProjectConfigurator = new MoflonProjectConfigurator(
+               MetamodelProperties.INTEGRATION_KEY.equals(metamodelProperties.getType()));
+         final PluginProjectConfigurator pluginProjectConfigurator = new PluginProjectConfigurator();
+         final ProjectNatureAndBuilderConfiguratorTask natureAndBuilderConfiguratorTask = new ProjectNatureAndBuilderConfiguratorTask(workspaceProject, false);
+         natureAndBuilderConfiguratorTask.updateNatureIDs(moflonProjectConfigurator, true);
+         natureAndBuilderConfiguratorTask.updateNatureIDs(javaProjectConfigurator, true);
+         natureAndBuilderConfiguratorTask.updateBuildSpecs(javaProjectConfigurator, true);
+         natureAndBuilderConfiguratorTask.updateBuildSpecs(moflonProjectConfigurator, true);
+         natureAndBuilderConfiguratorTask.updateNatureIDs(pluginProjectConfigurator, true);
+         natureAndBuilderConfiguratorTask.updateBuildSpecs(pluginProjectConfigurator, true);
+         WorkspaceTask.execute(natureAndBuilderConfiguratorTask, false);
+
+         // (3) Create folders and files in project
          createFoldersIfNecessary(workspaceProject, subMon.newChild(4));
          addGitIgnoreFiles(workspaceProject, subMon.newChild(2));
 
-         // (3) Create MANIFEST.MF file
+         // (4) Create MANIFEST.MF file
          try
          {
             logger.debug("Adding MANIFEST.MF");
@@ -95,23 +111,9 @@ public class MoflonProjectCreator extends WorkspaceTask implements ProjectConfig
             LogUtils.error(logger, e);
          }
 
-         // (4) Create build.properties file
+         // (5) Create build.properties file
          logger.debug("Adding build.properties");
          new BuildPropertiesFileBuilder().createBuildProperties(workspaceProject, subMon.newChild(1));
-
-         // (5) Configure natures and builders (.project file)
-         final JavaProjectConfigurator javaProjectConfigurator = new JavaProjectConfigurator();
-         final MoflonProjectConfigurator moflonProjectConfigurator = new MoflonProjectConfigurator(
-               MetamodelProperties.INTEGRATION_KEY.equals(metamodelProperties.getType()));
-         final PluginProjectConfigurator pluginProjectConfigurator = new PluginProjectConfigurator();
-         final ProjectNatureAndBuilderConfiguratorTask natureAndBuilderConfiguratorTask = new ProjectNatureAndBuilderConfiguratorTask(workspaceProject, false);
-         natureAndBuilderConfiguratorTask.updateNatureIDs(javaProjectConfigurator, true);
-         natureAndBuilderConfiguratorTask.updateBuildSpecs(javaProjectConfigurator, true);
-         natureAndBuilderConfiguratorTask.updateNatureIDs(moflonProjectConfigurator, true);
-         natureAndBuilderConfiguratorTask.updateBuildSpecs(moflonProjectConfigurator, true);
-         natureAndBuilderConfiguratorTask.updateNatureIDs(pluginProjectConfigurator, true);
-         natureAndBuilderConfiguratorTask.updateBuildSpecs(pluginProjectConfigurator, true);
-         WorkspaceTask.execute(natureAndBuilderConfiguratorTask, false);
 
          // (6) Configure Java settings (.classpath file)
          final IJavaProject javaProject = JavaCore.create(workspaceProject);
