@@ -1214,4 +1214,6 @@ public class WorkspaceHelper
       t.printStackTrace(new PrintStream(stream));
       return new String(stream.toByteArray());
    }
+
+   public static final String MOSL_TGG_NATURE = "org.moflon.tgg.mosl.codeadapter.moslTGGNature";
 }
