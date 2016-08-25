@@ -94,6 +94,8 @@ public class WorkspaceHelper
    public static final String INSTANCES_FOLDER = "instances";
 
    public static final String GEN_MODEL_EXT = ".genmodel";
+   
+   public static final String MOSL_TGG_NATURE = "org.moflon.tgg.mosl.codeadapter.moslTGGNature";
 
    public static final String REPOSITORY_NATURE_ID = "org.moflon.ide.core.runtime.natures.RepositoryNature";
 
@@ -126,6 +128,8 @@ public class WorkspaceHelper
    public final static String MOFLON_PROBLEM_MARKER_ID = "org.moflon.ide.marker.MOFLONProblem";
 
    public static final String INJECTION_PROBLEM_MARKER_ID = "org.moflon.ide.marker.InjectionProblem";
+   
+   public static final String KEEP_EMPTY_FOLDER_FILE_NAME_FOR_GIT = ".keep";
 
    /**
     * Checks if given name is a valid name for a new project in the current workspace.
@@ -1215,5 +1219,19 @@ public class WorkspaceHelper
       return new String(stream.toByteArray());
    }
 
-   public static final String MOSL_TGG_NATURE = "org.moflon.tgg.mosl.codeadapter.moslTGGNature";
+   public static void createKeepFolderFile(final IFolder folder, final IProgressMonitor monitor)
+   {
+      try
+      {
+         final SubMonitor subMon = SubMonitor.convert(monitor, "Creating " + KEEP_EMPTY_FOLDER_FILE_NAME_FOR_GIT, 1);
+         final IFile keepFile = folder.getFile(KEEP_EMPTY_FOLDER_FILE_NAME_FOR_GIT);
+         if (!keepFile.exists())
+         {
+            keepFile.create(new ByteArrayInputStream(new String("Dummy file to protect empty repository in Git.\n").getBytes()), true, subMon.newChild(1));
+         }
+      } catch (CoreException e)
+      {
+         LogUtils.warn(logger, "Error during creation of file %s in folder %s .", KEEP_EMPTY_FOLDER_FILE_NAME_FOR_GIT, folder);
+      }
+   }
 }

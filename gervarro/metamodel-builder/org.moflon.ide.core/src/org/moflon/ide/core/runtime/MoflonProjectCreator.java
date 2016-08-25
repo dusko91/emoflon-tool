@@ -7,9 +7,9 @@ import java.util.Arrays;
 import org.apache.log4j.Logger;
 import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -160,10 +160,12 @@ public class MoflonProjectCreator extends WorkspaceTask implements ProjectConfig
 
    public static void createFoldersIfNecessary(final IProject project, final IProgressMonitor monitor) throws CoreException
    {
-      final SubMonitor subMon = SubMonitor.convert(monitor, "Creating folders within project", 7);
+      final SubMonitor subMon = SubMonitor.convert(monitor, "Creating folders within project", 8);
       WorkspaceHelper.createFolderIfNotExists(project.getFolder("src"), subMon.newChild(1));
       WorkspaceHelper.createFolderIfNotExists(project.getFolder("bin"), subMon.newChild(1));
-      WorkspaceHelper.createFolderIfNotExists(project.getFolder(WorkspaceHelper.GEN_FOLDER), subMon.newChild(1));
+      final IFolder genFolder = project.getFolder(WorkspaceHelper.GEN_FOLDER);
+      WorkspaceHelper.createFolderIfNotExists(genFolder, subMon.newChild(1));
+      WorkspaceHelper.createKeepFolderFile(genFolder, subMon.newChild(1));
       WorkspaceHelper.createFolderIfNotExists(project.getFolder(WorkspaceHelper.LIB_FOLDER), subMon.newChild(1));
       WorkspaceHelper.createFolderIfNotExists(project.getFolder(WorkspaceHelper.MODEL_FOLDER), subMon.newChild(1));
       WorkspaceHelper.createFolderIfNotExists(project.getFolder(WorkspaceHelper.INSTANCES_FOLDER), subMon.newChild(1));

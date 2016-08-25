@@ -50,7 +50,7 @@ public class RepositoryBuilder extends AbstractVisitorBuilder {
 		if (isEcoreFile(ecoreResource)) {
 			final IFile ecoreFile = Platform.getAdapterManager().getAdapter(ecoreResource, IFile.class);
 			try {
-				final SubMonitor subMon = SubMonitor.convert(monitor, "Generating code for project " + getProject().getName(), 9);
+				final SubMonitor subMon = SubMonitor.convert(monitor, "Generating code for project " + getProject().getName(), 10);
 
 				// Compute project dependencies
 				final IBuildConfiguration[] referencedBuildConfigs = getProject().getReferencedBuildConfigs(
@@ -83,6 +83,9 @@ public class RepositoryBuilder extends AbstractVisitorBuilder {
 					PluginXmlUpdater.updatePluginXml(getProject(), genModel, subMon.newChild(1));
 					ResourcesPlugin.getWorkspace().checkpoint(false);
 				}
+				
+				recreateGitKeepFile(subMon.newChild(1));
+				
 			} catch (final CoreException e) {
 				final IStatus status = new Status(e.getStatus().getSeverity(), CoreActivator.getModuleID(), e.getMessage(), e);
 				handleErrorsInEclipse(status, ecoreFile);
@@ -90,7 +93,12 @@ public class RepositoryBuilder extends AbstractVisitorBuilder {
 		}
 	}
 
-	protected boolean isEcoreFile(final IResource ecoreResource) {
+	private void recreateGitKeepFile(IProgressMonitor monitor)
+   {
+      WorkspaceHelper.createKeepFolderFile(getProject().getFolder(WorkspaceHelper.GEN_FOLDER), monitor);
+   }
+
+   protected boolean isEcoreFile(final IResource ecoreResource) {
 		return ecoreResource.getType() == IResource.FILE && "ecore".equals(ecoreResource.getFileExtension());
 	}
 
