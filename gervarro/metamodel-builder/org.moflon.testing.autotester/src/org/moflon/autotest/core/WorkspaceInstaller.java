@@ -344,8 +344,9 @@ public class WorkspaceInstaller
 						   prepareIncrementalProjectBuilderJob(jobs, textualMoflonProjects);
 					   } else
 					   {
-						   // Building projects with graphical syntax (with workspace lock)
+						   // Building projects (with workspace lock)
 						   prepareIncrementalProjectBuilderJob(jobs, graphicalMoflonProjects);
+						   prepareIncrementalProjectBuilderJob(jobs, textualMoflonProjects);
 					   }
 				   } catch (final CoreException e)
 				   {
