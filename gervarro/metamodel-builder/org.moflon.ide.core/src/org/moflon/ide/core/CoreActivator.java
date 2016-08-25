@@ -1,6 +1,7 @@
 package org.moflon.ide.core;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -253,25 +254,32 @@ public class CoreActivator extends EMoflonPlugin
 		return result.toArray(new IProject[result.size()]);
 	}
 	
+	
 	public static final IProject[] getProjectsWithTextualSyntax(final IProject[] projects) {
-		final List<IProject> result = new ArrayList<IProject>(projects.length);
+		final List<IProject> result = getProjectsWithTextualSyntax(Arrays.asList(projects));
+		return result.toArray(new IProject[result.size()]);
+	}
+
+   public static List<IProject> getProjectsWithTextualSyntax(final List<IProject> projects)
+   {
+      final List<IProject> result = new ArrayList<IProject>(projects.size());
 		for (final IProject project : projects) {
 			try {
-				if (project.isAccessible() && project.hasNature("org.moflon.tgg.mosl.codeadapter.moslTGGNature")) {
+				if (project.isAccessible() && project.hasNature(WorkspaceHelper.MOSL_TGG_NATURE)) {
 					result.add(project);
 				}
 			} catch (CoreException e) {
 				// Do nothing: Skip erroneous projects
 			}
 		}
-		return result.toArray(new IProject[result.size()]);
-	}
+      return result;
+   }
 	
 	public static final IProject[] getProjectsWithGraphicalSyntax(final IProject[] projects) {
 		final List<IProject> result = new ArrayList<IProject>(projects.length);
 		for (final IProject project : projects) {
 			try {
-				if (project.isAccessible() && !project.hasNature("org.moflon.tgg.mosl.codeadapter.moslTGGNature")) {
+				if (project.isAccessible() && !project.hasNature(WorkspaceHelper.MOSL_TGG_NATURE)) {
 					result.add(project);
 				}
 			} catch (CoreException e) {
