@@ -1,4 +1,4 @@
-package org.moflon.autotest.core;
+package org.moflon.ide.core.tasks;
 
 import org.eclipse.core.resources.IBuildConfiguration;
 import org.eclipse.core.resources.IncrementalProjectBuilder;

@@ -114,7 +114,6 @@ public class IntegrationCodeGenerator extends RepositoryCodeGenerator
 
          boolean success = super.generateCode(WorkspaceHelper.createSubMonitor(monitor, 100));
 
-         CoreActivator.getDefault().setDirty(project, false);
          removeObsoleteErrorMarkers();
 
          return success;

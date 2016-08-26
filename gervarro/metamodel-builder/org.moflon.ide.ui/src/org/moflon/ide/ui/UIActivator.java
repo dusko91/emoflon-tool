@@ -9,6 +9,7 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
+import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -16,6 +17,7 @@ import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IResourceDeltaVisitor;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.resources.WorkspaceJob;
 import org.eclipse.core.runtime.CoreException;
@@ -24,6 +26,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -39,9 +42,8 @@ import org.moflon.core.utilities.LogUtils;
 import org.moflon.core.utilities.MoflonUtilitiesActivator;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.ide.core.CoreActivator;
-import org.moflon.ide.core.DirtyProjectListener;
 import org.moflon.ide.ui.console.MoflonConsole;
-import org.moflon.ide.ui.decorators.MoflonDirtyProjectDecorator;
+import org.moflon.ide.ui.decorators.MoflonProjectDecorator;
 import org.osgi.framework.BundleContext;
 
 /**
@@ -97,20 +99,16 @@ public class UIActivator extends AbstractUIPlugin
       plugin = this;
       bundleId = context.getBundle().getSymbolicName();
 
-      // CoreActivator.getDefault().reconfigureLogging();
-
-      // Configure logging for eMoflon
       setUpLogging();
 
-      registerListenerForDirtyMetamodelProjects();
+      registerDecoratorListeners();
       registerListenerForMetaModelProjectRenaming();
    }
 
    /**
-    * Registers a listener that is triggered when the EAP file in a metamodel project is becoming more recent than its
-    * generated Moca tree.
+    * Registers a listener that identifies EAP projects that are outdated
     */
-   private void registerListenerForDirtyMetamodelProjects()
+   private void registerDecoratorListeners()
    {
       ResourcesPlugin.getWorkspace().addResourceChangeListener(new IResourceChangeListener() {
 
@@ -124,36 +122,81 @@ public class UIActivator extends AbstractUIPlugin
                   @Override
                   public boolean visit(final IResourceDelta delta) throws CoreException
                   {
-                     IResource eapFile = delta.getResource();
-                     if (eapFile.getName().endsWith(".eap"))
+                     IResource resource = delta.getResource();
+                     if (resource instanceof IProject)
                      {
-                        final IProject project = eapFile.getProject();
-                        final MoflonDirtyProjectDecorator decorator = (MoflonDirtyProjectDecorator) PlatformUI.getWorkbench().getDecoratorManager()
-                              .getBaseLabelProvider(MoflonDirtyProjectDecorator.DECORATOR_ID);
-                        IFile xmiTree = WorkspaceHelper.getExportedMocaTree(project);
-                        final boolean needsRebuild;
-                        final long outdatedXmiTreeToleranceInMillis = 5000;
-                        if (!xmiTree.exists() || xmiTree.exists() && xmiTree.getLocalTimeStamp() + outdatedXmiTreeToleranceInMillis  < eapFile.getLocalTimeStamp())
+                        final IProject project = (IProject) resource;
+                        if (WorkspaceHelper.isMetamodelProjectNoThrow(project))
                         {
-                           needsRebuild = true;
-                        } else
-                        {
-                           needsRebuild = false;
+                           final IFile eapFile = WorkspaceHelper.getEapFileFromMetamodelProject(project);
+                           final IFile xmiTree = WorkspaceHelper.getExportedMocaTree(project);
+                           // EA writes to an EAP file immediately after exporting it.
+                           // Without this timeout, 'needRebuild' would always be true.
+                           final long outdatedXmiTreeToleranceInMillis = 5000;
+                           final boolean needsRebuild = !xmiTree.exists()
+                                 || (xmiTree.exists() && xmiTree.getLocalTimeStamp() + outdatedXmiTreeToleranceInMillis < eapFile.getLocalTimeStamp());
+
+                           Display.getDefault().asyncExec(new Runnable() {
+                              @Override
+                              public void run()
+                              {
+                                 final MoflonProjectDecorator decorator = (MoflonProjectDecorator) PlatformUI.getWorkbench().getDecoratorManager()
+                                       .getBaseLabelProvider(MoflonProjectDecorator.DECORATOR_ID);
+                                 decorator.setMetamodelProjectRequiresRebuild(project, needsRebuild);
+                              }
+                           });
                         }
-                        
-                        Display.getDefault().asyncExec(new Runnable() {
-                           @Override
-                           public void run()
-                           {
-                              decorator.setMetamodelProjectRequiresRebuild(project, needsRebuild);
-                           }
-                        });
-                        
+
                         return false;
                      } else
                      {
                         return true;
                      }
+                  }
+               });
+
+               event.getDelta().accept(new IResourceDeltaVisitor() {
+
+                  @Override
+                  public boolean visit(IResourceDelta delta) throws CoreException
+                  {
+                     final IResource resource = delta.getResource();
+                     final IProject project;
+                     if (resource instanceof IProject)
+                     {
+                        project = (IProject) resource;
+                     } else if (resource instanceof IJavaProject)
+                     {
+                        project = ((IJavaProject) resource).getProject();
+                     } else
+                     {
+                        project = null;
+                     }
+
+                     if (project != null)
+                     {
+                        ICommand[] buildSpec = project.getDescription().getBuildSpec();
+                        for (final ICommand builder : buildSpec)
+                        {
+                           if (CoreActivator.INTEGRATION_BUILDER_ID.equals(builder.getBuilderName()))
+                           {
+                              boolean autobuildEnabled = builder.isBuilding(IncrementalProjectBuilder.AUTO_BUILD);
+                              Display.getDefault().asyncExec(new Runnable() {
+                                 @Override
+                                 public void run()
+                                 {
+                                    final MoflonProjectDecorator decorator = (MoflonProjectDecorator) PlatformUI.getWorkbench().getDecoratorManager()
+                                          .getBaseLabelProvider(MoflonProjectDecorator.DECORATOR_ID);
+                                    decorator.setAutobuildEnabled(project, autobuildEnabled);
+                                 }
+                              });
+                           }
+                        }
+
+                        return false;
+                     }
+
+                     return true;
                   }
                });
             } catch (CoreException e)

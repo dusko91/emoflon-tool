@@ -2,9 +2,8 @@ package org.moflon.ide.core;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.eclipse.core.resources.IBuildConfiguration;
@@ -30,6 +29,7 @@ import org.moflon.core.utilities.EMoflonPlugin;
 import org.moflon.core.utilities.MoflonUtil;
 import org.moflon.core.utilities.UncheckedCoreException;
 import org.moflon.core.utilities.WorkspaceHelper;
+import org.moflon.ide.core.runtime.builders.IntegrationBuilder;
 import org.osgi.framework.BundleContext;
 
 /**
@@ -69,10 +69,6 @@ public class CoreActivator extends EMoflonPlugin
 
    public static final String JAVA_WORKING_SET_ID = "org.eclipse.jdt.ui.JavaWorkingSetPage";
 
-   private Map<String, Boolean> isDirty = new HashMap<>();
-
-   private List<DirtyProjectListener> dirtyProjectListeners;
-   
    private NatureMigrator natureMigrator;
 
    public static CoreActivator getDefault() {
@@ -97,8 +93,6 @@ public class CoreActivator extends EMoflonPlugin
    {
       super.start(context);
 
-      dirtyProjectListeners = new ArrayList<>();
-
       natureMigrator = new NatureMigrator();
       WorkspaceTask.execute(new WorkspaceObservationLifecycleManager(
     		  ResourcesPlugin.getWorkspace(), natureMigrator, true), false);
@@ -109,7 +103,6 @@ public class CoreActivator extends EMoflonPlugin
    {
 	   WorkspaceTask.execute(new WorkspaceObservationLifecycleManager(
 			   ResourcesPlugin.getWorkspace(), natureMigrator, false), false);
-      dirtyProjectListeners = null;
       super.stop(context);
    }
 
@@ -125,38 +118,6 @@ public class CoreActivator extends EMoflonPlugin
    public IPath getPathInStateLocation(final String filename)
    {
       return getStateLocation().append(filename);
-   }
-
-   // TODO@rkluge: Fix the 'dirty project' framework
-   public boolean isDirty(final IProject project)
-   {
-      return project != null && isDirty(project.getName());
-   }
-
-   public boolean isDirty(final String projectName)
-   {
-      return isDirty.containsKey(projectName) ? isDirty.get(projectName) : false;
-   }
-
-   /**
-    * Sets the projects dirty state.
-    * 
-    * A repository project is dirty if its corresponding metamodel project has been built recently so that new code
-    * needs to be generated for this project. A metamodel project is dirty if its EAP file is newer than the generated
-    * Moca tree (.temp/<project-name>.moca.xmi)
-    * 
-    * @param project
-    * @param isDirty
-    */
-   public void setDirty(final IProject project, final boolean isDirty)
-   {
-      this.isDirty.put(project.getName(), isDirty);
-      this.dirtyProjectListeners.forEach(l -> l.dirtyStateChanged(project, isDirty));
-   }
-
-   public void registerDirtyProjectListener(final DirtyProjectListener listener)
-   {
-      this.dirtyProjectListeners.add(listener);
    }
 
    /**
@@ -289,17 +250,22 @@ public class CoreActivator extends EMoflonPlugin
 		return result.toArray(new IProject[result.size()]);
 	}
 	
+	public static final IBuildConfiguration[] getDefaultBuildConfigurations(final Collection<IProject> projects) {
+	   final List<IBuildConfiguration> result =
+            new ArrayList<IBuildConfiguration>(projects.size());
+      for (IProject project : projects) {
+         try {
+            result.add(project.getBuildConfig(IBuildConfiguration.DEFAULT_CONFIG_NAME));
+         } catch (final CoreException e) {
+            // Do nothing (i.e., ignore erroneous projects)
+         }
+      }
+      return result.toArray(new IBuildConfiguration[result.size()]);
+	}
+	
 	public static final IBuildConfiguration[] getDefaultBuildConfigurations(final IProject[] projects) {
-		final List<IBuildConfiguration> result =
-				new ArrayList<IBuildConfiguration>(projects.length);
-		for (int i = 0; i < projects.length; i++) {
-			try {
-				result.add(projects[i].getBuildConfig(IBuildConfiguration.DEFAULT_CONFIG_NAME));
-			} catch (final CoreException e) {
-				// Do nothing (i.e., ignore erroneous projects)
-			}
-		}
-		return result.toArray(new IBuildConfiguration[result.size()]);
+	   return getDefaultBuildConfigurations(Arrays.asList(projects));
+		
 	}
 	
 	public static final void checkCancellation(final IProgressMonitor monitor) {
@@ -307,4 +273,16 @@ public class CoreActivator extends EMoflonPlugin
 			throw new OperationCanceledException();
 		}
 	}
+
+   public static String mapBuildKindToName(int buildType)
+   {
+      switch(buildType)
+      {
+      case IntegrationBuilder.AUTO_BUILD: return "auto";
+      case IntegrationBuilder.FULL_BUILD: return "full";
+      case IntegrationBuilder.CLEAN_BUILD: return "clean";
+      case IntegrationBuilder.INCREMENTAL_BUILD: return "incremental";
+      default: return "Unknown build type: " + buildType;
+      }
+   }
 }

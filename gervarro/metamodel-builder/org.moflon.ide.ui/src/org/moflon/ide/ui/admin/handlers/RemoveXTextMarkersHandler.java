@@ -9,7 +9,7 @@ import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jdt.internal.core.JavaProject;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.StructuredSelection;
@@ -31,9 +31,9 @@ public class RemoveXTextMarkersHandler extends AbstractCommandHandler
             Object element = selectionIterator.next();
             if (element instanceof IResource) {
                resources.add((IResource) element);
-            } else if (element instanceof JavaProject)
+            } else if (element instanceof IJavaProject)
             {
-               resources.add(((JavaProject)element).getProject());
+               resources.add(((IJavaProject)element).getProject());
             }
          }
       } else if (selection instanceof ITextSelection)

@@ -92,9 +92,6 @@ public class RepositoryCodeGenerator
          ecoreFile.getProject().refreshLocal(IResource.DEPTH_INFINITE, WorkspaceHelper.createSubmonitorWith1Tick(monitor));
 
          CoreActivator.addMappingForProject(project);
-
-         CoreActivator.getDefault().setDirty(project, false);
-
       } finally
       {
          monitor.done();

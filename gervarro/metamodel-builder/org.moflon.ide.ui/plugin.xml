@@ -300,10 +300,10 @@
             lightweight="true"
             adaptable="true"
             label="%Decorator_name"
-            class="org.moflon.ide.ui.decorators.MoflonDirtyProjectDecorator"
+            class="org.moflon.ide.ui.decorators.MoflonProjectDecorator"
             state="true"
             location="BOTTOM_RIGHT"
-            id="org.moflon.ide.ui.decorators.MoflonDirtyProjectDecorator">
+            id="org.moflon.ide.ui.decorators.MoflonProjectDecorator">
             <enablement>
             	<and>
                 <objectClass
