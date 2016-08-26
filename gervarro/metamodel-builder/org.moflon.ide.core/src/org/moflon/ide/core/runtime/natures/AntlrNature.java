@@ -1,21 +1,12 @@
 package org.moflon.ide.core.runtime.natures;
 
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
 
 import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.Path;
-import org.eclipse.jdt.core.IClasspathAttribute;
-import org.eclipse.jdt.core.IClasspathEntry;
-import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.gervarro.eclipse.workspace.util.ProjectUtil;
-import org.moflon.core.utilities.AntlrUtil;
-import org.moflon.core.utilities.MoflonUtilitiesActivator;
 import org.moflon.ide.core.CoreActivator;
 
 public class AntlrNature extends ProjectConfiguratorNature {
@@ -64,16 +55,17 @@ public class AntlrNature extends ProjectConfiguratorNature {
 		return natureIDs;
 	}
 
-	@Override
-	public void configure() throws CoreException {
-		super.configure();
-
-		IJavaProject javaProject = JavaCore.create(getProject());
-		Collection<IClasspathEntry> classpathEntries = new HashSet<IClasspathEntry>();
-		classpathEntries.addAll(Arrays.asList(javaProject.getRawClasspath()));
-		IPath antlrPath = new Path(AntlrUtil.getAntrlPathUrl().toExternalForm().substring(5));
-		classpathEntries.add(JavaCore.newLibraryEntry(antlrPath, null, null, null,
-				new IClasspathAttribute[] { JavaCore.newClasspathAttribute("plugin_id", MoflonUtilitiesActivator.getDefault().getPluginId()) }, true));
-		javaProject.setRawClasspath(classpathEntries.toArray(new IClasspathEntry[] {}), null);
-	}
+	// TODO@rkluge: Remove in a future release
+//	@Override
+//	public void configure() throws CoreException {
+//		super.configure();
+//
+//		IJavaProject javaProject = JavaCore.create(getProject());
+//		Collection<IClasspathEntry> classpathEntries = new HashSet<IClasspathEntry>();
+//		classpathEntries.addAll(Arrays.asList(javaProject.getRawClasspath()));
+//		IPath antlrPath = new Path(AntlrUtil.getAntrlPathUrl().toExternalForm().substring(5));
+//		classpathEntries.add(JavaCore.newLibraryEntry(antlrPath, null, null, null,
+//				new IClasspathAttribute[] { JavaCore.newClasspathAttribute("plugin_id", MoflonUtilitiesActivator.getDefault().getPluginId()) }, true));
+//		javaProject.setRawClasspath(classpathEntries.toArray(new IClasspathEntry[] {}), null);
+//	}
 }
