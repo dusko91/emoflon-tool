@@ -5,7 +5,6 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.apache.log4j.Logger;
-import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -70,13 +69,13 @@ public class MoslTGGBuilder extends AbstractVisitorBuilder {
 					throw new OperationCanceledException();
 				}
 				if (!projectDependencyAnalyzerStatus.isOK()) {
-					processProblemStatus(projectDependencyAnalyzerStatus, ((IFolder) resource).getFile("Schema.tgg"));
+					processProblemStatus(projectDependencyAnalyzerStatus, resource);
 					return;
 				}
 			} else {
 				processProblemStatus(new Status(IStatus.ERROR, CoreActivator.getModuleID(),
 						"Unable to construct the correspondence metamodel from the Xtext specification", null),
-						((IFolder) resource).getFile("Schema.tgg"));
+				      resource);
 			}
 		} catch (CoreException e) {
 			LogUtils.error(logger, e, "Unable to update created projects: " + e.getMessage());
