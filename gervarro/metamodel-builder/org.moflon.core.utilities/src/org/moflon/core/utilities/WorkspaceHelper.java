@@ -340,7 +340,10 @@ public class WorkspaceHelper
     * @param monitor
     *           a progress monitor, or null if progress reporting is not desired
     * @throws JavaModelException
+    * 
+    * @deprecated Each time this method is used, the whole project is manipulated which may cause unnecessary events
     */
+   @Deprecated
    public static void setAsSourceFolderInBuildpath(final IJavaProject javaProject, final IFolder[] folderNames, final IClasspathAttribute[] extraAttributes,
          final IProgressMonitor monitor) throws JavaModelException
    {
