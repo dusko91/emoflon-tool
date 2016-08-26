@@ -93,9 +93,10 @@ public class RepositoryBuilder extends AbstractVisitorBuilder {
 		}
 	}
 
-	private void recreateGitKeepFile(IProgressMonitor monitor)
+	private void recreateGitKeepFile(final IProgressMonitor monitor)
    {
       WorkspaceHelper.createKeepFolderFile(getProject().getFolder(WorkspaceHelper.GEN_FOLDER), monitor);
+      WorkspaceHelper.createKeepFolderFile(getProject().getFolder(WorkspaceHelper.MODEL_FOLDER), monitor);
    }
 
    protected boolean isEcoreFile(final IResource ecoreResource) {
