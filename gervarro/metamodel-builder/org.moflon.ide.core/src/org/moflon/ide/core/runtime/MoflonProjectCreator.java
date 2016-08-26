@@ -167,7 +167,9 @@ public class MoflonProjectCreator extends WorkspaceTask implements ProjectConfig
       WorkspaceHelper.createFolderIfNotExists(genFolder, subMon.newChild(1));
       WorkspaceHelper.createKeepFolderFile(genFolder, subMon.newChild(1));
       WorkspaceHelper.createFolderIfNotExists(project.getFolder(WorkspaceHelper.LIB_FOLDER), subMon.newChild(1));
-      WorkspaceHelper.createFolderIfNotExists(project.getFolder(WorkspaceHelper.MODEL_FOLDER), subMon.newChild(1));
+      final IFolder modelFolder = project.getFolder(WorkspaceHelper.MODEL_FOLDER);
+      WorkspaceHelper.createFolderIfNotExists(modelFolder, subMon.newChild(1));
+      WorkspaceHelper.createKeepFolderFile(modelFolder, subMon.newChild(1));
       WorkspaceHelper.createFolderIfNotExists(project.getFolder(WorkspaceHelper.INSTANCES_FOLDER), subMon.newChild(1));
       WorkspaceHelper.createFolderIfNotExists(project.getFolder(WorkspaceHelper.INJECTION_FOLDER), subMon.newChild(1));
    }
