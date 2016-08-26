@@ -24,9 +24,15 @@ public class MoflonProjectConfigurator extends ProjectConfiguratorNature {
 	@Override
 	public String[] updateNatureIDs(String[] natureIDs, final boolean added) throws CoreException {
 		if (added) {
-			if (ProjectUtil.indexOf(natureIDs, natureID) < 0) {
-				natureIDs = Arrays.copyOf(natureIDs, natureIDs.length + 1);
-				natureIDs[natureIDs.length-1] = natureID;
+			final int moflonNaturePosition = ProjectUtil.indexOf(natureIDs, natureID);
+			if (moflonNaturePosition < 0) {
+				final String[] oldNatureIDs = natureIDs;
+				natureIDs = new String[oldNatureIDs.length + 1];
+				System.arraycopy(oldNatureIDs, 0, natureIDs, 1, oldNatureIDs.length);
+				natureIDs[0] = natureID;
+			} else if (moflonNaturePosition > 0) {
+				System.arraycopy(natureIDs, 0, natureIDs, 1, moflonNaturePosition);
+				natureIDs[0] = natureID;
 			}
 		} else {
 			int naturePosition = ProjectUtil.indexOf(natureIDs, natureID);
@@ -49,7 +55,7 @@ public class MoflonProjectConfigurator extends ProjectConfiguratorNature {
 				moflonBuilderPosition = buildSpecs.length - 1;
 				buildSpecs[moflonBuilderPosition] = moflonBuilder;
 			} 
-			if (javaBuilderPosition < moflonBuilderPosition) {
+			if (javaBuilderPosition >= 0 && javaBuilderPosition < moflonBuilderPosition) {
 				final ICommand moflonBuilder = buildSpecs[moflonBuilderPosition];
 				System.arraycopy(buildSpecs, javaBuilderPosition, buildSpecs, javaBuilderPosition+1, moflonBuilderPosition-javaBuilderPosition);
 				moflonBuilderPosition = javaBuilderPosition++;

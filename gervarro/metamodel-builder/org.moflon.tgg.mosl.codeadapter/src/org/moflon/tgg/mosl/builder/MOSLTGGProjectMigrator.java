@@ -8,6 +8,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.gervarro.eclipse.workspace.autosetup.ProjectConfigurator;
 import org.gervarro.eclipse.workspace.util.ProjectStateObserver;
 import org.gervarro.eclipse.workspace.util.WorkspaceTask;
+import org.moflon.ide.core.NatureMigrator;
 import org.moflon.ide.core.runtime.ProjectNatureAndBuilderConfiguratorTask;
 
 // TODO@rkluge Disable later
@@ -18,6 +19,9 @@ public class MOSLTGGProjectMigrator extends ProjectStateObserver implements Proj
 			try {
 				final ProjectNatureAndBuilderConfiguratorTask task =
 						new ProjectNatureAndBuilderConfiguratorTask((IProject) resource, false);
+				final NatureMigrator natureMigrator = new NatureMigrator();
+				task.updateNatureIDs(natureMigrator, added);
+				task.updateBuildSpecs(natureMigrator, added);
 				task.updateBuildSpecs(this, added);
 				WorkspaceTask.execute(task, false);
 			} catch (CoreException e) {
