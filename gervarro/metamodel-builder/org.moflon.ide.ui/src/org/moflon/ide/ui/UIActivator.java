@@ -102,8 +102,6 @@ public class UIActivator extends AbstractUIPlugin
       // Configure logging for eMoflon
       setUpLogging();
 
-      registerDirtyStateChangedListener();
-      // labelDirtyMetamodelProjects();
       registerListenerForDirtyMetamodelProjects();
       registerListenerForMetaModelProjectRenaming();
    }
@@ -129,11 +127,28 @@ public class UIActivator extends AbstractUIPlugin
                      IResource eapFile = delta.getResource();
                      if (eapFile.getName().endsWith(".eap"))
                      {
-                        IFile xmiTree = WorkspaceHelper.getExportedMocaTree(eapFile.getProject());
-                        if (xmiTree.exists() && xmiTree.getLocalTimeStamp() < eapFile.getLocalTimeStamp())
+                        final IProject project = eapFile.getProject();
+                        final MoflonDirtyProjectDecorator decorator = (MoflonDirtyProjectDecorator) PlatformUI.getWorkbench().getDecoratorManager()
+                              .getBaseLabelProvider(MoflonDirtyProjectDecorator.DECORATOR_ID);
+                        IFile xmiTree = WorkspaceHelper.getExportedMocaTree(project);
+                        final boolean needsRebuild;
+                        final long outdatedXmiTreeToleranceInMillis = 5000;
+                        if (!xmiTree.exists() || xmiTree.exists() && xmiTree.getLocalTimeStamp() + outdatedXmiTreeToleranceInMillis  < eapFile.getLocalTimeStamp())
                         {
-                           CoreActivator.getDefault().setDirty(eapFile.getProject(), true);
+                           needsRebuild = true;
+                        } else
+                        {
+                           needsRebuild = false;
                         }
+                        
+                        Display.getDefault().asyncExec(new Runnable() {
+                           @Override
+                           public void run()
+                           {
+                              decorator.setMetamodelProjectRequiresRebuild(project, needsRebuild);
+                           }
+                        });
+                        
                         return false;
                      } else
                      {
@@ -170,16 +185,16 @@ public class UIActivator extends AbstractUIPlugin
                {
                   final IProject oldProject;
                   final IProject newProject;
-                  if((children[0].getFlags() & IResourceDelta.MOVED_TO) != 0)
+                  if ((children[0].getFlags() & IResourceDelta.MOVED_TO) != 0)
                   {
                      oldProject = (IProject) firstResource;
                      newProject = (IProject) secondResource;
-                  }
-                  else if((children[1].getFlags() & IResourceDelta.MOVED_TO) != 0) {
+                  } else if ((children[1].getFlags() & IResourceDelta.MOVED_TO) != 0)
+                  {
                      oldProject = (IProject) secondResource;
                      newProject = (IProject) firstResource;
-                  }
-                  else {
+                  } else
+                  {
                      oldProject = null;
                      newProject = null;
                   }
@@ -291,34 +306,6 @@ public class UIActivator extends AbstractUIPlugin
          public void run()
          {
             MessageDialog.openError(null, title, message);
-         }
-      });
-   }
-
-   /**
-    * Registers a listener that is triggered, whenever the 'dirty' state of a project changes.
-    * 
-    * It triggers the {@link MoflonDirtyProjectDecorator} to update the dirty flag
-    */
-   private void registerDirtyStateChangedListener()
-   {
-      CoreActivator.getDefault().registerDirtyProjectListener(new DirtyProjectListener() {
-
-         @Override
-         public void dirtyStateChanged(final IProject project, final boolean isDirty)
-         {
-            final MoflonDirtyProjectDecorator decorator = (MoflonDirtyProjectDecorator) PlatformUI.getWorkbench().getDecoratorManager()
-                  .getBaseLabelProvider(MoflonDirtyProjectDecorator.DECORATOR_ID);
-            if (decorator != null)
-            {
-               Display.getDefault().asyncExec(new Runnable() {
-                  @Override
-                  public void run()
-                  {
-                     decorator.projectStateChanged(project);
-                  }
-               });
-            }
          }
       });
    }
