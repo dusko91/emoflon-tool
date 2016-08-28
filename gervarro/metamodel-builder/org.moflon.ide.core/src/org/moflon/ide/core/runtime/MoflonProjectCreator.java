@@ -143,17 +143,19 @@ public class MoflonProjectCreator extends WorkspaceTask implements ProjectConfig
    private static void addGitIgnoreFiles(final IProject project, final IProgressMonitor monitor) throws CoreException
    {
       final SubMonitor subMon = SubMonitor.convert(monitor, "Creating .gitignore files", 2);
-      IFile genGitIgnore = WorkspaceHelper.getGenFolder(project).getFile(".gitignore");
+      final IFile genGitIgnore = WorkspaceHelper.getGenFolder(project).getFile(".gitignore");
       if (!genGitIgnore.exists())
       {
-         genGitIgnore.create(new ByteArrayInputStream("*".getBytes()), true, subMon.newChild(1));
+         final String genFolderGitIgnoreFileContents = "*\n!.keep\n";
+         genGitIgnore.create(new ByteArrayInputStream(genFolderGitIgnoreFileContents.getBytes()), true, subMon.newChild(1));
          CoreActivator.checkCancellation(subMon);
       }
 
-      IFile modelGitIgnore = WorkspaceHelper.getModelFolder(project).getFile(".gitignore");
+      final IFile modelGitIgnore = WorkspaceHelper.getModelFolder(project).getFile(".gitignore");
       if (!modelGitIgnore.exists())
       {
-         modelGitIgnore.create(new ByteArrayInputStream("*".getBytes()), true, subMon.newChild(1));
+         final String modelFolderGitignoreFileContents = "*.ecore\n*.genmodel\n!.keep\n";
+         modelGitIgnore.create(new ByteArrayInputStream(modelFolderGitignoreFileContents.getBytes()), true, subMon.newChild(1));
          CoreActivator.checkCancellation(subMon);
       }
    }
@@ -163,11 +165,11 @@ public class MoflonProjectCreator extends WorkspaceTask implements ProjectConfig
       final SubMonitor subMon = SubMonitor.convert(monitor, "Creating folders within project", 8);
       WorkspaceHelper.createFolderIfNotExists(project.getFolder("src"), subMon.newChild(1));
       WorkspaceHelper.createFolderIfNotExists(project.getFolder("bin"), subMon.newChild(1));
-      final IFolder genFolder = project.getFolder(WorkspaceHelper.GEN_FOLDER);
+      final IFolder genFolder = WorkspaceHelper.getGenFolder(project);
       WorkspaceHelper.createFolderIfNotExists(genFolder, subMon.newChild(1));
       WorkspaceHelper.createKeepFolderFile(genFolder, subMon.newChild(1));
       WorkspaceHelper.createFolderIfNotExists(project.getFolder(WorkspaceHelper.LIB_FOLDER), subMon.newChild(1));
-      final IFolder modelFolder = project.getFolder(WorkspaceHelper.MODEL_FOLDER);
+      final IFolder modelFolder = WorkspaceHelper.getModelFolder(project);
       WorkspaceHelper.createFolderIfNotExists(modelFolder, subMon.newChild(1));
       WorkspaceHelper.createKeepFolderFile(modelFolder, subMon.newChild(1));
       WorkspaceHelper.createFolderIfNotExists(project.getFolder(WorkspaceHelper.INSTANCES_FOLDER), subMon.newChild(1));
