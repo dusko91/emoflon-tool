@@ -173,7 +173,7 @@ public class UIActivator extends AbstractUIPlugin
                         project = null;
                      }
 
-                     if (project != null)
+                     if (project != null && project.isAccessible())
                      {
                         ICommand[] buildSpec = project.getDescription().getBuildSpec();
                         for (final ICommand builder : buildSpec)
