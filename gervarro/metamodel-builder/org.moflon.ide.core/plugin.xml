@@ -84,7 +84,8 @@
          id="org.moflon.ide.core.runtime.builders.RepositoryBuilder"
          name="Repository Builder"
          point="org.eclipse.core.resources.builders">
-      <builder>
+      <builder
+            isConfigurable="true">
          <run
                class="org.moflon.ide.core.runtime.builders.RepositoryBuilder">
          </run></builder>
