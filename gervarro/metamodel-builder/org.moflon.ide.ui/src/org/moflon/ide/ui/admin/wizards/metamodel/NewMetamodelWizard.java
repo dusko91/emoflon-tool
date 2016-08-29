@@ -1,5 +1,8 @@
 package org.moflon.ide.ui.admin.wizards.metamodel;
 
+import java.net.URL;
+import java.util.Arrays;
+
 import org.apache.log4j.Logger;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -41,21 +44,18 @@ public class NewMetamodelWizard extends AbstractMoflonWizard
       {
          final SubMonitor subMon = SubMonitor.convert(monitor, "Creating metamodel project", 8);
 
-         String projectName = projectInfo.getProjectName();
-         IPath location = projectInfo.getProjectLocation();
+         final String projectName = projectInfo.getProjectName();
+         final IPath location = projectInfo.getProjectLocation();
 
          // Create project
-         IProject newProjectHandle = WorkspaceHelper.createProject(projectName, UIActivator.getModuleID(), location,
-               subMon.newChild(1));
+         final IProject newProjectHandle = WorkspaceHelper.createProject(projectName, UIActivator.getModuleID(), location, subMon.newChild(1));
 
          // generate default files
-         WorkspaceHelper.addFile(newProjectHandle, projectName + ".eap",
-               MoflonUtilitiesActivator.getPathRelToPlugIn("resources/defaultFiles/EAEMoflon.eap", UIActivator.getModuleID()), UIActivator.getModuleID(),
-               subMon.newChild(1));
+         final URL pathToDefaultEapFile = MoflonUtilitiesActivator.getPathRelToPlugIn("resources/defaultFiles/EAEMoflon.eap", UIActivator.getModuleID());
+         WorkspaceHelper.addFile(newProjectHandle, projectName + ".eap", pathToDefaultEapFile, UIActivator.getModuleID(), subMon.newChild(1));
 
-         WorkspaceHelper.addFile(newProjectHandle, ".gitignore", ".temp", subMon.newChild(1));
+         WorkspaceHelper.createGitignoreFile(newProjectHandle.getFile(WorkspaceHelper.GITIGNORE_FILENAME), Arrays.asList(".temp", "*.ldb"), subMon.newChild(1));
 
-         // Add Nature and Builders
          WorkspaceHelper.addNature(newProjectHandle, CoreActivator.METAMODEL_NATURE_ID, subMon.newChild(1));
 
          WorkspaceHelperUI.moveProjectToWorkingSet(newProjectHandle, SPECIFICATION_WORKINGSET_NAME);

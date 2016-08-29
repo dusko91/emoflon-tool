@@ -63,7 +63,7 @@ public class MoflonBuildJob extends WorkspaceJob
 
       try
       {
-         TaskUtilities.processJobQueue(jobs);
+         TaskUtilities.processJobQueueAsUser(jobs);
       } catch (final CoreException e)
       {
          resultStatus.add(new Status(IStatus.ERROR, FrameworkUtil.getBundle(getClass()).getSymbolicName(), IStatus.ERROR, getName() + "failed.", e));

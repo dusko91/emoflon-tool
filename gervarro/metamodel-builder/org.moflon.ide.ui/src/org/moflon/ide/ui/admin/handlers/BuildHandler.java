@@ -50,7 +50,7 @@ public class BuildHandler extends AbstractCommandHandler
 
    private void cleanAndBuild(final List<IProject> projects)
    {
-      final Job job = new MoflonBuildJob(projects, IncrementalProjectBuilder.CLEAN_BUILD);
+      final Job job = new MoflonBuildJob(projects, IncrementalProjectBuilder.FULL_BUILD);
       job.setUser(true);
       job.schedule();
    }
