@@ -11,9 +11,10 @@ import org.gervarro.eclipse.workspace.util.WorkspaceTask;
 import org.moflon.ide.core.NatureMigrator;
 import org.moflon.ide.core.runtime.ProjectNatureAndBuilderConfiguratorTask;
 
-// TODO@rkluge Disable later
+// TODO@rkluge Disable later - only during transition to new build process
 public class MOSLTGGProjectMigrator extends ProjectStateObserver implements ProjectConfigurator {
 	
+   @Override
 	protected void handleResourceChange(final IResource resource, final boolean added) {
 		if (added && resource.getType() == IResource.PROJECT) {
 			try {
