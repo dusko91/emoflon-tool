@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.jar.Manifest;
 
 import org.apache.log4j.Logger;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -36,6 +37,15 @@ import MoflonPropertyContainer.MoflonPropertiesContainer;
 import MoflonPropertyContainer.MoflonPropertyContainerFactory;
 import MoflonPropertyContainer.PropertiesValue;
 
+/**
+ * This handler is invoked during the build process to update/configure open projects
+ * 
+ * @author Gergely Varro
+ * @author Anthony Anjorin
+ * @author Roland Kluge 
+ *
+ * @see #run(IProgressMonitor)
+ */
 public class OpenProjectHandler extends WorkspaceTask
 {
    private static final Logger logger = Logger.getLogger(OpenProjectHandler.class);
@@ -68,6 +78,8 @@ public class OpenProjectHandler extends WorkspaceTask
    @Override
    public void run(final IProgressMonitor monitor) throws CoreException
    {
+      SubMonitor subMon = SubMonitor.convert(monitor, "Configure open project", 3);
+      
       final JavaProjectConfigurator javaProjectConfigurator = new JavaProjectConfigurator();
       final MoflonProjectConfigurator moflonProjectConfigurator = new MoflonProjectConfigurator(
             MetamodelProperties.INTEGRATION_KEY.equals(metamodelProperties.getType()));
@@ -83,13 +95,28 @@ public class OpenProjectHandler extends WorkspaceTask
       WorkspaceTask.execute(natureAndBuilderConfiguratorTask, false);
       // Last line to be removed
 
+      subMon.worked(1);
+      
       try
       {
-         MoflonProjectCreator.createFoldersIfNecessary(project, new NullProgressMonitor());
+         MoflonProjectCreator.createFoldersIfNecessary(project, subMon.newChild(1));
+         
+         //TODO@rkluge: Only during transition
+         for (final IFile gitignoreFile : Arrays.asList(
+               WorkspaceHelper.getModelFolder(project).getFile(WorkspaceHelper.GITIGNORE_FILENAME),
+               WorkspaceHelper.getGenFolder(project).getFile(WorkspaceHelper.GITIGNORE_FILENAME)
+               ))
+         {
+            if (gitignoreFile.exists())
+               gitignoreFile.delete(true, new NullProgressMonitor());
+         }
+         
+         MoflonProjectCreator.addGitIgnoreFiles(project, subMon.newChild(1));
       } catch (final CoreException e)
       {
          logger.warn("Failed to create folders: " + e.getMessage());
       }
+      
       try
       {
 

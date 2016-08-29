@@ -396,12 +396,13 @@ public class WorkspaceInstaller
 
       try
       {
-         TaskUtilities.processJobQueue(jobs);
+         TaskUtilities.processJobQueueInBackground(jobs);
+         logger.info("Code generation jobs scheduled.");
       } catch (final CoreException e)
       {
          LogUtils.error(logger, e);
       }
-      logger.info("End of automatic workspace configuration reached. Bye bye.");
+      logger.info("End of automatic workspace configuration reached. Please wait for the code generation jobs to finish. Bye bye.");
    }
 
    private final void prepareIncrementalProjectBuilderJob(final List<Job> jobs, final IProject[] projects)

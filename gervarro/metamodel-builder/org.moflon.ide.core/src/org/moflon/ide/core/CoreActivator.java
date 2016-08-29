@@ -54,7 +54,7 @@ public class CoreActivator extends EMoflonPlugin
    public static final String REPOSITORY_BUILDER_ID = "org.moflon.ide.core.runtime.builders.RepositoryBuilder";
 
    /**
-    * @deprecated Use WorkspaceHelper.METAMODEL_NATURE_ID directly
+    * @deprecated Use {@link WorkspaceHelper#METAMODEL_NATURE_ID} directly
     */
    @Deprecated
    public static final String METAMODEL_NATURE_ID = "org.moflon.ide.core.runtime.natures.MetamodelNature";

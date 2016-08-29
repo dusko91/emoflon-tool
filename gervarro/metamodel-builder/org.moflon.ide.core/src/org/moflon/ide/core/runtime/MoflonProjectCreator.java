@@ -1,13 +1,10 @@
 package org.moflon.ide.core.runtime;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Arrays;
 
 import org.apache.log4j.Logger;
 import org.eclipse.core.resources.ICommand;
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IWorkspace;
@@ -46,35 +43,35 @@ public class MoflonProjectCreator extends WorkspaceTask implements ProjectConfig
 {
    private static final Logger logger = Logger.getLogger(MoflonProjectCreator.class);
 
-   private IProject workspaceProject;
+   private IProject project;
 
    private MetamodelProperties metamodelProperties;
 
    public MoflonProjectCreator(final IProject project, final MetamodelProperties projectProperties)
    {
-      this.workspaceProject = project;
+      this.project = project;
       this.metamodelProperties = projectProperties;
    }
 
    @Override
    public void run(final IProgressMonitor monitor) throws CoreException
    {
-      if (!workspaceProject.exists())
+      if (!project.exists())
       {
          final String projectName = metamodelProperties.getProjectName();
-         final SubMonitor subMon = SubMonitor.convert(monitor, "Creating project " + projectName, 10);
+         final SubMonitor subMon = SubMonitor.convert(monitor, "Creating project " + projectName, 12);
 
          // (1) Create project
          final IProjectDescription description = ResourcesPlugin.getWorkspace().newProjectDescription(projectName);
-         workspaceProject.create(description, IWorkspace.AVOID_UPDATE, subMon.newChild(1));
-         workspaceProject.open(IWorkspace.AVOID_UPDATE, subMon.newChild(1));
+         project.create(description, IWorkspace.AVOID_UPDATE, subMon.newChild(1));
+         project.open(IWorkspace.AVOID_UPDATE, subMon.newChild(1));
 
          // (2) Configure natures and builders (.project file)
          final JavaProjectConfigurator javaProjectConfigurator = new JavaProjectConfigurator();
          final MoflonProjectConfigurator moflonProjectConfigurator = new MoflonProjectConfigurator(
                MetamodelProperties.INTEGRATION_KEY.equals(metamodelProperties.getType()));
          final PluginProjectConfigurator pluginProjectConfigurator = new PluginProjectConfigurator();
-         final ProjectNatureAndBuilderConfiguratorTask natureAndBuilderConfiguratorTask = new ProjectNatureAndBuilderConfiguratorTask(workspaceProject, false);
+         final ProjectNatureAndBuilderConfiguratorTask natureAndBuilderConfiguratorTask = new ProjectNatureAndBuilderConfiguratorTask(project, false);
          natureAndBuilderConfiguratorTask.updateNatureIDs(moflonProjectConfigurator, true);
          natureAndBuilderConfiguratorTask.updateNatureIDs(javaProjectConfigurator, true);
          natureAndBuilderConfiguratorTask.updateBuildSpecs(javaProjectConfigurator, true);
@@ -84,14 +81,15 @@ public class MoflonProjectCreator extends WorkspaceTask implements ProjectConfig
          WorkspaceTask.execute(natureAndBuilderConfiguratorTask, false);
 
          // (3) Create folders and files in project
-         createFoldersIfNecessary(workspaceProject, subMon.newChild(4));
-         addGitIgnoreFiles(workspaceProject, subMon.newChild(2));
+         createFoldersIfNecessary(project, subMon.newChild(4));
+         addGitIgnoreFiles(project, subMon.newChild(2));
+         addGitKeepFiles(project, subMon.newChild(2));
 
          // (4) Create MANIFEST.MF file
          try
          {
             logger.debug("Adding MANIFEST.MF");
-            new ManifestFileUpdater().processManifest(workspaceProject, manifest -> {
+            new ManifestFileUpdater().processManifest(project, manifest -> {
                boolean changed = false;
                changed |= ManifestFileUpdater.updateAttribute(manifest, PluginManifestConstants.MANIFEST_VERSION, "1.0", AttributeUpdatePolicy.KEEP);
                changed |= ManifestFileUpdater.updateAttribute(manifest, PluginManifestConstants.BUNDLE_MANIFEST_VERSION, "2", AttributeUpdatePolicy.KEEP);
@@ -113,22 +111,24 @@ public class MoflonProjectCreator extends WorkspaceTask implements ProjectConfig
 
          // (5) Create build.properties file
          logger.debug("Adding build.properties");
-         new BuildPropertiesFileBuilder().createBuildProperties(workspaceProject, subMon.newChild(1));
+         new BuildPropertiesFileBuilder().createBuildProperties(project, subMon.newChild(1));
 
          // (6) Configure Java settings (.classpath file)
-         final IJavaProject javaProject = JavaCore.create(workspaceProject);
-         final IClasspathEntry srcFolderEntry = JavaCore.newSourceEntry(workspaceProject.getFolder("src").getFullPath());
-         final IClasspathEntry genFolderEntry = JavaCore.newSourceEntry(workspaceProject.getFolder(WorkspaceHelper.GEN_FOLDER).getFullPath(), new IPath[0],
-               new IPath[0], null,
-               // see issue #718
-               new IClasspathAttribute[] { /* JavaCore.newClasspathAttribute("ignore_optional_problems", "true") */ });
+         final IJavaProject javaProject = JavaCore.create(project);
+         final IClasspathEntry srcFolderEntry = JavaCore.newSourceEntry(WorkspaceHelper.getSourceFolder(project).getFullPath());
+
+         // Integration projects contain a lot of (useful?) boilerplate code in /gen, which requires to ignore warnings such as 'unused variable', 'unused import' etc. 
+         final IClasspathAttribute[] genFolderClasspathAttributes = metamodelProperties.isIntegrationProject()
+               ? new IClasspathAttribute[] { JavaCore.newClasspathAttribute("ignore_optional_problems", "true") } : new IClasspathAttribute[] {};
+         final IClasspathEntry genFolderEntry = JavaCore.newSourceEntry(project.getFolder(WorkspaceHelper.GEN_FOLDER).getFullPath(), new IPath[0], new IPath[0],
+               null, genFolderClasspathAttributes);
          final IClasspathEntry jreContainerEntry = JavaCore.newContainerEntry(new Path("org.eclipse.jdt.launching.JRE_CONTAINER"));
          final IClasspathEntry pdeContainerEntry = JavaCore.newContainerEntry(new Path("org.eclipse.pde.core.requiredPlugins"));
          javaProject.setRawClasspath(new IClasspathEntry[] { srcFolderEntry, genFolderEntry, jreContainerEntry, pdeContainerEntry },
-               workspaceProject.getFolder("bin").getFullPath(), true, subMon.newChild(1));
+               WorkspaceHelper.getBinFolder(project).getFullPath(), true, subMon.newChild(1));
 
          // (7) Create Moflon properties file (moflon.properties.xmi)
-         MoflonPropertiesContainer moflonProperties = MoflonPropertiesContainerHelper.createDefaultPropertiesContainer(workspaceProject.getName(),
+         MoflonPropertiesContainer moflonProperties = MoflonPropertiesContainerHelper.createDefaultPropertiesContainer(project.getName(),
                metamodelProperties.getMetamodelProjectName());
          moflonProperties.getSdmCodegeneratorHandlerId().setValue(getCodeGeneratorHandler(metamodelProperties.getType()));
          MoflonPropertiesContainerHelper.save(moflonProperties, subMon.newChild(1));
@@ -137,43 +137,48 @@ public class MoflonProjectCreator extends WorkspaceTask implements ProjectConfig
 
    private final SDMCodeGeneratorIds getCodeGeneratorHandler(final String type)
    {
-      return MetamodelProperties.INTEGRATION_KEY.equals(type) ? SDMCodeGeneratorIds.DEMOCLES_REVERSE_NAVI : SDMCodeGeneratorIds.DEMOCLES;
-   }
-
-   private static void addGitIgnoreFiles(final IProject project, final IProgressMonitor monitor) throws CoreException
-   {
-      final SubMonitor subMon = SubMonitor.convert(monitor, "Creating .gitignore files", 2);
-      final IFile genGitIgnore = WorkspaceHelper.getGenFolder(project).getFile(".gitignore");
-      if (!genGitIgnore.exists())
+      switch (type)
       {
-         final String genFolderGitIgnoreFileContents = "*\n!.keep\n";
-         genGitIgnore.create(new ByteArrayInputStream(genFolderGitIgnoreFileContents.getBytes()), true, subMon.newChild(1));
-         CoreActivator.checkCancellation(subMon);
-      }
-
-      final IFile modelGitIgnore = WorkspaceHelper.getModelFolder(project).getFile(".gitignore");
-      if (!modelGitIgnore.exists())
-      {
-         final String modelFolderGitignoreFileContents = "*.ecore\n*.genmodel\n!.keep\n";
-         modelGitIgnore.create(new ByteArrayInputStream(modelFolderGitignoreFileContents.getBytes()), true, subMon.newChild(1));
-         CoreActivator.checkCancellation(subMon);
+      case MetamodelProperties.INTEGRATION_KEY:
+         return SDMCodeGeneratorIds.DEMOCLES_REVERSE_NAVI;
+      default:
+         return SDMCodeGeneratorIds.DEMOCLES;
       }
    }
 
    public static void createFoldersIfNecessary(final IProject project, final IProgressMonitor monitor) throws CoreException
    {
-      final SubMonitor subMon = SubMonitor.convert(monitor, "Creating folders within project", 8);
-      WorkspaceHelper.createFolderIfNotExists(project.getFolder("src"), subMon.newChild(1));
-      WorkspaceHelper.createFolderIfNotExists(project.getFolder("bin"), subMon.newChild(1));
-      final IFolder genFolder = WorkspaceHelper.getGenFolder(project);
-      WorkspaceHelper.createFolderIfNotExists(genFolder, subMon.newChild(1));
-      WorkspaceHelper.createKeepFolderFile(genFolder, subMon.newChild(1));
-      WorkspaceHelper.createFolderIfNotExists(project.getFolder(WorkspaceHelper.LIB_FOLDER), subMon.newChild(1));
-      final IFolder modelFolder = WorkspaceHelper.getModelFolder(project);
-      WorkspaceHelper.createFolderIfNotExists(modelFolder, subMon.newChild(1));
-      WorkspaceHelper.createKeepFolderFile(modelFolder, subMon.newChild(1));
-      WorkspaceHelper.createFolderIfNotExists(project.getFolder(WorkspaceHelper.INSTANCES_FOLDER), subMon.newChild(1));
-      WorkspaceHelper.createFolderIfNotExists(project.getFolder(WorkspaceHelper.INJECTION_FOLDER), subMon.newChild(1));
+      final SubMonitor subMon = SubMonitor.convert(monitor, "Creating folders within project " + project, 9);
+
+      WorkspaceHelper.createFolderIfNotExists(WorkspaceHelper.getSourceFolder(project), subMon.newChild(1));
+      WorkspaceHelper.createFolderIfNotExists(WorkspaceHelper.getBinFolder(project), subMon.newChild(1));
+      WorkspaceHelper.createFolderIfNotExists(WorkspaceHelper.getGenFolder(project), subMon.newChild(1));
+      WorkspaceHelper.createFolderIfNotExists(WorkspaceHelper.getLibFolder(project), subMon.newChild(1));
+      WorkspaceHelper.createFolderIfNotExists(WorkspaceHelper.getModelFolder(project), subMon.newChild(1));
+      WorkspaceHelper.createFolderIfNotExists(WorkspaceHelper.getInstancesFolder(project), subMon.newChild(1));
+      WorkspaceHelper.createFolderIfNotExists(WorkspaceHelper.getInjectionFolder(project), subMon.newChild(1));
+   }
+
+   public static void addGitIgnoreFiles(final IProject project, final IProgressMonitor monitor) throws CoreException
+   {
+      final SubMonitor subMon = SubMonitor.convert(monitor, "Creating .gitignore files", 1);
+
+      WorkspaceHelper.createGitignoreFileIfNotExists(project.getFile(WorkspaceHelper.GITIGNORE_FILENAME), //
+            Arrays.asList(//
+                  "/gen/*", //
+                  "/model/*.ecore", "/model/*.genmodel", "/model/*.xmi", //
+                  "!/**/.keep*"), subMon.newChild(1));
+      CoreActivator.checkCancellation(subMon);
+   }
+
+   private static void addGitKeepFiles(final IProject project, final IProgressMonitor monitor)
+   {
+      final SubMonitor subMon = SubMonitor.convert(monitor, "Creating .keep* files for Git within project " + project, 3);
+
+      WorkspaceHelper.createKeepFile(WorkspaceHelper.getSourceFolder(project), subMon.newChild(1));
+      WorkspaceHelper.createKeepFile(WorkspaceHelper.getGenFolder(project), subMon.newChild(1));
+      WorkspaceHelper.createKeepFile(WorkspaceHelper.getModelFolder(project), subMon.newChild(1));
+      CoreActivator.checkCancellation(subMon);
    }
 
    @Override

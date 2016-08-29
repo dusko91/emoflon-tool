@@ -24,19 +24,51 @@ public class TaskUtilities
 
    private static final Logger logger = Logger.getLogger(TaskUtilities.class);
 
+   // Disabled constructor
    private TaskUtilities()
    {
       new UtilityClassNotInstantiableException();
+   }
+   
+
+   /**
+    * Processes the given queue of jobs (in order) by scheduling one job after the other.
+    * 
+    * Autobuilding is switched off before processing the queue and reset to its original state after processing the queue has completed
+    * 
+    * The jobs are run as user.
+    * 
+    * @param jobs the sequence of jobs to run (in order)
+    * @throws CoreException
+    */
+   public static void processJobQueueAsUser(final List<Job> jobs) throws CoreException
+   {
+      processJobQueueInternal(jobs, true);
    }
 
    /**
     * Processes the given queue of jobs (in order) by scheduling one job after the other.
     * 
     * Autobuilding is switched off before processing the queue and reset to its original state after processing the queue has completed
-    * @param jobs
+    * 
+    * The jobs are **not** run as user.
+    * 
+    * @param jobs the sequence of jobs to run (in order)
     * @throws CoreException
     */
-   public static void processJobQueue(final List<Job> jobs) throws CoreException
+   public static void processJobQueueInBackground(final List<Job> jobs) throws CoreException
+   {
+      processJobQueueInternal(jobs, false); 
+   }
+
+   /**
+    * Processes the given queue of jobs (in order) by scheduling one job after the other.
+    * 
+    * Autobuilding is switched off before processing the queue and reset to its original state after processing the queue has completed
+    * @param jobs the sequence of jobs to run (in order)
+    * @throws CoreException
+    */
+   private static void processJobQueueInternal(List<Job> jobs, boolean runAsUserJobs) throws CoreException
    {
       if (jobs.size() > 0)
       {
@@ -51,13 +83,14 @@ public class TaskUtilities
                {
                   final Job nextJob = jobs.remove(0);
                   nextJob.addJobChangeListener(this);
+                  nextJob.setUser(runAsUserJobs);
                   nextJob.schedule();
                   return;
                }
                try
                {
-                  // Only do something if auto-building flags differ
-                  if (isAutoBuilding ^ ResourcesPlugin.getWorkspace().isAutoBuilding())
+                  final boolean isSwitchingAutoBuildModeRequired = isAutoBuilding != ResourcesPlugin.getWorkspace().isAutoBuilding();
+                  if (isSwitchingAutoBuildModeRequired)
                   {
                      TaskUtilities.switchAutoBuilding(isAutoBuilding);
                   }
@@ -69,9 +102,11 @@ public class TaskUtilities
          };
          final Job firstJob = jobs.remove(0);
          firstJob.addJobChangeListener(jobExecutor);
+         firstJob.setUser(runAsUserJobs);
          firstJob.schedule();
-      }
+      }      
    }
+   
 
    /**
     * Tries to set the Auto Build flag of the workspace to newAutoBuildValue.

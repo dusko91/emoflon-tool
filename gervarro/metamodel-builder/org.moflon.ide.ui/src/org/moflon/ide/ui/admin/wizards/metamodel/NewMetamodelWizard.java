@@ -54,7 +54,7 @@ public class NewMetamodelWizard extends AbstractMoflonWizard
          final URL pathToDefaultEapFile = MoflonUtilitiesActivator.getPathRelToPlugIn("resources/defaultFiles/EAEMoflon.eap", UIActivator.getModuleID());
          WorkspaceHelper.addFile(newProjectHandle, projectName + ".eap", pathToDefaultEapFile, UIActivator.getModuleID(), subMon.newChild(1));
 
-         WorkspaceHelper.createGitignoreFile(newProjectHandle.getFile(WorkspaceHelper.GITIGNORE_FILENAME), Arrays.asList(".temp", "*.ldb"), subMon.newChild(1));
+         WorkspaceHelper.createGitignoreFileIfNotExists(newProjectHandle.getFile(WorkspaceHelper.GITIGNORE_FILENAME), Arrays.asList(".temp", "*.ldb"), subMon.newChild(1));
 
          WorkspaceHelper.addNature(newProjectHandle, CoreActivator.METAMODEL_NATURE_ID, subMon.newChild(1));
 
