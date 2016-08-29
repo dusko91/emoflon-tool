@@ -1,7 +1,6 @@
 package org.moflon.ide.ui.admin.wizards.metamodel;
 
 import java.net.URL;
-import java.util.Arrays;
 
 import org.apache.log4j.Logger;
 import org.eclipse.core.resources.IProject;
@@ -14,6 +13,7 @@ import org.moflon.core.utilities.LogUtils;
 import org.moflon.core.utilities.MoflonUtilitiesActivator;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.ide.core.CoreActivator;
+import org.moflon.ide.core.runtime.MoflonProjectCreator;
 import org.moflon.ide.ui.UIActivator;
 import org.moflon.ide.ui.WorkspaceHelperUI;
 
@@ -54,7 +54,7 @@ public class NewMetamodelWizard extends AbstractMoflonWizard
          final URL pathToDefaultEapFile = MoflonUtilitiesActivator.getPathRelToPlugIn("resources/defaultFiles/EAEMoflon.eap", UIActivator.getModuleID());
          WorkspaceHelper.addFile(newProjectHandle, projectName + ".eap", pathToDefaultEapFile, UIActivator.getModuleID(), subMon.newChild(1));
 
-         WorkspaceHelper.createGitignoreFileIfNotExists(newProjectHandle.getFile(WorkspaceHelper.GITIGNORE_FILENAME), Arrays.asList(".temp", "*.ldb"), subMon.newChild(1));
+         MoflonProjectCreator.addGitignoreFileForMetamodelProject(newProjectHandle, subMon.newChild(1));
 
          WorkspaceHelper.addNature(newProjectHandle, CoreActivator.METAMODEL_NATURE_ID, subMon.newChild(1));
 

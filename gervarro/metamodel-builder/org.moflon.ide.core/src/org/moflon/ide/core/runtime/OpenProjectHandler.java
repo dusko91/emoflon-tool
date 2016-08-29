@@ -23,6 +23,7 @@ import org.moflon.core.utilities.LogUtils;
 import org.moflon.core.utilities.MoflonUtil;
 import org.moflon.core.utilities.MoflonUtilitiesActivator;
 import org.moflon.core.utilities.WorkspaceHelper;
+import org.moflon.ide.core.CoreActivator;
 import org.moflon.ide.core.runtime.natures.MoflonProjectConfigurator;
 import org.moflon.sdm.language.SDMLanguagePlugin;
 import org.moflon.tgg.runtime.TGGRuntimePlugin;
@@ -78,7 +79,7 @@ public class OpenProjectHandler extends WorkspaceTask
    @Override
    public void run(final IProgressMonitor monitor) throws CoreException
    {
-      SubMonitor subMon = SubMonitor.convert(monitor, "Configure open project", 3);
+      SubMonitor subMon = SubMonitor.convert(monitor, "Configure open project", 4);
       
       final JavaProjectConfigurator javaProjectConfigurator = new JavaProjectConfigurator();
       final MoflonProjectConfigurator moflonProjectConfigurator = new MoflonProjectConfigurator(
@@ -99,19 +100,10 @@ public class OpenProjectHandler extends WorkspaceTask
       
       try
       {
+         CoreActivator.removeOldStyleGitignoreAndKeepFiles(project);
          MoflonProjectCreator.createFoldersIfNecessary(project, subMon.newChild(1));
-         
-         //TODO@rkluge: Only during transition
-         for (final IFile gitignoreFile : Arrays.asList(
-               WorkspaceHelper.getModelFolder(project).getFile(WorkspaceHelper.GITIGNORE_FILENAME),
-               WorkspaceHelper.getGenFolder(project).getFile(WorkspaceHelper.GITIGNORE_FILENAME)
-               ))
-         {
-            if (gitignoreFile.exists())
-               gitignoreFile.delete(true, new NullProgressMonitor());
-         }
-         
-         MoflonProjectCreator.addGitIgnoreFiles(project, subMon.newChild(1));
+         MoflonProjectCreator.addGitignoreFileForRepositoryProject(project, subMon.newChild(1));
+         MoflonProjectCreator.addGitKeepFiles(project, subMon.newChild(1));
       } catch (final CoreException e)
       {
          logger.warn("Failed to create folders: " + e.getMessage());

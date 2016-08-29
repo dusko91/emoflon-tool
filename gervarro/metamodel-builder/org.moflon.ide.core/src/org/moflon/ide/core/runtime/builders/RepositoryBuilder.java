@@ -27,6 +27,7 @@ import org.moflon.core.utilities.eMoflonEMFUtil;
 import org.moflon.ide.core.CoreActivator;
 import org.moflon.ide.core.preferences.EMoflonPreferencesStorage;
 import org.moflon.ide.core.runtime.CleanVisitor;
+import org.moflon.ide.core.runtime.MoflonProjectCreator;
 import org.moflon.properties.MoflonPropertiesContainerHelper;
 import org.moflon.util.plugins.manifest.ExportedPackagesInManifestUpdater;
 import org.moflon.util.plugins.manifest.PluginXmlUpdater;
@@ -57,10 +58,16 @@ public class RepositoryBuilder extends AbstractVisitorBuilder
          final IFile ecoreFile = Platform.getAdapterManager().getAdapter(ecoreResource, IFile.class);
          try
          {
-            final SubMonitor subMon = SubMonitor.convert(monitor, "Generating code for project " + getProject().getName(), 10);
+            final SubMonitor subMon = SubMonitor.convert(monitor, "Generating code for project " + getProject().getName(), 13);
+
+            final IProject project = getProject();
+            CoreActivator.removeOldStyleGitignoreAndKeepFiles(project);
+            MoflonProjectCreator.createFoldersIfNecessary(project, subMon.newChild(1));
+            MoflonProjectCreator.addGitignoreFileForRepositoryProject(project, subMon.newChild(1));
+            MoflonProjectCreator.addGitKeepFiles(project, subMon.newChild(1));
 
             // Compute project dependencies
-            final IBuildConfiguration[] referencedBuildConfigs = getProject().getReferencedBuildConfigs(getProject().getActiveBuildConfig().getName(), false);
+            final IBuildConfiguration[] referencedBuildConfigs = project.getReferencedBuildConfigs(project.getActiveBuildConfig().getName(), false);
             for (final IBuildConfiguration referencedConfig : referencedBuildConfigs)
             {
                addTriggerProject(referencedConfig.getProject());
@@ -68,8 +75,10 @@ public class RepositoryBuilder extends AbstractVisitorBuilder
 
             // Remove markers and delete generated code
             deleteProblemMarkers();
-            final CleanVisitor cleanVisitor = new CleanVisitor(getProject(), new AntPatternCondition(new String[] { "gen/**" }));
-            getProject().accept(cleanVisitor, IResource.DEPTH_INFINITE, IResource.NONE);
+            final CleanVisitor cleanVisitor = new CleanVisitor(project, //
+                  new AntPatternCondition(new String[] { "gen/**" }), //
+                  new AntPatternCondition(new String[] { "gen/.keep*" }));
+            project.accept(cleanVisitor, IResource.DEPTH_INFINITE, IResource.NONE);
 
             // Build
             final ResourceSet resourceSet = CodeGeneratorPlugin.createDefaultResourceSet();
@@ -86,13 +95,11 @@ public class RepositoryBuilder extends AbstractVisitorBuilder
             final GenModel genModel = codeGenerationTask.getGenModel();
             if (genModel != null)
             {
-               ExportedPackagesInManifestUpdater.updateExportedPackageInManifest(getProject(), genModel);
+               ExportedPackagesInManifestUpdater.updateExportedPackageInManifest(project, genModel);
 
-               PluginXmlUpdater.updatePluginXml(getProject(), genModel, subMon.newChild(1));
+               PluginXmlUpdater.updatePluginXml(project, genModel, subMon.newChild(1));
                ResourcesPlugin.getWorkspace().checkpoint(false);
             }
-
-            recreateGitKeepFile(subMon.newChild(1));
 
          } catch (final CoreException e)
          {
@@ -100,12 +107,6 @@ public class RepositoryBuilder extends AbstractVisitorBuilder
             handleErrorsInEclipse(status, ecoreFile);
          }
       }
-   }
-
-   private void recreateGitKeepFile(final IProgressMonitor monitor)
-   {
-      WorkspaceHelper.createKeepFile(getProject().getFolder(WorkspaceHelper.GEN_FOLDER), monitor);
-      WorkspaceHelper.createKeepFile(getProject().getFolder(WorkspaceHelper.MODEL_FOLDER), monitor);
    }
 
    protected boolean isEcoreFile(final IResource ecoreResource)

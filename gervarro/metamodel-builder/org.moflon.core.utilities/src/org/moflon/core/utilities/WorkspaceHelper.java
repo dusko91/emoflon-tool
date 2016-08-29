@@ -1257,7 +1257,7 @@ public class WorkspaceHelper
          final IFile keepFile = folder.getFile(filename);
          if (!keepFile.exists())
          {
-            keepFile.create(new ByteArrayInputStream(new String("Dummy file to protect empty repository in Git.\n").getBytes()), true, subMon.newChild(1));
+            keepFile.create(new ByteArrayInputStream(new String("Dummy file to protect empty folder in Git.\n").getBytes()), true, subMon.newChild(1));
          }
       } catch (CoreException e)
       {

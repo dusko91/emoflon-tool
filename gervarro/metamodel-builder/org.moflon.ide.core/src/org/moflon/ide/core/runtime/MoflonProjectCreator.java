@@ -82,7 +82,7 @@ public class MoflonProjectCreator extends WorkspaceTask implements ProjectConfig
 
          // (3) Create folders and files in project
          createFoldersIfNecessary(project, subMon.newChild(4));
-         addGitIgnoreFiles(project, subMon.newChild(2));
+         addGitignoreFileForRepositoryProject(project, subMon.newChild(2));
          addGitKeepFiles(project, subMon.newChild(2));
 
          // (4) Create MANIFEST.MF file
@@ -159,26 +159,54 @@ public class MoflonProjectCreator extends WorkspaceTask implements ProjectConfig
       WorkspaceHelper.createFolderIfNotExists(WorkspaceHelper.getInjectionFolder(project), subMon.newChild(1));
    }
 
-   public static void addGitIgnoreFiles(final IProject project, final IProgressMonitor monitor) throws CoreException
+   /**
+    * Adds a default .gitignore file to the given repository project to prevent adding generated files to the repository
+    * 
+    * @param project the project for which to generate the .gitignore file
+    * @param monitor the progress monitor
+    */
+   public static void addGitignoreFileForRepositoryProject(final IProject project, final IProgressMonitor monitor) throws CoreException
    {
-      final SubMonitor subMon = SubMonitor.convert(monitor, "Creating .gitignore files", 1);
+      final SubMonitor subMon = SubMonitor.convert(monitor, "Creating .gitignore file for " + project, 1);
 
       WorkspaceHelper.createGitignoreFileIfNotExists(project.getFile(WorkspaceHelper.GITIGNORE_FILENAME), //
             Arrays.asList(//
+                  "/bin", //
                   "/gen/*", //
                   "/model/*.ecore", "/model/*.genmodel", "/model/*.xmi", //
                   "!/**/.keep*"), subMon.newChild(1));
-      CoreActivator.checkCancellation(subMon);
+   }
+   /**
+    * Adds a default .gitignore file to the given metamodel project to prevent adding generated files to the repository
+    * 
+    * @param project the project for which to generate the .gitignore file
+    * @param monitor the progress monitor
+    */
+   public static void addGitignoreFileForMetamodelProject(final IProject project, final IProgressMonitor monitor) throws CoreException
+   {
+      final SubMonitor subMon = SubMonitor.convert(monitor, "Creating .gitignore file for " + project, 1);
+      
+      WorkspaceHelper.createGitignoreFileIfNotExists(project.getFile(WorkspaceHelper.GITIGNORE_FILENAME), //
+            Arrays.asList(//
+                  "/.temp", //
+                  "/*.ldb"), subMon.newChild(1));
    }
 
-   private static void addGitKeepFiles(final IProject project, final IProgressMonitor monitor)
+   /**
+    * Adds dummy files to folders that are / may be empty after project initialization.
+    * 
+    * The dummy files are required because Git does not support versioning empty folders (unlike SVN).
+    * 
+    * @param project the project for which .keep files shall be produced
+    * @param monitor the progress monitor
+    */
+   public static void addGitKeepFiles(final IProject project, final IProgressMonitor monitor)
    {
       final SubMonitor subMon = SubMonitor.convert(monitor, "Creating .keep* files for Git within project " + project, 3);
 
       WorkspaceHelper.createKeepFile(WorkspaceHelper.getSourceFolder(project), subMon.newChild(1));
       WorkspaceHelper.createKeepFile(WorkspaceHelper.getGenFolder(project), subMon.newChild(1));
       WorkspaceHelper.createKeepFile(WorkspaceHelper.getModelFolder(project), subMon.newChild(1));
-      CoreActivator.checkCancellation(subMon);
    }
 
    @Override
