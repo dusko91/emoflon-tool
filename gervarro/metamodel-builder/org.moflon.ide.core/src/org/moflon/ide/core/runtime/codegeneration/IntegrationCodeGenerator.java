@@ -65,8 +65,10 @@ import SDMLanguage.SDMLanguagePackage;
 import SDMLanguage.sdmUtil.CompilerInjection;
 import SDMLanguage.sdmUtil.SdmUtilFactory;
 
+//TODO@rkluge
 /**
- * @deprecated Use the standard Eclipse build framework (ResourcesPlugin.getWorkspace().build())
+ * @deprecated Should be eliminated by the new automatic build process (rkluge, 2016-08-11) Use the standard Eclipse build framework 
+ * (ResourcesPlugin.getWorkspace().build())
  */
 @Deprecated
 public class IntegrationCodeGenerator extends RepositoryCodeGenerator

@@ -1,28 +1,46 @@
 package org.moflon.tgg.mosl.ui.highlighting;
 
-import org.eclipse.xtext.ui.editor.syntaxcoloring.DefaultSemanticHighlightingCalculator;
-import org.eclipse.xtext.ui.editor.syntaxcoloring.IHighlightedPositionAcceptor;
+import org.eclipse.xtext.ide.editor.syntaxcoloring.DefaultSemanticHighlightingCalculator;
+import org.eclipse.xtext.ide.editor.syntaxcoloring.IHighlightedPositionAcceptor;
+import org.eclipse.xtext.nodemodel.INode;
+import org.eclipse.xtext.nodemodel.util.NodeModelUtils;
+
+import java.util.Collection;
+
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.xtext.resource.XtextResource;
+import org.eclipse.xtext.util.CancelIndicator;
 import org.moflon.tgg.mosl.services.TGGGrammarAccess;
 import org.moflon.tgg.mosl.ui.highlighting.rules.AbstractHighlightingRule;
 import org.moflon.tgg.mosl.ui.highlighting.utils.MOSLHighlightProviderHelper;
 
 import com.google.inject.Inject;
 
-@SuppressWarnings("deprecation")
 public class MOSLSemanticHighlightCalculator extends DefaultSemanticHighlightingCalculator {
 
 	@Inject
 	TGGGrammarAccess ga;
-	
+
 	@Override
-	protected void doProvideHighlightingFor(XtextResource resource,
-			IHighlightedPositionAcceptor acceptor) {
-		EObject rootObject = resource.getParseResult().getRootASTElement();
-		for(AbstractHighlightingRule<?> rule : MOSLHighlightProviderHelper.getHighlightRules())
-			rule.provideHighlightingFor(rootObject, acceptor);
-		super.doProvideHighlightingFor(resource, acceptor);
+	protected void doProvideHighlightingFor(XtextResource resource, IHighlightedPositionAcceptor acceptor,
+			CancelIndicator cancelIndicator) {
+
+		if (resource == null || resource.getParseResult() == null)
+			return;
+		INode rootNode = resource.getParseResult().getRootNode();
+		Collection<AbstractHighlightingRule> rules = MOSLHighlightProviderHelper.getHighlightRules();
+		for (INode node : rootNode.getLeafNodes()) {
+			findHighlightingRuleForNode(node, rules, acceptor);
+		}
+		super.doProvideHighlightingFor(resource, acceptor, cancelIndicator);
+
 	}
 	
+	private void findHighlightingRuleForNode(INode node, Collection<AbstractHighlightingRule> rules, IHighlightedPositionAcceptor acceptor){
+		EObject moslObject = NodeModelUtils.findActualSemanticObjectFor(node);
+		for (AbstractHighlightingRule rule : rules){
+			if(rule.canProvideHighlighting(moslObject, node, acceptor))
+				return;
+		}
+	}
 }

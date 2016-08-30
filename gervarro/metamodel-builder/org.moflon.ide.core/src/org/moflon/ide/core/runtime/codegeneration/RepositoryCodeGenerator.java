@@ -38,8 +38,10 @@ import org.moflon.ide.core.util.BuilderHelper;
 import org.moflon.util.plugins.manifest.ExportedPackagesInManifestUpdater;
 import org.moflon.util.plugins.manifest.PluginXmlUpdater;
 
+// TODO@rkluge
 /**
- * @deprecated Use the standard Eclipse build framework (ResourcesPlugin.getWorkspace().build())
+ * @deprecated Should be eliminated by the new automatic build process (rkluge, 2016-08-11); Use the standard Eclipse build framework 
+ * (ResourcesPlugin.getWorkspace().build())
  */
 @Deprecated
 @SuppressWarnings("restriction")
