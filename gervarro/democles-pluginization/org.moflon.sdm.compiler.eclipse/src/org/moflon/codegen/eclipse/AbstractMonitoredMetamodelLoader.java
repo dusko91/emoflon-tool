@@ -27,11 +27,10 @@ import org.eclipse.emf.ecore.resource.impl.ResourceFactoryRegistryImpl;
 import org.eclipse.emf.ecore.util.ECrossReferenceEList;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.gervarro.eclipse.task.ITask;
+import org.moflon.core.propertycontainer.AdditionalDependencies;
+import org.moflon.core.propertycontainer.MoflonPropertiesContainer;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.dependency.PackageRemappingDependency;
-
-import MoflonPropertyContainer.AdditionalDependencies;
-import MoflonPropertyContainer.MoflonPropertiesContainer;
 
 public abstract class AbstractMonitoredMetamodelLoader implements ITask
 {

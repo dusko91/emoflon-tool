@@ -18,13 +18,12 @@ import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceFactoryRegistryImpl;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import org.gervarro.eclipse.task.ITask;
+import org.moflon.core.propertycontainer.AdditionalDependencies;
+import org.moflon.core.propertycontainer.Dependencies;
+import org.moflon.core.propertycontainer.MoflonPropertiesContainer;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.dependency.PackageRemappingDependency;
 import org.moflon.eclipse.resource.SDMEnhancedEcoreResourceFactory;
-
-import MoflonPropertyContainer.AdditionalDependencies;
-import MoflonPropertyContainer.Dependencies;
-import MoflonPropertyContainer.MoflonPropertiesContainer;
 
 // This class is the new metamodel loading process that would handle all kinds of projects correctly
 public final class NewMonitoredMetamodelLoader implements ITask
