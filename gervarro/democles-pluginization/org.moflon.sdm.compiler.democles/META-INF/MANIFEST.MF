@@ -14,7 +14,7 @@ Require-Bundle:
  org.gervarro.eclipse.task;bundle-version="[1.0.1,2.0.0)",
  org.moflon.sdm.democles.patternmatcher;bundle-version="[0.4.0,0.5.0)",
  org.moflon.core.utilities,
- MoflonPropertyContainer,
+ org.moflon.core.propertycontainer,
  org.moflon.core.moca.processing,
  SDMLanguage,
  org.moflon.core.moca.inject,

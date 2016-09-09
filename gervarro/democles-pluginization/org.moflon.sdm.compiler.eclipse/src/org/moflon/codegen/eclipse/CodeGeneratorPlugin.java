@@ -9,6 +9,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.MultiStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.emf.codegen.ecore.genmodel.GenClass;
 import org.eclipse.emf.common.util.TreeIterator;
@@ -33,8 +34,8 @@ import org.moflon.eclipse.resource.GenModelResourceFactory;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 
-import MoflonPropertyContainer.MoflonPropertiesContainer;
-import MoflonPropertyContainer.SDMCodeGeneratorIds;
+import org.moflon.core.propertycontainer.MoflonPropertiesContainer;
+import org.moflon.core.propertycontainer.SDMCodeGeneratorIds;
 
 public class CodeGeneratorPlugin implements BundleActivator
 {
@@ -168,6 +169,24 @@ public class CodeGeneratorPlugin implements BundleActivator
       }
    }
 
+   public static final void createPluginToResourceMapping(final ResourceSet set, final IProgressMonitor monitor) throws CoreException {
+	   final IProject[] workspaceProjects =
+			   ResourcesPlugin.getWorkspace().getRoot().getProjects();
+	   try {
+		   monitor.beginTask("Register plugin to resource mapping", workspaceProjects.length);
+		   for (final IProject project : workspaceProjects) {
+			   createPluginToResourceMapping(set, project);
+			   monitor.worked(1);
+		   }
+	   } finally {
+		   monitor.done();
+	   }
+   }
+   
+   public static final void createPluginToResourceMapping(final ResourceSet set) throws CoreException {
+	   createPluginToResourceMapping(set, new NullProgressMonitor());
+   }
+   
    public static final URI lookupProjectURI(final IProject project)
    {
       IPluginModelBase pluginModel = PluginRegistry.findModel(project);
