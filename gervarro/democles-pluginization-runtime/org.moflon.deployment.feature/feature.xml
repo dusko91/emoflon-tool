@@ -2,7 +2,7 @@
 <feature
       id="org.moflon.ide.feature"
       label="eMoflon Core (required)"
-      version="2.17.0.qualifier"
+      version="2.18.0.qualifier"
       provider-name="Real-Time Systems Lab, TU Darmstadt">
 
    <description url="http://www.emoflon.org/">
@@ -37,7 +37,6 @@ See here for more details on EPL: http://www.eclipse.org/org/documents/epl-v10.p
 
    <requires>
       <import feature="org.eclipse.emf" version="2.10.0" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.emf.mwe2.launch"/>
    </requires>
 
    <plugin

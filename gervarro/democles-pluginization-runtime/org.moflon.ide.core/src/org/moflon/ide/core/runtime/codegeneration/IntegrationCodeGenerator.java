@@ -21,6 +21,7 @@ import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.moflon.codegen.eclipse.CodeGeneratorPlugin;
 import org.moflon.codegen.eclipse.MonitoredMetamodelLoader;
+import org.moflon.core.utilities.LogUtils;
 import org.moflon.core.utilities.MoflonUtil;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.core.utilities.eMoflonEMFUtil;
@@ -35,7 +36,6 @@ import org.moflon.moca.tie.RunIntegrationGeneratorBatch;
 import org.moflon.moca.tie.RunIntegrationGeneratorCC;
 import org.moflon.moca.tie.RunIntegrationGeneratorSync;
 import org.moflon.moca.tie.RunModelGenerationGenerator;
-import org.moflon.properties.MoflonPropertiesContainerHelper;
 import org.moflon.tgg.cspcodeadapter.CspcodeadapterFactory;
 import org.moflon.tgg.cspcodeadapter.VariableTypeManager;
 import org.moflon.tgg.language.LanguagePackage;
@@ -59,20 +59,23 @@ import org.moflon.tgg.language.precompiler.TGGPrecompiler;
 import org.moflon.tgg.runtime.RuntimePackage;
 
 import MocaTree.MocaTreePackage;
-import MoflonPropertyContainer.MoflonPropertiesContainer;
+import org.moflon.core.propertycontainer.MoflonPropertiesContainer;
+import org.moflon.core.propertycontainer.MoflonPropertiesContainerHelper;
+
 import SDMLanguage.SDMLanguagePackage;
 import SDMLanguage.sdmUtil.CompilerInjection;
 import SDMLanguage.sdmUtil.SdmUtilFactory;
 
 //TODO@rkluge
 /**
- * @deprecated Should be eliminated by the new automatic build process (rkluge, 2016-08-11)
+ * @deprecated Should be eliminated by the new automatic build process (rkluge, 2016-08-11) Use the standard Eclipse build framework 
+ * (ResourcesPlugin.getWorkspace().build())
  */
 @Deprecated
 public class IntegrationCodeGenerator extends RepositoryCodeGenerator
 {
    private static final Logger logger = Logger.getLogger(IntegrationCodeGenerator.class);
-   
+
    List<TGGConstraint> userDefinedConstraints = new ArrayList<TGGConstraint>();
 
    public static final String SUFFIX_SMA = ".sma.xmi";
@@ -100,7 +103,7 @@ public class IntegrationCodeGenerator extends RepositoryCodeGenerator
          metamodelLoader.run(monitor);
          WorkspaceHelper.createSubMonitor(monitor, 100);
 
-         Resource ecoreResource = metamodelLoader.getEcoreResource();
+         Resource ecoreResource = metamodelLoader.getMainResource();
          HashMap<String, Object> saveOptions = new HashMap<String, Object>();
          saveOptions.put(SDMEnhancedEcoreResource.SAVE_GENERATED_PACKAGE_CROSSREF_URIS, Boolean.valueOf(true));
          try
@@ -108,15 +111,14 @@ public class IntegrationCodeGenerator extends RepositoryCodeGenerator
             ecoreResource.save(saveOptions);
          } catch (IOException e)
          {
-            e.printStackTrace();
+            LogUtils.error(logger, e);
          }
          WorkspaceHelper.createSubMonitor(monitor, 100);
 
          boolean success = super.generateCode(WorkspaceHelper.createSubMonitor(monitor, 100));
 
-         CoreActivator.getDefault().setDirty(project, false);
          removeObsoleteErrorMarkers();
-         
+
          return success;
       } finally
       {
@@ -125,31 +127,41 @@ public class IntegrationCodeGenerator extends RepositoryCodeGenerator
 
    }
 
-private void removeObsoleteErrorMarkers() throws CoreException {
-	project.deleteMarkers( "org.eclipse.xtext.ui.check.fast", true, IResource.DEPTH_INFINITE);
-}
+   private void removeObsoleteErrorMarkers() throws CoreException
+   {
+      project.deleteMarkers("org.eclipse.xtext.ui.check.fast", true, IResource.DEPTH_INFINITE);
+   }
 
    private void createFilesFromPreFiles()
    {
       try
       {
-         if (RepositoryCodeGenerator.getEcoreFile(project).exists())
-            RepositoryCodeGenerator.getEcoreFile(project).delete(true, new NullProgressMonitor());
+         IFile ecoreFile = RepositoryCodeGenerator.getEcoreFile(project);
+         if (ecoreFile.exists())
+            ecoreFile.delete(true, new NullProgressMonitor());
 
-         // Try another build to solve many problems due to checking out a workspace	
+         // Try another build to solve many problems due to checking out a workspace
          project.build(IncrementalProjectBuilder.CLEAN_BUILD, new NullProgressMonitor());
          project.build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
-         
-         IntegrationBuilder.getPreEcoreFile(project).copy(RepositoryCodeGenerator.getEcoreFile(project).getFullPath(), true, new NullProgressMonitor());
 
-         if (getTGGFile().exists())
-            getTGGFile().delete(true, new NullProgressMonitor());
+         final IFile preEcoreFile = IntegrationBuilder.getPreEcoreFile(project);
+         if (preEcoreFile.exists())
+         {
+            if (ecoreFile.exists())
+               ecoreFile.delete(true, new NullProgressMonitor());
 
-         IntegrationBuilder.getPreTGGFile(project).copy(getTGGFile().getFullPath(), true, new NullProgressMonitor());
+            preEcoreFile.copy(ecoreFile.getFullPath(), true, new NullProgressMonitor());
+         }
+
+         final IFile tggFile = getTGGFile();
+         if (tggFile.exists())
+            tggFile.delete(true, new NullProgressMonitor());
+
+         IntegrationBuilder.getPreTGGFile(project).copy(tggFile.getFullPath(), true, new NullProgressMonitor());
       } catch (Exception e)
       {
-    	 logger.error("I'm having problems building " + project.getName() + ", please refresh all projects and retry.");
-         e.printStackTrace();
+         logger.error("I'm having problems building " + project.getName() + ", please refresh all projects and retry. Details:\n"
+               + WorkspaceHelper.printStacktraceToString(e));
       }
    }
 
@@ -169,11 +181,13 @@ private void removeObsoleteErrorMarkers() throws CoreException {
          monitor.worked(5);
 
          final MonitoredMetamodelLoader metamodelLoader = new MonitoredMetamodelLoader(set, RepositoryCodeGenerator.getEcoreFile(project), moflonProperties);
-         try {
-        	 metamodelLoader.run(WorkspaceHelper.createSubMonitor(monitor, 10));
-         } catch(Exception e){
-        	 logger.error("Unable to load " + RepositoryCodeGenerator.getEcoreFile(project));
-        	 return;
+         try
+         {
+            metamodelLoader.run(WorkspaceHelper.createSubMonitor(monitor, 10));
+         } catch (Exception e)
+         {
+            logger.error("Unable to load " + RepositoryCodeGenerator.getEcoreFile(project));
+            return;
          }
 
          // Make sure all dependencies are really loaded in the resource set.
@@ -196,12 +210,13 @@ private void removeObsoleteErrorMarkers() throws CoreException {
          tgg = (TripleGraphGrammar) tggResource.getContents().get(0);
          monitor.worked(5);
 
-         if(tggIsEmpty()){
-        	 monitor.done();
-        	 logger.warn("Your TGG does not contain any rules, aborting attempt to generate code...");
-        	 return;        	 
+         if (tggIsEmpty())
+         {
+            monitor.done();
+            logger.warn("Your TGG does not contain any rules, aborting attempt to generate code...");
+            return;
          }
-         
+
          // Create and add precompiler to resourceSet so reverse navigation of links works
          TGGPrecompiler precompiler = PrecompilerFactory.eINSTANCE.createTGGPrecompiler();
          eMoflonEMFUtil.createParentResourceAndInsertIntoResourceSet(precompiler, set);
@@ -225,9 +240,9 @@ private void removeObsoleteErrorMarkers() throws CoreException {
          try
          {
             genTGGResource.save(saveOptions);
-         } catch (IOException e1)
+         } catch (IOException e)
          {
-            e1.printStackTrace();
+            LogUtils.error(logger, e);
          }
          monitor.worked(5);
 
@@ -262,7 +277,8 @@ private void removeObsoleteErrorMarkers() throws CoreException {
          {
             try
             {
-               org.moflon.tgg.language.modelgenerator.Compiler compiler = org.moflon.tgg.language.modelgenerator.ModelgeneratorFactory.eINSTANCE.createCompiler();
+               org.moflon.tgg.language.modelgenerator.Compiler compiler = org.moflon.tgg.language.modelgenerator.ModelgeneratorFactory.eINSTANCE
+                     .createCompiler();
                eMoflonEMFUtil.createParentResourceAndInsertIntoResourceSet(compiler, set);
                compiler.setProperties(moflonProperties);
                compiler.setInjectionHelper(injectionHelper);
@@ -271,7 +287,7 @@ private void removeObsoleteErrorMarkers() throws CoreException {
                {
                   logger.warn(analyzerResult.getMessage() + ": " + analyzerResult.getEObject());
                }
-               
+
                // Persist compiler injections
                saveInjectionFiles(saveOptions, compiler, compilerInjectionResource);
             } catch (CSPNotSolvableException e)
@@ -296,7 +312,7 @@ private void removeObsoleteErrorMarkers() throws CoreException {
 
             // Persist ecore resource
             set.getResources().add(genTGGResource);
-            Resource ecoreResource = metamodelLoader.getEcoreResource();
+            Resource ecoreResource = metamodelLoader.getMainResource();
             ecoreResource.save(saveOptions);
          } catch (IOException e)
          {
@@ -317,8 +333,9 @@ private void removeObsoleteErrorMarkers() throws CoreException {
       }
    }
 
-   private boolean tggIsEmpty() {
-	   return tgg.getTggRule().isEmpty();
+   private boolean tggIsEmpty()
+   {
+      return tgg.getTggRule().isEmpty();
    }
 
    private void enrichCspsWithTypeInformation()

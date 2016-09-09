@@ -17,7 +17,7 @@ Require-Bundle:
  org.gervarro.eclipse.task;bundle-version="[1.0.1,2.0.0)",
  org.moflon.core.utilities,
  MocaTree,
- MoflonPropertyContainer,
+ org.moflon.core.propertycontainer,
  org.moflon.core.moca.inject,
  org.moflon.core.moca.processing,
  SDMLanguage,

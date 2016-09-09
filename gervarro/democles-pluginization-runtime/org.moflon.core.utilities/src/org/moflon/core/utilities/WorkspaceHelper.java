@@ -1,12 +1,7 @@
 package org.moflon.core.utilities;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
@@ -21,7 +16,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -39,7 +34,6 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
-import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.jdt.core.IClasspathAttribute;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
@@ -68,6 +62,10 @@ public class WorkspaceHelper
 
    public final static String DEBUG_FOLDER = "debug";
 
+   public static final String SOURCE_FOLDER = "src";
+
+   public static final String BIN_FOLDER = "bin";
+
    public static final String LIB_FOLDER = "lib";
 
    public static final String GEN_FOLDER = "gen";
@@ -94,11 +92,13 @@ public class WorkspaceHelper
 
    public static final String GEN_MODEL_EXT = ".genmodel";
 
-   public static final String REPOSITORY_NATURE_ID = "org.moflon.ide.ui.runtime.natures.RepositoryNature";
+   public static final String MOSL_TGG_NATURE = "org.moflon.tgg.mosl.codeadapter.moslTGGNature";
 
-   public static final String INTEGRATION_NATURE_ID = "org.moflon.ide.ui.runtime.natures.IntegrationNature";
+   public static final String REPOSITORY_NATURE_ID = "org.moflon.ide.core.runtime.natures.RepositoryNature";
 
-   public static final String METAMODEL_NATURE_ID = "org.moflon.ide.ui.runtime.natures.MetamodelNature";
+   public static final String INTEGRATION_NATURE_ID = "org.moflon.ide.core.runtime.natures.IntegrationNature";
+
+   public static final String METAMODEL_NATURE_ID = "org.moflon.ide.core.runtime.natures.MetamodelNature";
 
    public static final String PLUGIN_NATURE_ID = "org.eclipse.pde.PluginNature"; // PDE.NATURE_ID
 
@@ -126,6 +126,10 @@ public class WorkspaceHelper
 
    public static final String INJECTION_PROBLEM_MARKER_ID = "org.moflon.ide.marker.InjectionProblem";
 
+   public static final String KEEP_EMPTY_FOLDER_FILE_NAME_FOR_GIT = ".keep";
+   
+   public static final String GITIGNORE_FILENAME = ".gitignore";
+
    /**
     * Checks if given name is a valid name for a new project in the current workspace.
     * 
@@ -147,8 +151,8 @@ public class WorkspaceHelper
          return new Status(IStatus.ERROR, pluginId, validity.getMessage());
 
       // Check if no other project with the same name already exists in workspace
-      IProject[] workspaceProjects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
-      for (IProject project : workspaceProjects)
+      IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
+      for (IProject project : projects)
       {
          if (project.getName().equals(projectName))
          {
@@ -175,33 +179,27 @@ public class WorkspaceHelper
    public static IProject createProject(final String projectName, final String pluginId, final IPath location, final IProgressMonitor monitor)
          throws CoreException
    {
-      try
+      SubMonitor subMon = SubMonitor.convert(monitor, "", 2);
+
+      // Get project handle
+      IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
+      IProject newProject = root.getProject(projectName);
+
+      // Use default location (in workspace)
+      final IProjectDescription description = ResourcesPlugin.getWorkspace().newProjectDescription(newProject.getName());
+      description.setLocation(location);
+
+      // Complain if project already exists
+      if (newProject.exists())
       {
-         monitor.beginTask("", 2);
-
-         // Get project handle
-         IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
-         IProject newProject = root.getProject(projectName);
-
-         // Use default location (in workspace)
-         final IProjectDescription description = ResourcesPlugin.getWorkspace().newProjectDescription(newProject.getName());
-         description.setLocation(location);
-
-         // Complain if project already exists
-         if (newProject.exists())
-         {
-            throw new CoreException(new Status(IStatus.ERROR, pluginId, projectName + " exists already!"));
-         }
-
-         // Create project
-         newProject.create(description, createSubmonitorWith1Tick(monitor));
-         newProject.open(createSubmonitorWith1Tick(monitor));
-
-         return newProject;
-      } finally
-      {
-         monitor.done();
+         throw new CoreException(new Status(IStatus.ERROR, pluginId, projectName + " exists already!"));
       }
+
+      // Create project
+      newProject.create(description, subMon.newChild(1));
+      newProject.open(subMon.newChild(1));
+
+      return newProject;
    }
 
    /**
@@ -233,18 +231,12 @@ public class WorkspaceHelper
     */
    public static IFolder addFolder(final IProject project, final String folderName, final IProgressMonitor monitor) throws CoreException
    {
-      try
-      {
-         monitor.beginTask("", 1);
+         final SubMonitor subMon = SubMonitor.convert(monitor, "", 1);
 
          IFolder projFolder = project.getFolder(folderName);
          if (!projFolder.exists())
-            projFolder.create(true, true, createSubmonitorWith1Tick(monitor));
+            projFolder.create(true, true, subMon.newChild(1));
          return projFolder;
-      } finally
-      {
-         monitor.done();
-      }
    }
 
    /**
@@ -267,34 +259,21 @@ public class WorkspaceHelper
    public static void addFile(final IProject project, final String fileName, final URL pathToContent, final String pluginID, final IProgressMonitor monitor)
          throws CoreException, URISyntaxException, IOException
    {
-      try
-      {
-         monitor.beginTask("", 1);
+         final SubMonitor subMon = SubMonitor.convert(monitor, "", 1);
 
          IFile projectFile = project.getFile(fileName);
          InputStream contents = pathToContent.openStream();
-         projectFile.create(contents, true, createSubmonitorWith1Tick(monitor));
-      } finally
-      {
-         monitor.done();
-      }
+         projectFile.create(contents, true, subMon.newChild(1));
    }
 
    public static void clearFolder(final IProject project, final String folder, final IProgressMonitor monitor)
          throws CoreException, URISyntaxException, IOException
    {
-      try
-      {
          IFolder folderInProject = project.getFolder(folder);
-         monitor.beginTask("", folderInProject.members().length);
+         final SubMonitor subMon = SubMonitor.convert(monitor, "", folderInProject.members().length);
 
          for (IResource member : folderInProject.members())
-            member.delete(true, createSubmonitorWith1Tick(monitor));
-
-      } finally
-      {
-         monitor.done();
-      }
+            member.delete(true, subMon.newChild(1));
    }
 
    /**
@@ -312,16 +291,10 @@ public class WorkspaceHelper
     */
    public static void addFile(final IProject project, final String fileName, final String contents, final IProgressMonitor monitor) throws CoreException
    {
-      try
-      {
-         monitor.beginTask("", 1);
+         final SubMonitor subMon = SubMonitor.convert(monitor, "", 1);
          IFile projectFile = project.getFile(fileName);
          ByteArrayInputStream source = new ByteArrayInputStream(contents.getBytes());
-         projectFile.create(source, true, createSubmonitorWith1Tick(monitor));
-      } finally
-      {
-         monitor.done();
-      }
+         projectFile.create(source, true, subMon.newChild(1));
    }
 
    /**
@@ -335,13 +308,14 @@ public class WorkspaceHelper
     * @param monitor
     *           a progress monitor, or null if progress reporting is not desired
     * @throws JavaModelException
+    * 
+    * @deprecated Each time this method is used, the whole project is manipulated which may cause unnecessary events
     */
+   @Deprecated
    public static void setAsSourceFolderInBuildpath(final IJavaProject javaProject, final IFolder[] folderNames, final IClasspathAttribute[] extraAttributes,
          final IProgressMonitor monitor) throws JavaModelException
    {
-      try
-      {
-         monitor.beginTask("", 2);
+         final SubMonitor subMon = SubMonitor.convert(monitor, "", 2);
 
          Collection<IClasspathEntry> entries = getClasspathEntries(javaProject);
 
@@ -357,13 +331,9 @@ public class WorkspaceHelper
                }
             }
          }
-         monitor.worked(1);
+         subMon.worked(1);
 
-         setBuildPath(javaProject, entries, monitor);
-      } finally
-      {
-         monitor.done();
-      }
+         setBuildPath(javaProject, entries, subMon.newChild(1));
    }
 
    /**
@@ -380,9 +350,7 @@ public class WorkspaceHelper
    public static IProjectDescription getDescriptionWithAddedNature(final IProject project, final String natureId, final IProgressMonitor monitor)
          throws CoreException
    {
-      try
-      {
-         monitor.beginTask("Create description with added natures", 1);
+         final SubMonitor subMon = SubMonitor.convert(monitor, "Create description with added natures", 1);
 
          IProjectDescription description = project.getDescription();
 
@@ -394,13 +362,9 @@ public class WorkspaceHelper
             description.setNatureIds(natures.toArray(new String[natures.size()]));
          }
 
-         monitor.worked(1);
+         subMon.worked(1);
 
          return description;
-      } finally
-      {
-         monitor.done();
-      }
    }
 
    /**
@@ -417,16 +381,10 @@ public class WorkspaceHelper
     */
    public static void addNature(final IProject project, final String natureId, final IProgressMonitor monitor) throws CoreException
    {
-      try
-      {
-         monitor.beginTask("Add nature to project", 2);
+         final SubMonitor subMon = SubMonitor.convert(monitor, "Add nature to project", 2);
 
-         IProjectDescription description = getDescriptionWithAddedNature(project, natureId, createSubmonitorWith1Tick(monitor));
-         project.setDescription(description, createSubmonitorWith1Tick(monitor));
-      } finally
-      {
-         monitor.done();
-      }
+         IProjectDescription description = getDescriptionWithAddedNature(project, natureId, subMon.newChild(1));
+         project.setDescription(description, subMon.newChild(1));
    }
 
    /**
@@ -440,9 +398,7 @@ public class WorkspaceHelper
     */
    public static IJavaProject setUpAsJavaProject(final IProject project, final IProgressMonitor monitor)
    {
-      try
-      {
-         monitor.beginTask("Set up Java project", 1);
+         final SubMonitor subMon = SubMonitor.convert(monitor, "Set up Java project", 1);
 
          final JavaCapabilityConfigurationPage jcpage = new JavaCapabilityConfigurationPage();
          final IJavaProject javaProject = JavaCore.create(project);
@@ -454,7 +410,7 @@ public class WorkspaceHelper
                jcpage.init(javaProject, null, null, true);
                try
                {
-                  jcpage.configureJavaProject(createSubmonitorWith1Tick(monitor));
+                  jcpage.configureJavaProject(subMon.newChild(1));
                } catch (final Exception e)
                {
                   logger.error("Exception during setup of Java project", e);
@@ -463,10 +419,6 @@ public class WorkspaceHelper
          });
 
          return javaProject;
-      } finally
-      {
-         monitor.done();
-      }
    }
 
    /**
@@ -554,19 +506,13 @@ public class WorkspaceHelper
    private static void setBuildPath(final IJavaProject javaProject, final Collection<IClasspathEntry> entries, final IProgressMonitor monitor)
          throws JavaModelException
    {
-      try
-      {
-         monitor.beginTask("Set build path", 1);
+         final SubMonitor subMon = SubMonitor.convert(monitor, "Set build path", 1);
          // Create new buildpath
          IClasspathEntry[] newEntries = new IClasspathEntry[entries.size()];
          entries.toArray(newEntries);
 
          // Set new classpath with added entries
-         javaProject.setRawClasspath(newEntries, monitor != null ? createSubmonitorWith1Tick(monitor) : null);
-      } finally
-      {
-         monitor.done();
-      }
+         javaProject.setRawClasspath(newEntries, subMon.newChild(1));
    }
 
    private static void setBuildPath(final IJavaProject javaProject, final Collection<IClasspathEntry> entries) throws JavaModelException
@@ -586,19 +532,13 @@ public class WorkspaceHelper
    public static void addAllFolders(final IProject project, final String path, final IProgressMonitor monitor) throws CoreException
    {
       String[] folders = path.split(PATH_SEPARATOR);
-      try
-      {
-         monitor.beginTask("Add folders", folders.length);
+         final SubMonitor subMon = SubMonitor.convert(monitor, "Add folders", folders.length);
          StringBuilder currentFolder = new StringBuilder();
          for (String folder : folders)
          {
             currentFolder.append(PATH_SEPARATOR).append(folder);
-            addFolder(project, currentFolder.toString(), createSubmonitorWith1Tick(monitor));
+            addFolder(project, currentFolder.toString(), subMon.newChild(1));
          }
-      } finally
-      {
-         monitor.done();
-      }
    }
 
    /**
@@ -612,15 +552,9 @@ public class WorkspaceHelper
     */
    private static void addFile(final IFile file, final String contents, final IProgressMonitor monitor) throws CoreException
    {
-      try
-      {
-         monitor.beginTask("Add file", 1);
-         ByteArrayInputStream source = new ByteArrayInputStream(contents.getBytes());
-         file.create(source, true, createSubmonitorWith1Tick(monitor));
-      } finally
-      {
-         monitor.done();
-      }
+      SubMonitor subMon = SubMonitor.convert(monitor, "Add file", 1);
+      ByteArrayInputStream source = new ByteArrayInputStream(contents.getBytes());
+      file.create(source, true, subMon.newChild(1));
    }
 
    /**
@@ -639,21 +573,15 @@ public class WorkspaceHelper
    public static void addAllFoldersAndFile(final IProject project, final IPath pathToFile, final String fileContent, final IProgressMonitor monitor)
          throws CoreException
    {
-      try
-      {
-         monitor.beginTask("Add file", 2);
-         // Remove file segment
-         IPath folders = pathToFile.removeLastSegments(1);
+      SubMonitor subMon = SubMonitor.convert(monitor, "Adding file " + pathToFile + " to project " + project, 2);
+      // Remove file segment
+      IPath folders = pathToFile.removeLastSegments(1);
 
-         // Create all necessary folders
-         addAllFolders(project, folders.toString(), createSubmonitorWith1Tick(monitor));
+      // Create all necessary folders
+      addAllFolders(project, folders.toString(), subMon.newChild(1));
 
-         // Create file
-         addFile(project.getFile(pathToFile), fileContent, createSubmonitorWith1Tick(monitor));
-      } finally
-      {
-         monitor.done();
-      }
+      // Create file
+      addFile(project.getFile(pathToFile), fileContent, subMon.newChild(1));
    }
 
    /**
@@ -672,7 +600,7 @@ public class WorkspaceHelper
    @Deprecated
    public static IProgressMonitor createSubMonitor(final IProgressMonitor monitor, final int ticks)
    {
-      return new SubProgressMonitor(monitor, ticks);
+      return SubMonitor.convert(monitor, ticks).newChild(ticks);
    }
 
    /**
@@ -1012,51 +940,6 @@ public class WorkspaceHelper
    }
 
    /**
-    * Checks whether the given monitor has been canceled and throws an InterruptedException to signal the cancellation.
-    * 
-    * @throws InterruptedException
-    *            if the monitor has been cancelled
-    */
-   public static void checkCanceledAndThrowInterruptedException(final IProgressMonitor monitor) throws InterruptedException
-   {
-      if (monitor.isCanceled())
-         throw new InterruptedException();
-   }
-
-   /**
-    * Copies the content of the source file into the target file.
-    * 
-    * @param source
-    *           source file
-    * @param target
-    *           target file
-    * 
-    * @deprecated Use {@link FileUtils#copyFile(File, File)}
-    */
-   @Deprecated
-   public static void copyFile(final File source, final File target)
-   {
-      try
-      {
-         byte[] buffer = new byte[1024];
-         BufferedInputStream origin = new BufferedInputStream(new FileInputStream(source));
-         BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(target));
-         int count;
-
-         while ((count = origin.read(buffer)) > 0)
-         {
-            out.write(buffer, 0, count);
-         }
-
-         origin.close();
-         out.close();
-      } catch (IOException e)
-      {
-         LogUtils.error(logger, e);
-      }
-   }
-
-   /**
     * Returns a file handle for the EAP file in the given metamodel project.
     * 
     * The file need not exist and needs to be checked using {@link IFile#exists()}.
@@ -1129,7 +1012,27 @@ public class WorkspaceHelper
    }
 
    /**
-    * Returns a handle to the gen folder of the project
+    * Returns a handle to the /bin folder of the project
+    * 
+    * @see WorkspaceHelper#BIN_FOLDER
+    */
+   public static IFolder getBinFolder(IProject project)
+   {
+      return project.getFolder(BIN_FOLDER);
+   }
+
+   /**
+    * Returns a handle to the /src folder of the project
+    * 
+    * @see WorkspaceHelper#SOURCE_FOLDER
+    */
+   public static IFolder getSourceFolder(IProject project)
+   {
+      return project.getFolder(SOURCE_FOLDER);
+   }
+
+   /**
+    * Returns a handle to the /gen folder of the project
     * 
     * @see WorkspaceHelper#GEN_FOLDER
     */
@@ -1139,37 +1042,37 @@ public class WorkspaceHelper
    }
 
    /**
-    * Returns a handle to the model folder of the project
+    * Returns a handle to the /model folder of the project
     * 
     * @see WorkspaceHelper#MODEL_FOLDER
     */
-   public static IFolder getModelFolder(final IProject workspaceProject)
+   public static IFolder getModelFolder(final IProject project)
    {
-      return workspaceProject.getFolder(MODEL_FOLDER);
+      return project.getFolder(MODEL_FOLDER);
    }
 
    /**
-    * Returns a handle to the instances folder of the project
+    * Returns a handle to the /instances folder of the project
     * 
     * @see WorkspaceHelper#INSTANCES_FOLDER
     */
-   public static IFolder getInstancesFolder(final IProject workspaceProject)
+   public static IFolder getInstancesFolder(final IProject project)
    {
-      return workspaceProject.getFolder(INSTANCES_FOLDER);
+      return project.getFolder(INSTANCES_FOLDER);
    }
 
    /**
-    * Returns a handle to the lib folder of the project
+    * Returns a handle to the /lib folder of the project
     * 
     * @see WorkspaceHelper#LIB_FOLDER
     */
-   public static IFolder getLibFolder(final IProject workspaceProject)
+   public static IFolder getLibFolder(final IProject project)
    {
-      return workspaceProject.getFolder(LIB_FOLDER);
+      return project.getFolder(LIB_FOLDER);
    }
 
    /**
-    * Returns a handle to the injection folder of the project
+    * Returns a handle to the /injection folder of the project
     * 
     * @see WorkspaceHelper#INJECTION_FOLDER
     */
@@ -1187,15 +1090,9 @@ public class WorkspaceHelper
     */
    public static void createFolderIfNotExists(final IFolder folder, final IProgressMonitor monitor) throws CoreException
    {
-      try
-      {
-         monitor.beginTask("Creating " + folder, 1);
-         if (!folder.exists())
-            folder.create(true, true, createSubmonitorWith1Tick(monitor));
-      } finally
-      {
-         monitor.done();
-      }
+      final SubMonitor subMon = SubMonitor.convert(monitor, "Creating " + folder, 1);
+      if (!folder.exists())
+         folder.create(true, true, subMon.newChild(1));
    }
 
    /**
@@ -1211,5 +1108,43 @@ public class WorkspaceHelper
       ByteArrayOutputStream stream = new ByteArrayOutputStream();
       t.printStackTrace(new PrintStream(stream));
       return new String(stream.toByteArray());
+   }
+
+   public static void createKeepFile(final IFolder folder, final IProgressMonitor monitor)
+   {
+      final String filename = KEEP_EMPTY_FOLDER_FILE_NAME_FOR_GIT + folder.getName();
+      try
+      {
+         final SubMonitor subMon = SubMonitor.convert(monitor, "Creating " + filename, 1);
+         final IFile keepFile = folder.getFile(filename);
+         if (!keepFile.exists())
+         {
+            keepFile.create(new ByteArrayInputStream(new String("Dummy file to protect empty folder in Git.\n").getBytes()), true, subMon.newChild(1));
+         }
+      } catch (CoreException e)
+      {
+         LogUtils.warn(logger, "Error during creation of file %s in folder %s .", filename, folder);
+      }
+   }
+
+   /**
+    * Creates the given file with the given content if the file does not exist yet. 
+    * 
+    * If the file already exists, nothing happens.
+    * 
+    * @param gitignoreFile the file to be created
+    * @param lines the contents of the new file
+    * @param monitor the progress monitor
+    * @throws CoreException if creating the file fails
+    */
+   public static void createGitignoreFileIfNotExists(final IFile gitignoreFile, final List<String> lines, final IProgressMonitor monitor) throws CoreException
+   {
+      final SubMonitor subMon = SubMonitor.convert(monitor, "Creating file " + gitignoreFile, 1);
+
+      if (!gitignoreFile.exists())
+      {
+         final String genFolderGitIgnoreFileContents = StringUtils.join(lines, "\n");
+         gitignoreFile.create(new ByteArrayInputStream(genFolderGitIgnoreFileContents.getBytes()), true, subMon.newChild(1));
+      }
    }
 }

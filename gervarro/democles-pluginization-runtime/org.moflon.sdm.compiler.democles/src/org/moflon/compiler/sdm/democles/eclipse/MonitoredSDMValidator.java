@@ -15,11 +15,10 @@ import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.gervarro.eclipse.task.ITask;
 import org.moflon.codegen.eclipse.CodeGeneratorPlugin;
 import org.moflon.compiler.sdm.democles.DemoclesMethodBodyHandler;
+import org.moflon.core.propertycontainer.MetaModelProject;
+import org.moflon.core.propertycontainer.MoflonPropertiesContainer;
 import org.moflon.core.utilities.ErrorReporter;
 import org.moflon.core.utilities.WorkspaceHelper;
-
-import MoflonPropertyContainer.MetaModelProject;
-import MoflonPropertyContainer.MoflonPropertiesContainer;
 
 public class MonitoredSDMValidator implements ITask
 {
@@ -51,7 +50,7 @@ public class MonitoredSDMValidator implements ITask
 
          subMon.subTask("Validating SDMs for project " + project.getName());
          DemoclesValidationProcess validationProcess = new DemoclesValidationProcess(ecoreFile, resourceSet);
-         IStatus validationStatus = validationProcess.run(subMon.split(50));
+         IStatus validationStatus = validationProcess.run(subMon.newChild(50));
 
          if (!validationStatus.isOK())
          {
