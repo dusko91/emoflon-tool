@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature
+      id="org.moflon.ide.visualization.feature"
+      label="eMoflon Visualization Feature (optional, requires PlantUML)"
+      version="2.18.0.qualifier"
+      provider-name="Real-Time Systems Lab, TU Darmstadt">
+
+   <description url="http://www.emoflon.org/">
+      This feature provides visualization support for meta-models and
+TGGs.
+
+This feature requires PlantUML to be installed.
+If the automatic installation does not work, PlantUML can be installed from the following update site:
+http://plantuml.sourceforge.net/updatesitejuno/
+   </description>
+
+   <copyright>
+      Most of our icons are from The Noun Project (http://thenounproject.com/):
+Emmanuel Mangatia - Les Lunettes Bleues, from The Noun Project
+Wrench CC-by Josh Dean, from The Noun Project
+Hammer by Wes Breazell from the Noun Project
+   </copyright>
+
+   <license url="http://www.gnu.org/licenses/gpl-3.0.html;http://www.eclipse.org/org/documents/epl-v10.php">
+      eMoflon is dual-licensed under the GNU General Public License (GPL), version 3 or later, and the Eclipse Public License (EPL). 
+As a recipient of eMoflon, you may choose which license to receive the code under. 
+
+See here for more details on GPLv3: http://www.gnu.org/licenses/gpl-3.0.html
+See here for more details on EPL: http://www.eclipse.org/org/documents/epl-v10.php
+   </license>
+
+   <requires>
+      <import feature="org.moflon.ide.feature" version="2.6.0" match="greaterOrEqual"/>
+      <import feature="net.sourceforge.plantuml.feature" version="1.1.8.8039"/>
+   </requires>
+
+   <plugin
+         id="org.moflon.ide.visualization.abstractsyntaxviewer"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.moflon.ide.visualization.dot.language"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="org.moflon.ide.visualization.dot.sdm"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="org.moflon.ide.visualization.dot.sdmpatterns"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="org.moflon.ide.visualization.dot.tgg"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="org.moflon.ide.visualization.dot.tgg.runtime"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="org.moflon.ide.visualization.dot.tgg.runtimepatterns"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="org.moflon.ide.visualization.dot.tgg.schema"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="org.moflon.ide.visualization.dot.tgg.delta"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+</feature>

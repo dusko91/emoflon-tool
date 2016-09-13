@@ -1,0 +1,56 @@
+#using org.moflon.ide.visualization.dot.ecore.epackageviz.*
+#using AttrCondDefLibrary.*
+
+#abstract #rule EdgeEReferenceUniAbstractRule #extends EdgeAbstractSourceOnlyRule #with org.moflon.ide.visualization.dot.ecore.epackageviz
+
+#source {
+	graph:SubClassGraph
+
+	srcClassNode:PNode
+
+	++ trgClassNode:PNode
+
+	++srcMultiplicity:PMultiplicity
+
+	++association:PAssociation{
+		++ - graph -> graph
+		++ - source -> srcClassNode
+		++ - target -> trgClassNode
+		++ - srcMultiplicity -> srcMultiplicity
+	}
+}
+
+#target {
+	ePackage:EPackage
+
+	srcClass:EClass{
+		++ - eReferences -> eReference
+	}
+
+	trgClass:EClass
+
+	++eReference:EReference{
+		++ - eReferenceType -> trgClass
+	}
+
+}
+
+#correspondence {
+	++ compositeToEReference :PEdgeToERefernce{
+		#src->association
+		#trg->eReference
+	}
+}
+
+#attributeConditions {
+	eq(association.label, eReference.name)
+
+
+
+	multiplicity(srcMultiplicity.lowerBound, eReference.lowerBound)
+
+	multiplicity(srcMultiplicity.upperBound, eReference.upperBound)
+
+}
+
+

@@ -1,0 +1,22 @@
+#using org.moflon.ide.visualization.dot.ecore.epackageviz.*
+#using AttrCondDefLibrary.*
+
+#rule ExistingInheritanceRule #extends EdgeAbstractRule, NonExistingInheritanceRule #with org.moflon.ide.visualization.dot.ecore.epackageviz
+
+#source {
+
+}
+
+#target {
+
+}
+
+#correspondence {
+	
+}
+
+#attributeConditions {
+	
+}
+
+

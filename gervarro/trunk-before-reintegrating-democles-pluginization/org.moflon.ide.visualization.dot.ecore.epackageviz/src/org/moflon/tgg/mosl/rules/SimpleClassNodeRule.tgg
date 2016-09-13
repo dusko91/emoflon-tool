@@ -1,0 +1,24 @@
+#using org.moflon.ide.visualization.dot.ecore.epackageviz.*
+#using AttrCondDefLibrary.*
+
+#rule SimpleClassNodeRule #extends NodeAbstractRule #with org.moflon.ide.visualization.dot.ecore.epackageviz
+
+#source {
+	++node:PClass
+}
+
+#target {
+	++eClassifier:EClass{
+		abstract := false
+	}
+}
+
+#correspondence {
+
+}
+
+#attributeConditions {
+	
+}
+
+

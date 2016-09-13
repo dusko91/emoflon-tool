@@ -1,0 +1,22 @@
+#using org.moflon.ide.visualization.dot.ecore.epackageviz.*
+#using AttrCondDefLibrary.*
+
+#rule EnumNodeRuleHigh #extends NodeAbstractRule #with org.moflon.ide.visualization.dot.ecore.epackageviz
+
+#source {
+	++node:PEnum
+}
+
+#target {
+	++eClassifier:EEnum
+}
+
+#correspondence {
+
+}
+
+#attributeConditions {
+	
+}
+
+

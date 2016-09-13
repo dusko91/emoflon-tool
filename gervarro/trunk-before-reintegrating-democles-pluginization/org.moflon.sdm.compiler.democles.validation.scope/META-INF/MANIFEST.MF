@@ -1,0 +1,22 @@
+Manifest-Version: 1.0
+Bundle-SymbolicName: org.moflon.sdm.compiler.democles.validation.scope
+ ;singleton:=true
+Export-Package: org.moflon.sdm.compiler.democles.validation.scope,
+ org.moflon.sdm.compiler.democles.validation.scope.impl,
+ org.moflon.sdm.compiler.democles.validation.scope.util
+Bundle-Name: ScopeValidation
+Bundle-Version: 2.0.0.qualifier
+Require-Bundle: org.moflon.sdm.runtime.democles,
+ SDMLanguage,
+ MocaTree,
+ org.moflon.sdm.compiler.democles.pattern,
+ org.moflon.sdm.compiler.democles.validation.result,
+ org.eclipse.emf.ecore,
+ org.moflon.core.utilities,
+ org.eclipse.emf.ecore.xmi,
+ org.moflon.sdm.democles.literalexpressionsolver,
+ org.apache.log4j;bundle-version="1.2.15"
+Bundle-ManifestVersion: 2
+Bundle-ActivationPolicy: lazy
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-Vendor: Real-Time Systems Lab, TU Darmstadt

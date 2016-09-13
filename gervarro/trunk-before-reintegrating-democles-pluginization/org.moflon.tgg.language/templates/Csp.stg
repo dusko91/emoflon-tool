@@ -1,0 +1,81 @@
+group Csp;
+
+BoundVariable(var_name, name, value, type) ::= <<
+Variable <var_name> = CSPFactoryHelper.eINSTANCE.createVariable("<name>", true, csp);
+<if(value)><var_name>.setValue(<value>);<endif>
+<var_name>.setType("<type>");
+>>
+
+BoundAttributeVariableGeneric(var_name, name, value, type) ::= <<
+Variable <var_name> = CSPFactoryHelper.eINSTANCE.createVariable("<name>", true, csp);
+<if(value)><var_name>.setValue(__helper.getValue("<name>", "<value>"));<endif>
+<var_name>.setType("<type>");
+>>
+
+BoundLiteralGeneric(var_name, name, value, type) ::= <<
+Variable <var_name> = CSPFactoryHelper.eINSTANCE.createVariable("<name>", true, csp);
+<if(value)><var_name>.setValue(<value>);<endif>
+<var_name>.setType("<type>");
+>>
+
+UnboundVariable(var_name, name, type) ::= <<
+Variable <var_name> = CSPFactoryHelper.eINSTANCE.createVariable("<name>", csp);
+<var_name>.setType("<type>");
+>>
+
+AddConstraints(constraints, variables) ::= <<
+<constraints:{constraint|csp.getConstraints().add(<constraint>);}; separator="\n">
+>>
+
+Constraint(constraint, instanceName, variables) ::= <<
+<constraint; format="firstToUpper"> <instanceName> = new <constraint; format="firstToUpper">();
+
+>>
+
+Eq(type, instanceName) ::= <<
+Eq <instanceName> = new Eq();
+
+>>
+
+Solve(constraint, variables, ruleName) ::= <<
+<constraint>.setRuleName("<ruleName>");
+<constraint>.solve(<variables; separator=",">);
+>>
+
+NegateConstraint(constraint) ::= <<
+<constraint>.setSatisfied(!<constraint>.isSatisfied());
+>>
+
+createRuleResult(ruleName) ::=<<
+AttributeConstraintsRuleResult ruleResult = org.moflon.tgg.runtime.RuntimeFactory.eINSTANCE.createAttributeConstraintsRuleResult();
+ruleResult.setRule("<ruleName>");	
+ruleResult.setSuccess(true);
+
+CSP csp = CspFactory.eINSTANCE.createCSP();
+
+CheckAttributeHelper __helper = new CheckAttributeHelper(__tripleMatch);
+>>
+
+check_constraints(ovName, attrName, expectedValue, comp) ::= <<
+if(!__helper.hasExpectedValue("<ovName>", "<attrName>", <expectedValue>, ComparingOperator.<comp>)) {
+	ruleResult.setSuccess(false); 
+	return ruleResult;
+}
+>> 
+
+check_csp(target, constraints) ::= <<
+if(csp.check()){ 
+	ruleResult.setSuccess(true);
+} else {
+	<target:{t | var_<t.objectVariable>_<t.attribute>.setBound(false);}; separator="\n">
+	<constraints:{con | <con.instanceName>.solve(<con.solveVars; separator=",">);}; separator="\n">
+	if(csp.check()){ 
+		ruleResult.setSuccess(true);
+		ruleResult.setRequiredChange(true);
+		<target:{t | __helper.setValue("<t.objectVariable>", "<t.attribute>", var_<t.objectVariable>_<t.attribute>.getValue());}; separator="\n">
+	} else {
+		ruleResult.setSuccess(false);
+		return ruleResult;
+	}		
+}	
+>>

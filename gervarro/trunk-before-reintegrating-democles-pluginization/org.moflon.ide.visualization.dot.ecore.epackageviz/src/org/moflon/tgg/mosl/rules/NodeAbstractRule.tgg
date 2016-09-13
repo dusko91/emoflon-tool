@@ -1,0 +1,48 @@
+#using org.moflon.ide.visualization.dot.ecore.epackageviz.*
+#using AttrCondDefLibrary.*
+
+#abstract #rule NodeAbstractRule #with org.moflon.ide.visualization.dot.ecore.epackageviz
+
+#source {
+	superGraph : ClassGraph
+	
+	graph:SubClassGraph{
+		- containingGraph -> superGraph
+	}
+
+	++node:PNode{
+		++ - graph -> graph
+	}
+}
+
+#target {
+	rootPackage:EPackage
+
+	++eClassifier:EClassifier{
+		++ - ePackage -> rootPackage
+	}
+	
+//	!subPackage : EPackage {
+//		 !- eClassifiers -> eClassifier	
+//		 !- eSuperPackage -> rootPackage
+//	}
+}
+
+#correspondence {
+	graphToPackage :SubClassGraphToEPackage {
+		#src->graph
+		#trg->rootPackage
+	}
+
+	++ nodeToClassifier :PNodeToEClassifier {
+		#src->node
+		#trg->eClassifier
+	}
+}
+
+#attributeConditions {
+	eq(node.label, eClassifier.name)
+	eq(graph.name, rootPackage.name)
+}
+
+

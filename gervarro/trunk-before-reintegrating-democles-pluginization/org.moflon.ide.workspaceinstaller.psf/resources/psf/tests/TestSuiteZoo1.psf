@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<psf version="2.0">
+<provider id="org.eclipse.egit.core.GitProvider">
+<project reference="1.0,https://dev.kom.e-technik.tu-darmstadt.de/gitlab/es-projects/siemens-cme.git,master,CAMLanguage"/>
+<project reference="1.0,https://dev.kom.e-technik.tu-darmstadt.de/gitlab/es-projects/siemens-cme.git,master,CLS2CNC"/>
+<project reference="1.0,https://dev.kom.e-technik.tu-darmstadt.de/gitlab/es-projects/siemens-cme.git,master,ClsToCAMLanguageTGG"/>
+<project reference="1.0,https://dev.kom.e-technik.tu-darmstadt.de/gitlab/es-projects/siemens-cme.git,master,CME"/>
+<project reference="1.0,https://dev.kom.e-technik.tu-darmstadt.de/gitlab/es-projects/siemens-cme.git,master,CMEVortragInBerlin"/>
+<project reference="1.0,https://dev.kom.e-technik.tu-darmstadt.de/gitlab/es-projects/siemens-cme.git,master,MpfToCAMLanguageTGG"/>
+<project reference="1.0,https://dev.kom.e-technik.tu-darmstadt.de/gitlab/es-projects/siemens-cme.git,master,ZooTestSuite1"/>
+<project reference="1.0,https://dev.kom.e-technik.tu-darmstadt.de/gitlab/es-projects/component-analysis-vw.git,master,ComponentLanguage"/>
+<project reference="1.0,https://dev.kom.e-technik.tu-darmstadt.de/gitlab/es-projects/component-analysis-vw.git,master,ExportToComponentLanguage"/>
+<project reference="1.0,https://dev.kom.e-technik.tu-darmstadt.de/gitlab/es-projects/component-analysis-vw.git,master,PathAnalysis"/>
+<project reference="1.0,https://dev.kom.e-technik.tu-darmstadt.de/gitlab/es-projects/component-analysis-vw.git,master,SoftwareComponentAnalysis"/>
+<project reference="1.0,https://dev.kom.e-technik.tu-darmstadt.de/gitlab/es-projects/component-analysis-vw.git,master,TextualSyntaxComponentLanguage"/>
+</provider>
+</psf>

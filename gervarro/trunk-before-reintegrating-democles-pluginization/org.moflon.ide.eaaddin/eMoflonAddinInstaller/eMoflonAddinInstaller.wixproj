@@ -1,0 +1,112 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Date>$([System.DateTime]::Now.ToString("yyyyMMdd__HHmmss"))</Date>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProductVersion>3.8</ProductVersion>
+    <ProjectGuid>1a3e7051-ea01-4aef-a63c-da3eab9be6d3</ProjectGuid>
+    <SchemaVersion>2.0</SchemaVersion>
+    <OutputName>eMoflonAddinInstaller</OutputName>
+    <OutputType>Package</OutputType>
+    <WixTargetsPath Condition=" '$(WixTargetsPath)' == '' AND '$(MSBuildExtensionsPath32)' != '' ">$(MSBuildExtensionsPath32)\Microsoft\WiX\v3.x\Wix.targets</WixTargetsPath>
+    <WixTargetsPath Condition=" '$(WixTargetsPath)' == '' ">$(MSBuildExtensionsPath)\Microsoft\WiX\v3.x\Wix.targets</WixTargetsPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
+    <DefineConstants>Debug;Date=$(Date)</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
+    <DefineConstants>Date=$(Date)</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="EAEcoreAddin.wxs" />
+    <Compile Include="Product.wxs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\EAEcoreAddin\EAEcoreAddin.csproj">
+      <Name>EAEcoreAddin</Name>
+      <Project>{6339c0c2-8169-4952-a80f-65e89a651b2b}</Project>
+      <Private>True</Private>
+      <DoNotHarvest>True</DoNotHarvest>
+      <RefProjectOutputGroups>Binaries;Content;Satellites</RefProjectOutputGroups>
+      <RefTargetDir>INSTALLFOLDER</RefTargetDir>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <WixExtension Include="WixNetFxExtension">
+      <HintPath>$(WixExtDir)\WixNetFxExtension.dll</HintPath>
+      <Name>WixNetFxExtension</Name>
+    </WixExtension>
+    <WixExtension Include="WixUIExtension">
+      <HintPath>$(WixExtDir)\WixUIExtension.dll</HintPath>
+      <Name>WixUIExtension</Name>
+    </WixExtension>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="EAEcoreAddin.dll" />
+    <Content Include="eMoflonLicense.rtf" />
+    <Content Include="images\eMoflonLogo.ico" />
+    <Content Include="Interop.EA.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="images" />
+  </ItemGroup>
+  <Import Project="$(WixTargetsPath)" />
+  <!--
+	To modify your build process, add your task inside one of the targets below and uncomment it.
+	Other similar extension points exist, see Wix.targets.
+	<Target Name="BeforeBuild">
+	</Target>
+	<Target Name="AfterBuild">
+	</Target>
+	-->
+  <Target Name="BeforeBuild">
+    <!-- Get the programs assembly version from the .exe file -->
+    <GetAssemblyIdentity AssemblyFiles="..\EAEcoreAddin\bin\$(Configuration)\EAEcoreAddin.dll">
+      <Output TaskParameter="Assemblies" ItemName="AsmInfo" />
+    </GetAssemblyIdentity>
+    <!-- Store the assembly version number in ProductVersion preprocessor variable -->
+    <CreateProperty Value="$(DefineConstants);ProductVersion=%(AsmInfo.Version)">
+      <Output TaskParameter="Value" PropertyName="DefineConstants" />
+    </CreateProperty>
+    <!-- Name the .msi file after the solution platform and assembly version e.g TestService-x86-1.4.0.0.msi -->
+    <CreateProperty Value="$(SolutionName)-$(Platform)-%(AsmInfo.Version)-b$(Date)">
+      <Output TaskParameter="Value" PropertyName="TargetName" />
+    </CreateProperty>
+    <!-- Name the .wixpdb file after the solution platform and assembly version e.g TestService-x86-1.4.0.0.msi -->
+    <CreateProperty Value="$(TargetName)$(TargetPdbExt)">
+      <Output TaskParameter="Value" PropertyName="TargetPdbName" />
+    </CreateProperty>
+  </Target>
+  <PropertyGroup>
+    <PostBuildEvent>%40echo off
+set targetDir="$(SolutionDir)..\org.moflon.deployment.updatesite"
+set zipFileLocation="$(ProjectDir)bin\ea-ecore-addin.zip"
+
+del %25zipFileLocation%25
+
+"$(ProjectDir)\resources\7-Zip64\7z.exe" a %25zipFileLocation%25 %2a.cab %2a.msi %2a.wixpdb
+
+IF exist %25targetDir%25 (
+  echo "Copying eMoflon installer to %25targetDir%25"
+  copy %25zipFileLocation%25 %25targetDir%25
+) ELSE (
+  echo "!!! WARNING !!! WARNING !!! WARNING !!!"
+  echo "!!! %25targetDir%25 does not exist. eMoflon installer will not be copied."
+  echo "!!! WARNING !!! WARNING !!! WARNING !!!"
+)</PostBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PreBuildEvent>%40echo off
+cd ..
+cd..
+cd..
+copy EAEcoreAddin\obj\Debug\EAEcoreAddin.dll eMoflonAddinInstaller\EAEcoreAddin.dll
+cd eMoflonAddinInstaller\
+heat.exe file EAEcoreAddin.dll -cg MyFilesGroup -dr INSTALLSUBFOLDER -gg -var var.SolutionDir -out EAEcoreAddin.wxs</PreBuildEvent>
+  </PropertyGroup>
+</Project>
