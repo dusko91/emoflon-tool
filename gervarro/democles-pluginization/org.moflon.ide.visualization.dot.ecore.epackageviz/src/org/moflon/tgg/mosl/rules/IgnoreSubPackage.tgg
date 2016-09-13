@@ -1,12 +1,10 @@
 #using org.moflon.ide.visualization.dot.ecore.epackageviz.*
 #using AttrCondDefLibrary.*
 
-#rule IgnoreSubPackage  #with org.moflon.ide.visualization.dot.ecore.epackageviz
+#abstract #rule IgnoreSubPackage  #with org.moflon.ide.visualization.dot.ecore.epackageviz
 
 #source { 
-	graph : ClassGraph
-		
-	
+		graph : ClassGraph
 }
 
 #target {
@@ -18,9 +16,14 @@
 }
 
 #correspondence {
-	grapgh2package : ClassGraphToEPackage {
+	graphToPackage : ClassGraphToEPackage {
 		#src->graph
 		#trg->rootPackage
+	}
+	
+	++ ignoreCorr : IgnoreEPackage {
+		#src->graph
+		#trg->subPackage
 	}
 }
 
