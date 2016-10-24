@@ -33,18 +33,12 @@ public class ContikiMonitoredMetamodelLoader extends GenericMonitoredResourceLoa
 		         monitor.beginTask("Loading workspace projects", workspaceProjects.length);
 		         for (IProject workspaceProject : workspaceProjects)
 		         {
-		            try
-		            {
-		               if (isAccessible(workspaceProject))
+		            if (isAccessible(workspaceProject))
 		               {
 		                  final URI projectURI = CodeGeneratorPlugin.lookupProjectURI(workspaceProject);
 		                  final URI metamodelURI = CodeGeneratorPlugin.getDefaultProjectRelativeEcoreFileURI(workspaceProject).resolve(projectURI);
 		                  new PackageRemappingDependency(metamodelURI, false, false).getResource(resourceSet, false, true);
 		               }
-		            } catch (CoreException e)
-		            {
-		               // Do nothing
-		            }
 		            monitor.worked(1);
 		         }
 		      } finally
@@ -55,7 +49,7 @@ public class ContikiMonitoredMetamodelLoader extends GenericMonitoredResourceLoa
 	}
 
 	@Override
-	protected boolean isAccessible(IProject project) throws CoreException {
+	protected boolean isAccessible(IProject project) {
 		return project.isAccessible();
 	}
 

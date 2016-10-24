@@ -367,10 +367,10 @@ public class ResourceFillingMocaToMoflon2ContikiTransformation extends ExporterI
 	      {
 	         resource.setURI(URI.createURI(resource.getURI().toString().replace(WorkspaceHelper.ECORE_FILE_EXTENSION, WorkspaceHelper.PRE_ECORE_FILE_EXTENSION)));
 
-	         addMetamodelDependency(moflonProps, MoflonUtil.getDefaultURIToEcoreFileInPlugin(TGGRuntimePlugin.getDefault().getPluginId()));
+	         /*addMetamodelDependency(moflonProps, MoflonUtil.getDefaultURIToEcoreFileInPlugin(TGGRuntimePlugin.getDefault().getPluginId()));
 	         addMetamodelDependency(moflonProps, MoflonUtil.getDefaultURIToEcoreFileInPlugin(SDMLanguagePlugin.getDefault().getPluginId()));
 	         addMetamodelDependency(moflonProps, MoflonUtil.getDefaultURIToEcoreFileInPlugin(TGGLanguageActivator.getDefault().getPluginId()));
-	         addMetamodelDependency(moflonProps, MoflonUtil.getDefaultURIToEcoreFileInPlugin(MocaTreePlugin.getDefault().getPluginId()));
+	         addMetamodelDependency(moflonProps, MoflonUtil.getDefaultURIToEcoreFileInPlugin(MocaTreePlugin.getDefault().getPluginId()));*/
 	      }
 
 	      MoflonPropertiesContainerHelper.save(moflonProps, new NullProgressMonitor());
