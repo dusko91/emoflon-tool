@@ -7,7 +7,7 @@
          point="org.eclipse.core.resources.natures">
       <runtime>
          <run
-               class="org.moflon2contiki.ide.ui.runtime.natures.ContikiRepositoryNature">
+               class="org.cmoflon.ide.ui.runtime.natures.ContikiRepositoryNature">
          </run>
       </runtime>
    </extension>
@@ -17,7 +17,7 @@
          point="org.eclipse.core.resources.natures">
       <runtime>
          <run
-               class="org.moflon2contiki.ide.ui.runtime.natures.ContikiMetamodelNature">
+               class="org.cmoflon.ide.ui.runtime.natures.ContikiMetamodelNature">
          </run>
       </runtime>
    </extension>
@@ -50,7 +50,7 @@
       <wizard
             canFinishEarly="false"
             category="org.moflon.ide.ui.category"
-            class="org.moflon2contiki.ide.ui.admin.wizards.metamodel.NewContikiMetamodelWizard"
+            class="org.cmoflon.ide.ui.admin.wizards.metamodel.NewContikiMetamodelWizard"
             finalPerspective="org.moflon.ide.ui.perspective"
             hasPages="true"
             id="org.moflon2contiki.ide.ui.admin.wizards.metamodel.NewContikiMetamodelWizard"
@@ -95,7 +95,7 @@
    <extension
          point="org.eclipse.ui.handlers">
       <handler
-            class="org.moflon2contiki.ide.ui.admin.handlers.BuildHandler"
+            class="org.cmoflon.ide.ui.admin.handlers.BuildHandler"
             commandId="org.moflon2contiki.ide.ui.commands.build.BuildCommand">
          <enabledWhen>
             <or>

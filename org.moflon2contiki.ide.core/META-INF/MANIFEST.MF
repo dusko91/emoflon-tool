@@ -1,9 +1,9 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: org.moflon2contiki.ide.core
-Bundle-SymbolicName: org.moflon2contiki.ide.core;singleton:=true
+Bundle-Name: org.cmoflon.ide.core
+Bundle-SymbolicName: org.cmoflon.ide.core;singleton:=true
 Bundle-Version: 1.0.0.qualifier
-Bundle-Activator: org.moflon2contiki.ide.core.ContikiCoreActivator
+Bundle-Activator: org.cmoflon.ide.core.CMoflonCoreActivator
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
  org.eclipse.core.resources,
@@ -34,7 +34,7 @@ Require-Bundle: org.eclipse.ui,
  org.moflon.core.moca.inject
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
-Export-Package: org.moflon2contiki.ide.core,
- org.moflon2contiki.ide.core.runtime.builders,
- org.moflon2contiki.ide.core.runtime.codegeneration,
- org.moflon2contiki.ide.core.utilities
+Export-Package: org.cmoflon.ide.core,
+ org.cmoflon.ide.core.runtime.builders,
+ org.cmoflon.ide.core.runtime.codegeneration,
+ org.cmoflon.ide.core.utilities
