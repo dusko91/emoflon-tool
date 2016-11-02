@@ -2,42 +2,42 @@
 <?eclipse version="3.4"?>
 <plugin>
    <extension
-         id="org.moflon2contiki.ide.ui.runtime.natures.ContikiRepositoryNature"
-         name="Contiki Repository Nature"
+         id="org.cmoflon.ide.ui.runtime.natures.CMoflonRepositoryNature"
+         name="CMoflon Repository Nature"
          point="org.eclipse.core.resources.natures">
       <runtime>
          <run
-               class="org.cmoflon.ide.ui.runtime.natures.ContikiRepositoryNature">
+               class="org.cmoflon.ide.ui.runtime.natures.CMoflonRepositoryNature">
          </run>
       </runtime>
    </extension>
    <extension
-         id="org.moflon2contiki.ide.ui.runtime.natures.ContikiMetamodelNature"
-         name="Contiki Metamodel Nature"
+         id="org.cmoflon.ide.ui.runtime.natures.CMoflonMetamodelNature"
+         name="CMoflon Metamodel Nature"
          point="org.eclipse.core.resources.natures">
       <runtime>
          <run
-               class="org.cmoflon.ide.ui.runtime.natures.ContikiMetamodelNature">
+               class="org.cmoflon.ide.ui.runtime.natures.CMoflonMetamodelNature">
          </run>
       </runtime>
    </extension>
    <extension
-         id="org.moflon2contiki.ide.core.runtime.builders.ContikiMetamodelBuilder"
-         name="Contiki Metamodel Builder"
+         id="org.cmoflon.ide.core.runtime.builders.CMoflonMetamodelBuilder"
+         name="CMoflon Metamodel Builder"
          point="org.eclipse.core.resources.builders">
       <builder>
          <run
-               class="org.moflon2contiki.ide.core.runtime.builders.ContikiMetamodelBuilder">
+               class="org.cmoflon.ide.core.runtime.builders.CMoflonMetamodelBuilder">
          </run>
       </builder>
    </extension>
    <extension
-         id="org.moflon2contiki.ide.core.runtime.builders.ContikiRepositoryBuilder"
-         name="Contiki Repository Builder"
+         id="org.cmoflon.ide.core.runtime.builders.CMoflonRepositoryBuilder"
+         name="CMoflon Repository Builder"
          point="org.eclipse.core.resources.builders">
       <builder>
          <run
-               class="org.moflon2contiki.ide.core.runtime.builders.ContikiRepositoryBuilder">
+               class="org.cmoflon.ide.core.runtime.builders.CMoflonRepositoryBuilder">
          </run>
       </builder>
    </extension>
@@ -50,11 +50,11 @@
       <wizard
             canFinishEarly="false"
             category="org.moflon.ide.ui.category"
-            class="org.cmoflon.ide.ui.admin.wizards.metamodel.NewContikiMetamodelWizard"
+            class="org.cmoflon.ide.ui.admin.wizards.metamodel.NewCMoflonMetamodelWizard"
             finalPerspective="org.moflon.ide.ui.perspective"
             hasPages="true"
-            id="org.moflon2contiki.ide.ui.admin.wizards.metamodel.NewContikiMetamodelWizard"
-            name="New Contiki Metamodel Wizard"
+            id="org.cmoflon.ide.ui.admin.wizards.metamodel.NewCMoflonMetamodelWizard"
+            name="New CMoflon Metamodel Wizard"
             preferredPerspectives="org.moflon.ide.ui.perspective"
             project="true">
       </wizard>
@@ -68,12 +68,12 @@
                id="org.moflon.ide.ui.toolbar"
                label="eMoflon Toolbar">
             <command
-                  commandId="org.moflon2contiki.ide.ui.commands.build.BuildCommand"
+                  commandId="org.cmoflon.ide.ui.commands.build.BuildCommand"
                   icon="resources/icons/rebuildClasses.png"
-                  label="BuildContiki"
+                  label="BuildCMoflon"
                   mnemonic="C"
                   style="push"
-                  tooltip="Build Contiki Code">
+                  tooltip="Build CMoflon Code">
                <visibleWhen
                      checkEnabled="false">
                   <reference
@@ -88,15 +88,15 @@
          point="org.eclipse.ui.commands">
       <command
             categoryId="org.moflon.ide.ui.commands.MainCategory"
-            id="org.moflon2contiki.ide.ui.commands.build.BuildCommand"
-            name="BuildContiki">
+            id="org.cmoflon.ide.ui.commands.build.BuildCommand"
+            name="BuildCMoflon">
       </command>
    </extension>
    <extension
          point="org.eclipse.ui.handlers">
       <handler
             class="org.cmoflon.ide.ui.admin.handlers.BuildHandler"
-            commandId="org.moflon2contiki.ide.ui.commands.build.BuildCommand">
+            commandId="org.cmoflon.ide.ui.commands.build.BuildCommand">
          <enabledWhen>
             <or>
                <with

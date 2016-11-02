@@ -4,7 +4,7 @@ import org.cmoflon.ide.core.CMoflonCoreActivator;
 import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.CoreException;
 
-public class ContikiMetamodelNature implements IProjectNature{
+public class CMoflonMetamodelNature implements IProjectNature{
 	private IProject project;
 
 	   @Override

@@ -57,13 +57,13 @@ import org.stringtemplate.v4.STGroup;
  * @author David Giessing
  *
  */
-public class ContikiCodeGenerator {
+public class CMoflonCodeGenerator {
 
 	// A List of the Built in ETypes of EMoflon. Created at instanciation of the
 	// ContikiCodeGenerator.
 	private List<String> builtInTypes;
 
-	private static final Logger logger = Logger.getLogger(ContikiCodeGenerator.class);
+	private static final Logger logger = Logger.getLogger(CMoflonCodeGenerator.class);
 
 	private static final String COMPONENT_TOPOLOGY_CONTROL = "topologycontrol";
 
@@ -88,7 +88,7 @@ public class ContikiCodeGenerator {
 
 	public final String NL = System.getProperties().getProperty("line.separator");
 
-	public ContikiCodeGenerator(Resource ecore, IProject project, GenModel genModel,
+	public CMoflonCodeGenerator(Resource ecore, IProject project, GenModel genModel,
 			InjectionManager injectionManager) {
 		this.templateProvider = getTemplateConfigurationProvider(genModel);
 		this.ecore = ecore;
@@ -223,13 +223,13 @@ public class ContikiCodeGenerator {
 			List<GenClass> genClasses, IProgressMonitor iProgressMonitor) {
 		String inProcessCode = "";
 		String[] tcMethods = ((String) constantProperties.get("tcMethods")).split(",");
-		STGroup source = templateProvider.getTemplateGroup(ContikiTemplateConfiguration.SOURCE_FILE_GENERATOR);
+		STGroup source = templateProvider.getTemplateGroup(CMoflonTemplateConfiguration.SOURCE_FILE_GENERATOR);
 		source.registerRenderer(String.class, new CMoflonStringRenderer());
 		for (String method : tcMethods) {
 			inProcessCode += "\t\t" + method.trim() + "("
 					+ getParameters(constantProperties.getProperty(method.trim()), component,
 							genClasses.get(0).getEcoreClass().getEPackage().getName(),
-							source.getInstanceOf("/" + ContikiTemplateConfiguration.SOURCE_FILE_GENERATOR + "/"
+							source.getInstanceOf("/" + CMoflonTemplateConfiguration.SOURCE_FILE_GENERATOR + "/"
 									+ SourceFileGenerator.PARAMETER_CONSTANT))
 					+ ");\n";
 		}
@@ -246,10 +246,10 @@ public class ContikiCodeGenerator {
 		// Include the header.
 		contents += "#include \"" + filename + ".h" + "\"\n";
 		// LIST and MEMB declarations
-		ST listDecl= source.getInstanceOf("/" + ContikiTemplateConfiguration.SOURCE_FILE_GENERATOR + "/"
+		ST listDecl= source.getInstanceOf("/" + CMoflonTemplateConfiguration.SOURCE_FILE_GENERATOR + "/"
 				+ SourceFileGenerator.LIST_DECLARATION);
 		
-		ST membDecl= source.getInstanceOf("/" + ContikiTemplateConfiguration.SOURCE_FILE_GENERATOR + "/"
+		ST membDecl= source.getInstanceOf("/" + CMoflonTemplateConfiguration.SOURCE_FILE_GENERATOR + "/"
 				+ SourceFileGenerator.MEMB_DECLARATION);
 		contents += getListAndBlockDeclarations(membDecl, listDecl);
 		// PM code
@@ -257,7 +257,7 @@ public class ContikiCodeGenerator {
 		// generated Code
 		contents += generatedCode;
 		// Init Method for MEMB and LIST
-		ST init= source.getInstanceOf("/" + ContikiTemplateConfiguration.SOURCE_FILE_GENERATOR + "/"
+		ST init= source.getInstanceOf("/" + CMoflonTemplateConfiguration.SOURCE_FILE_GENERATOR + "/"
 				+ SourceFileGenerator.INIT);
 		contents += getInitMethod(init);
 		//Upper Part of framework (PROCESS) Code
@@ -403,9 +403,9 @@ public class ContikiCodeGenerator {
 			final Scope scope = (Scope) cfResource.getContents().get(0);
 
 			final STGroup group = templateProvider
-					.getTemplateGroup(ContikiTemplateConfiguration.CONTROL_FLOW_GENERATOR);
+					.getTemplateGroup(CMoflonTemplateConfiguration.CONTROL_FLOW_GENERATOR);
 			final ST template = group.getInstanceOf(
-					"/" + ContikiTemplateConfiguration.CONTROL_FLOW_GENERATOR + "/" + scope.getClass().getSimpleName());
+					"/" + CMoflonTemplateConfiguration.CONTROL_FLOW_GENERATOR + "/" + scope.getClass().getSimpleName());
 			template.add("scope", scope);
 			template.add("importManager", null);
 			generatedMethodBody = template.render();
@@ -419,7 +419,7 @@ public class ContikiCodeGenerator {
 
 	private TemplateConfigurationProvider getTemplateConfigurationProvider(GenModel genmodel) {
 
-		return new ContikiTemplateConfiguration(genmodel);
+		return new CMoflonTemplateConfiguration(genmodel);
 	}
 
 	/**
@@ -443,24 +443,24 @@ public class ContikiCodeGenerator {
 	protected void generateHeader(String componentName, String algorithmName, EList<EOperation> operations,
 			List<FieldAttribute> fields, List<MethodAttribute> methods, IProgressMonitor monitor) {
 		String contents = "";
-		STGroup stg = templateProvider.getTemplateGroup(ContikiTemplateConfiguration.HEADER_FILE_GENERATOR);
+		STGroup stg = templateProvider.getTemplateGroup(CMoflonTemplateConfiguration.HEADER_FILE_GENERATOR);
 		// Generate Header Def
 		stg.registerRenderer(String.class, new CMoflonStringRenderer());
 		ST definition = stg.getInstanceOf(
-				"/" + ContikiTemplateConfiguration.HEADER_FILE_GENERATOR + "/" + HeaderFileGenerator.CONSTANTS_BEGIN);
+				"/" + CMoflonTemplateConfiguration.HEADER_FILE_GENERATOR + "/" + HeaderFileGenerator.CONSTANTS_BEGIN);
 		definition.add("comp", componentName.toUpperCase());
 		definition.add("algo", algorithmName.toUpperCase());
 		contents += definition.render();
 		contents += (HeaderFileGenerator.generateIncludes(Components.TOPOLOGYCONTROL,
-				templateProvider.getTemplateGroup(ContikiTemplateConfiguration.HEADER_FILE_GENERATOR).getInstanceOf(
-						"/" + ContikiTemplateConfiguration.HEADER_FILE_GENERATOR + "/" + HeaderFileGenerator.INCLUDE)))
+				templateProvider.getTemplateGroup(CMoflonTemplateConfiguration.HEADER_FILE_GENERATOR).getInstanceOf(
+						"/" + CMoflonTemplateConfiguration.HEADER_FILE_GENERATOR + "/" + HeaderFileGenerator.INCLUDE)))
 				+ "\n";
 		// For Each Entry in the Constants Properties we need to generate one
 		// Entry
 		ST constant;
 		for (Entry<Object, Object> pair : constantProperties.entrySet()) {
 			if (pair.getKey().toString().contains("const-")) {
-				constant = stg.getInstanceOf("/" + ContikiTemplateConfiguration.HEADER_FILE_GENERATOR + "/"
+				constant = stg.getInstanceOf("/" + CMoflonTemplateConfiguration.HEADER_FILE_GENERATOR + "/"
 						+ HeaderFileGenerator.CONSTANTS_DEFINTION);
 				contents += HeaderFileGenerator.generateConstant(pair.getKey().toString().split("const-")[1],
 						pair.getValue(), componentName, algorithmName, constant);
@@ -470,11 +470,11 @@ public class ContikiCodeGenerator {
 		contents += "#ifndef MAX_MATCH_COUNT\n#define MAX_MATCH_COUNT " + constantProperties.get("MAX_MATCH_COUNT")
 				+ "\n#endif\n";
 		ST match = stg.getInstanceOf(
-				"/" + ContikiTemplateConfiguration.HEADER_FILE_GENERATOR + "/" + HeaderFileGenerator.MATCH);
+				"/" + CMoflonTemplateConfiguration.HEADER_FILE_GENERATOR + "/" + HeaderFileGenerator.MATCH);
 		contents += match.render();
 		// Typedefs
 		ST define = stg.getInstanceOf(
-				"/" + ContikiTemplateConfiguration.HEADER_FILE_GENERATOR + "/" + HeaderFileGenerator.DEFINE);
+				"/" + CMoflonTemplateConfiguration.HEADER_FILE_GENERATOR + "/" + HeaderFileGenerator.DEFINE);
 		for (Entry<Object, Object> pair : mapping.entrySet()) {
 			define.remove("orig");
 			define.remove("replaced");
@@ -484,19 +484,19 @@ public class ContikiCodeGenerator {
 		}
 		contents += HeaderFileGenerator.getAllBuiltInMappings();
 		// Non implemented Methods Declarations
-		ST methoddecls = stg.getInstanceOf("/" + ContikiTemplateConfiguration.HEADER_FILE_GENERATOR + "/"
+		ST methoddecls = stg.getInstanceOf("/" + CMoflonTemplateConfiguration.HEADER_FILE_GENERATOR + "/"
 				+ HeaderFileGenerator.METHOD_DECLARATION);
 		methoddecls.add("methods", methods);
 		contents += methoddecls.render();
 		// Accessor Declarations
 		ST declarations = stg.getInstanceOf(
-				"/" + ContikiTemplateConfiguration.HEADER_FILE_GENERATOR + "/" + HeaderFileGenerator.DECLARATIONS);
+				"/" + CMoflonTemplateConfiguration.HEADER_FILE_GENERATOR + "/" + HeaderFileGenerator.DECLARATIONS);
 		declarations.add("fields", fields);
 		contents += declarations.render();
 		// Compare and Equals Declarations
-		ST compare = stg.getInstanceOf("/" + ContikiTemplateConfiguration.HEADER_FILE_GENERATOR + "/"
+		ST compare = stg.getInstanceOf("/" + CMoflonTemplateConfiguration.HEADER_FILE_GENERATOR + "/"
 				+ HeaderFileGenerator.COMPARE_DECLARATION);
-		ST equals = stg.getInstanceOf("/" + ContikiTemplateConfiguration.HEADER_FILE_GENERATOR + "/"
+		ST equals = stg.getInstanceOf("/" + CMoflonTemplateConfiguration.HEADER_FILE_GENERATOR + "/"
 				+ HeaderFileGenerator.EQUALS_DECLARATION);
 		compare.add("types", getTypes(this.genModel));
 		equals.add("types", getTypes(this.genModel));
@@ -504,7 +504,7 @@ public class ContikiCodeGenerator {
 		contents += equals.render();
 		// Create Header Tail
 		ST end = stg.getInstanceOf(
-				"/" + ContikiTemplateConfiguration.HEADER_FILE_GENERATOR + "/" + HeaderFileGenerator.CONSTANTS_END);
+				"/" + CMoflonTemplateConfiguration.HEADER_FILE_GENERATOR + "/" + HeaderFileGenerator.CONSTANTS_END);
 		end.add("comp", componentName.toUpperCase());
 		end.add("algo", algorithmName.toUpperCase());
 		contents += end.render();
@@ -559,10 +559,10 @@ public class ContikiCodeGenerator {
 	 * @return the Parameters as String
 	 */
 	private String getParametersFromEcore(EOperation op) {
-		STGroup source = this.templateProvider.getTemplateGroup(ContikiTemplateConfiguration.SOURCE_FILE_GENERATOR);
+		STGroup source = this.templateProvider.getTemplateGroup(CMoflonTemplateConfiguration.SOURCE_FILE_GENERATOR);
 		source.registerRenderer(String.class, new CMoflonStringRenderer());
 		ST template = source.getInstanceOf(
-				"/" + ContikiTemplateConfiguration.SOURCE_FILE_GENERATOR + "/" + SourceFileGenerator.PARAMETER);
+				"/" + CMoflonTemplateConfiguration.SOURCE_FILE_GENERATOR + "/" + SourceFileGenerator.PARAMETER);
 		String result = "";
 		template.add("name", "this");
 		template.add("type",

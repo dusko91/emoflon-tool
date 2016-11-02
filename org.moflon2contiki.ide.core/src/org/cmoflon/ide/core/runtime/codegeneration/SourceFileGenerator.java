@@ -33,10 +33,10 @@ public class SourceFileGenerator {
 	public static String generateClosingPart(boolean dropUnidir, STGroup sourceGroup) {
 		String result="";
 		if(dropUnidir){
-			result+=(sourceGroup.getInstanceOf("/"+ContikiTemplateConfiguration.SOURCE_FILE_GENERATOR+"/"+DROP_UNIDIRECTIONAL_EDGES).render());
+			result+=(sourceGroup.getInstanceOf("/"+CMoflonTemplateConfiguration.SOURCE_FILE_GENERATOR+"/"+DROP_UNIDIRECTIONAL_EDGES).render());
 		}
-		result+=(sourceGroup.getInstanceOf("/"+ContikiTemplateConfiguration.SOURCE_FILE_GENERATOR+"/"+WATCHDOG_START).render());
-		result+=(sourceGroup.getInstanceOf("/"+ContikiTemplateConfiguration.SOURCE_FILE_GENERATOR+"/"+PROCESS_END).render());
+		result+=(sourceGroup.getInstanceOf("/"+CMoflonTemplateConfiguration.SOURCE_FILE_GENERATOR+"/"+WATCHDOG_START).render());
+		result+=(sourceGroup.getInstanceOf("/"+CMoflonTemplateConfiguration.SOURCE_FILE_GENERATOR+"/"+PROCESS_END).render());
 		return result;
 	}
 
@@ -50,19 +50,19 @@ public class SourceFileGenerator {
 	public static String generateUpperPart(String component, String algorithmName,
 			STGroup templateGroup) {
 		String result="";
-		ST procBegin=templateGroup.getInstanceOf("/"+ContikiTemplateConfiguration.SOURCE_FILE_GENERATOR+"/"+PROCESS_BEGIN);
+		ST procBegin=templateGroup.getInstanceOf("/"+CMoflonTemplateConfiguration.SOURCE_FILE_GENERATOR+"/"+PROCESS_BEGIN);
 		procBegin.add("component",component);
 		procBegin.add("algo", algorithmName);
 		result+=procBegin.render();
 		
-		ST bootComp = templateGroup.getInstanceOf("/"+ContikiTemplateConfiguration.SOURCE_FILE_GENERATOR+"/"+BOOT_COMP_WAIT);
+		ST bootComp = templateGroup.getInstanceOf("/"+CMoflonTemplateConfiguration.SOURCE_FILE_GENERATOR+"/"+BOOT_COMP_WAIT);
 		bootComp.add("component", component);
 		result+=bootComp.render();
 		
-		ST mainLoop = templateGroup.getInstanceOf("/"+ContikiTemplateConfiguration.SOURCE_FILE_GENERATOR+"/"+MAIN_LOOP);
+		ST mainLoop = templateGroup.getInstanceOf("/"+CMoflonTemplateConfiguration.SOURCE_FILE_GENERATOR+"/"+MAIN_LOOP);
 		result+=mainLoop.render();
 		
-		ST watchDogStop = templateGroup.getInstanceOf("/"+ContikiTemplateConfiguration.SOURCE_FILE_GENERATOR+"/"+WATCHDOG_STOP);
+		ST watchDogStop = templateGroup.getInstanceOf("/"+CMoflonTemplateConfiguration.SOURCE_FILE_GENERATOR+"/"+WATCHDOG_STOP);
 		result+=watchDogStop.render();
 		
 		return result;

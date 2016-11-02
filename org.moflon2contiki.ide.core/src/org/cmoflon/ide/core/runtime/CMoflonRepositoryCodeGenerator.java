@@ -3,8 +3,8 @@ package org.cmoflon.ide.core.runtime;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
-import org.cmoflon.ide.core.runtime.codegeneration.ContikiCodeGenerator;
-import org.cmoflon.ide.core.runtime.codegeneration.Moflon2ContikiCodeGenerator;
+import org.cmoflon.ide.core.runtime.codegeneration.CMoflonCodeGenerator;
+import org.cmoflon.ide.core.runtime.codegeneration.CMoflonCodeGeneratorTask;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
@@ -18,17 +18,17 @@ import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.core.utilities.eMoflonEMFUtil;
 
 /**
- * Mimics {@link RepositoryCodeGenerator}. Needed to invoke {@link ContikiCodeGenerator}
+ * Mimics {@link RepositoryCodeGenerator}. Needed to invoke {@link CMoflonCodeGenerator}
  * @author David Giessing
  *
  */
-public class ContikiRepositoryCodeGenerator {
+public class CMoflonRepositoryCodeGenerator {
 
-	private static final Logger logger = Logger.getLogger(ContikiRepositoryCodeGenerator.class);
+	private static final Logger logger = Logger.getLogger(CMoflonRepositoryCodeGenerator.class);
 
 	   protected IProject project;
 
-	   public ContikiRepositoryCodeGenerator(final IProject project)
+	   public CMoflonRepositoryCodeGenerator(final IProject project)
 	   {
 	      this.project = project;
 	   }
@@ -47,7 +47,7 @@ public class ContikiRepositoryCodeGenerator {
 	         final ResourceSet resourceSet = CodeGeneratorPlugin.createDefaultResourceSet();
 	         eMoflonEMFUtil.installCrossReferencers(resourceSet);
 	         monitor.worked(1);
-	         Moflon2ContikiCodeGenerator gen= new Moflon2ContikiCodeGenerator(ecoreFile, resourceSet);
+	         CMoflonCodeGeneratorTask gen= new CMoflonCodeGeneratorTask(ecoreFile, resourceSet);
 	         gen.run(WorkspaceHelper.createSubmonitorWith1Tick(monitor));
 		} catch (CoreException e) {
 			// TODO Auto-generated catch block

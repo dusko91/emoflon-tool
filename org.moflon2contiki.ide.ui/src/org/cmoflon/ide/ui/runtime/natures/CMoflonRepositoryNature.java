@@ -7,7 +7,7 @@ import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IProjectNature;
 import org.eclipse.core.runtime.CoreException;
 
-public class ContikiRepositoryNature implements IProjectNature
+public class CMoflonRepositoryNature implements IProjectNature
 {
 	   private IProject project;
 

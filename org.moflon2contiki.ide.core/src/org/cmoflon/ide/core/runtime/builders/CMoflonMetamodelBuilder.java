@@ -42,7 +42,6 @@ public class CMoflonMetamodelBuilder extends AbstractBuilder{
 	
 	public static final Logger logger = Logger.getLogger(CMoflonMetamodelBuilder.class);
 	
-	public static final String BUILDER_ID = "org.moflon2contiki.ide.core.runtime.builders.ContikiMetamodelBuilder";
 	
 	private MocaTreeEAPropertiesReader mocaTreeReader = new MocaTreeEAPropertiesReader();
 

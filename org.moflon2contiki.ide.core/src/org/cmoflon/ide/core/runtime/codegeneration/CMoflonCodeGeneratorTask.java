@@ -38,9 +38,9 @@ import org.moflon.core.propertycontainer.MoflonPropertiesContainerHelper;
 import org.gervarro.eclipse.task.ITask;
 
 //TODO@rkluge: should actually inherit from GenericMoflonProcess
-public class Moflon2ContikiCodeGenerator implements ITask {
+public class CMoflonCodeGeneratorTask implements ITask {
 
-	private static final Logger logger = Logger.getLogger(Moflon2ContikiCodeGenerator.class);
+	private static final Logger logger = Logger.getLogger(CMoflonCodeGeneratorTask.class);
 	private final IFile ecoreFile;
 
 	private final ResourceSet resourceSet;
@@ -53,7 +53,7 @@ public class Moflon2ContikiCodeGenerator implements ITask {
 
 	private GenModel genModel;
 
-	public Moflon2ContikiCodeGenerator(IFile ecoreFile, ResourceSet resourceSet) {
+	public CMoflonCodeGeneratorTask(IFile ecoreFile, ResourceSet resourceSet) {
 		this.ecoreFile = ecoreFile;
 		this.resourceSet = resourceSet;
 	}
@@ -176,7 +176,7 @@ public class Moflon2ContikiCodeGenerator implements ITask {
 			System.out.println("Entering Code Generation in Moflon2ContikiCodeGenerator");
 			// (6) Generate code
 			monitor.subTask("Generating code for project " + project.getName());
-			final ContikiCodeGenerator codeGenerator = new ContikiCodeGenerator(resource, project, this.genModel, this.injectionManager);
+			final CMoflonCodeGenerator codeGenerator = new CMoflonCodeGenerator(resource, project, this.genModel, this.injectionManager);
 			final IStatus codeGenerationStatus = codeGenerator
 					.generateCode(WorkspaceHelper.createSubMonitor(monitor, 30));
 			if (monitor.isCanceled()) {

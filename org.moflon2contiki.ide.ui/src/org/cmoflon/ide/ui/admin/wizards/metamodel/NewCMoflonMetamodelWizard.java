@@ -25,7 +25,7 @@ import org.moflon.ide.ui.admin.wizards.metamodel.NewMetamodelProjectInfoPage;
  * The new metamodel wizard creates a new contiki metamodel project with default directory structure and default files.
  * @author David Giessing
  */
-public class NewContikiMetamodelWizard extends Wizard implements IWorkbenchWizard
+public class NewCMoflonMetamodelWizard extends Wizard implements IWorkbenchWizard
 {
    // Page containing controls for taking user input
    private NewMetamodelProjectInfoPage projectInfo;
@@ -34,7 +34,7 @@ public class NewContikiMetamodelWizard extends Wizard implements IWorkbenchWizar
 
    private static final String SPECIFICATION_WORKINGSET_NAME = "Specifications";
 
-   public NewContikiMetamodelWizard()
+   public NewCMoflonMetamodelWizard()
    {
       setNeedsProgressMonitor(true);
    }
@@ -96,7 +96,7 @@ public class NewContikiMetamodelWizard extends Wizard implements IWorkbenchWizar
 
          // generate default files
          CMoflonWorkspaceHelper.addFile(newProjectHandle, projectName + ".eap",
-               MoflonUtilitiesActivator.getPathRelToPlugIn("resources/defaultFiles/EAEMoflon.eap",UIActivator.getModuleID()), UIActivator.getModuleID(),
+               MoflonUtilitiesActivator.getPathRelToPlugIn("resources/kTC.eap",CMoflonUIActivator.getModuleID()), CMoflonUIActivator.getModuleID(),
                CMoflonWorkspaceHelper.createSubmonitorWith1Tick(monitor));
 
          CMoflonWorkspaceHelper.addFile(newProjectHandle, ".gitignore", ".temp", CMoflonWorkspaceHelper.createSubmonitorWith1Tick(monitor));         

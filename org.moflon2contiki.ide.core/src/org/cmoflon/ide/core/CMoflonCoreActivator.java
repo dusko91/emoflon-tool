@@ -10,13 +10,13 @@ import org.osgi.framework.BundleContext;
 public class CMoflonCoreActivator extends AbstractUIPlugin {
 
 	
-    public static final String REPOSITORY_BUILDER_ID = "org.moflon2contiki.ide.core.runtime.builders.ContikiRepositoryBuilder";
+    public static final String REPOSITORY_BUILDER_ID = "org.cmoflon.ide.core.runtime.builders.CMoflonRepositoryBuilder";
 
-	public static final String REPOSITORY_NATURE_ID = "org.moflon2contiki.ide.ui.runtime.natures.ContikiRepositoryNature";
+	public static final String REPOSITORY_NATURE_ID = "org.cmoflon.ide.ui.runtime.natures.CMoflonRepositoryNature";
 	   
-	public static final String METAMODEL_NATURE_ID = "org.moflon2contiki.ide.ui.runtime.natures.ContikiMetamodelNature";
+	public static final String METAMODEL_NATURE_ID = "org.cmoflon.ide.ui.runtime.natures.CMoflonMetamodelNature";
     
-	public static final String METAMODEL_BUILDER_ID = "org.moflon2contiki.ide.core.runtime.builders.ContikiMetamodelBuilder";
+	public static final String METAMODEL_BUILDER_ID = "org.cmoflon.ide.core.runtime.builders.CMoflonMetamodelBuilder";
 
 	// The shared instance
 	private static CMoflonCoreActivator plugin;

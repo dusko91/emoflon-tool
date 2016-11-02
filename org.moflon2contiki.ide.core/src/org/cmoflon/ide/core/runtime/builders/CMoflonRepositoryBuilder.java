@@ -1,7 +1,7 @@
 package org.cmoflon.ide.core.runtime.builders;
 
 import org.cmoflon.ide.core.CMoflonCoreActivator;
-import org.cmoflon.ide.core.runtime.ContikiRepositoryCodeGenerator;
+import org.cmoflon.ide.core.runtime.CMoflonRepositoryCodeGenerator;
 import org.cmoflon.ide.core.utilities.CMoflonWorkspaceHelper;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IMarker;
@@ -17,7 +17,7 @@ import org.moflon.ide.core.runtime.builders.AbstractBuilder;
 import org.moflon.ide.core.runtime.builders.RepositoryBuilder;
 
 /**
- * Builder for projects with ContikiRepositoryNature. Similar to {@link RepositoryBuilder}. Triggers {@link ContikiRepositoryCodeGenerator}.
+ * Builder for projects with ContikiRepositoryNature. Similar to {@link RepositoryBuilder}. Triggers {@link CMoflonRepositoryCodeGenerator}.
  * @author David Giessing
  *
  */
@@ -59,7 +59,7 @@ public class CMoflonRepositoryBuilder extends AbstractBuilder{
 	   protected boolean processResource(final IProgressMonitor monitor) throws CoreException
 	   {
 		  System.out.println("Processing Resource ContikiRepositoryBuilder");
-		  ContikiRepositoryCodeGenerator generator = new ContikiRepositoryCodeGenerator(getProject());
+		  CMoflonRepositoryCodeGenerator generator = new CMoflonRepositoryCodeGenerator(getProject());
 		  generator.generateCode(WorkspaceHelper.createSubmonitorWith1Tick(monitor),CMoflonWorkspaceHelper.getConstantsPropertiesFile(getProject()));
 		  CMoflonCoreActivator.getDefault().setDirty(getProject(), true);
 
@@ -70,7 +70,7 @@ public class CMoflonRepositoryBuilder extends AbstractBuilder{
 	   public boolean visit(final IResource resource) throws CoreException
 	   {
 	      // Make sure changes are from the right ecore file according to convention
-	      if (ContikiRepositoryCodeGenerator.isEcoreFileOfProject(resource, getProject()))
+	      if (CMoflonRepositoryCodeGenerator.isEcoreFileOfProject(resource, getProject()))
 	      {
 	         return processResource(WorkspaceHelper.createSubMonitor(this.getProgressMonitorForIncrementalChanges(), 100));
 	      }
