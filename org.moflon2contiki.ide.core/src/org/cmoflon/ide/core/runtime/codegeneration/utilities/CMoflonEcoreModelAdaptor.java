@@ -12,23 +12,26 @@ import org.stringtemplate.v4.misc.STNoSuchPropertyException;
  * @author David Giessing
  *
  */
-public class CMoflonEcoreModelAdaptor extends EcoreModelAdaptor {
+public class CMoflonEcoreModelAdaptor extends EcoreModelAdaptor
+{
 
-	public CMoflonEcoreModelAdaptor(EcoreToGenModelConverter converter) {
-		super(converter);
-		// TODO Auto-generated constructor stub
-	}
-	
-	@Override
-	public synchronized Object getProperty(Interpreter interpreter, ST template, Object object, Object property,
-			String propertyName) throws STNoSuchPropertyException {
-		if("EClassIsBuiltIn".equals(propertyName))
-			if(object instanceof EDataType)
-				return true;
-			else
-				return false;
-		//For all other properties are unchanged
-		return super.getProperty(interpreter, template, object, property, propertyName);
-	}
+   public CMoflonEcoreModelAdaptor(EcoreToGenModelConverter converter)
+   {
+      super(converter);
+      // TODO Auto-generated constructor stub
+   }
+
+   @Override
+   public synchronized Object getProperty(Interpreter interpreter, ST template, Object object, Object property, String propertyName)
+         throws STNoSuchPropertyException
+   {
+      if ("EClassIsBuiltIn".equals(propertyName))
+         if (object instanceof EDataType)
+            return true;
+         else
+            return false;
+      //For all other properties are unchanged
+      return super.getProperty(interpreter, template, object, property, propertyName);
+   }
 
 }

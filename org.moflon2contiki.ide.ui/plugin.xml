@@ -2,46 +2,6 @@
 <?eclipse version="3.4"?>
 <plugin>
    <extension
-         id="org.moflon2contiki.ide.ui.runtime.natures.ContikiRepositoryNature"
-         name="Contiki Repository Nature"
-         point="org.eclipse.core.resources.natures">
-      <runtime>
-         <run
-               class="org.cmoflon.ide.ui.runtime.natures.ContikiRepositoryNature">
-         </run>
-      </runtime>
-   </extension>
-   <extension
-         id="org.moflon2contiki.ide.ui.runtime.natures.ContikiMetamodelNature"
-         name="Contiki Metamodel Nature"
-         point="org.eclipse.core.resources.natures">
-      <runtime>
-         <run
-               class="org.cmoflon.ide.ui.runtime.natures.ContikiMetamodelNature">
-         </run>
-      </runtime>
-   </extension>
-   <extension
-         id="org.moflon2contiki.ide.core.runtime.builders.ContikiMetamodelBuilder"
-         name="Contiki Metamodel Builder"
-         point="org.eclipse.core.resources.builders">
-      <builder>
-         <run
-               class="org.moflon2contiki.ide.core.runtime.builders.ContikiMetamodelBuilder">
-         </run>
-      </builder>
-   </extension>
-   <extension
-         id="org.moflon2contiki.ide.core.runtime.builders.ContikiRepositoryBuilder"
-         name="Contiki Repository Builder"
-         point="org.eclipse.core.resources.builders">
-      <builder>
-         <run
-               class="org.moflon2contiki.ide.core.runtime.builders.ContikiRepositoryBuilder">
-         </run>
-      </builder>
-   </extension>
-   <extension
          point="org.eclipse.ui.newWizards">
       <category
             id="org.moflon.ide.ui.category"
@@ -68,7 +28,7 @@
                id="org.moflon.ide.ui.toolbar"
                label="eMoflon Toolbar">
             <command
-                  commandId="org.moflon2contiki.ide.ui.commands.build.BuildCommand"
+                  commandId="org.cmoflon.ide.ui.commands.build.BuildCommand"
                   icon="resources/icons/rebuildClasses.png"
                   label="BuildContiki"
                   mnemonic="C"
@@ -88,7 +48,7 @@
          point="org.eclipse.ui.commands">
       <command
             categoryId="org.moflon.ide.ui.commands.MainCategory"
-            id="org.moflon2contiki.ide.ui.commands.build.BuildCommand"
+            id="org.cmoflon.ide.ui.commands.build.BuildCommand"
             name="BuildContiki">
       </command>
    </extension>
@@ -96,7 +56,7 @@
          point="org.eclipse.ui.handlers">
       <handler
             class="org.cmoflon.ide.ui.admin.handlers.BuildHandler"
-            commandId="org.moflon2contiki.ide.ui.commands.build.BuildCommand">
+            commandId="org.cmoflon.ide.ui.commands.build.BuildCommand">
          <enabledWhen>
             <or>
                <with

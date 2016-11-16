@@ -14,36 +14,44 @@ import org.moflon.core.utilities.WorkspaceHelper;
  * @author David Giessing
  *
  */
-public class CMoflonWorkspaceHelper extends WorkspaceHelper {
+public class CMoflonWorkspaceHelper extends WorkspaceHelper
+{
 
-	
-	public static Properties getConstantsPropertiesFile(IProject project){
-		Properties properties = new Properties();
-		BufferedInputStream stream = null;
-		try {
-			stream = new BufferedInputStream(new FileInputStream(project.getLocation().toString().concat(new Path("/"+project.getName()+"Constants.properties").toString())));
-			properties.load(stream);
-			stream.close();
-			
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		return properties;
-	}
-	
-	public static Properties getMappingPropertiesFile(IProject project){
-		Properties properties = new Properties();
-		BufferedInputStream stream = null;
-		try {
-			stream = new BufferedInputStream(new FileInputStream(project.getLocation().toString().concat(new Path("/"+project.getName()+"EClassToStructs.properties").toString())));
-			properties.load(stream);
-			stream.close();
-			
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		return properties;
-	}
+   public static Properties getConstantsPropertiesFile(IProject project)
+   {
+      Properties properties = new Properties();
+      BufferedInputStream stream = null;
+      try
+      {
+         stream = new BufferedInputStream(
+               new FileInputStream(project.getLocation().toString().concat(new Path("/" + project.getName() + "Constants.properties").toString())));
+         properties.load(stream);
+         stream.close();
+
+      } catch (IOException e1)
+      {
+         // TODO Auto-generated catch block
+         e1.printStackTrace();
+      }
+      return properties;
+   }
+
+   public static Properties getMappingPropertiesFile(IProject project)
+   {
+      Properties properties = new Properties();
+      BufferedInputStream stream = null;
+      try
+      {
+         stream = new BufferedInputStream(
+               new FileInputStream(project.getLocation().toString().concat(new Path("/" + project.getName() + "EClassToStructs.properties").toString())));
+         properties.load(stream);
+         stream.close();
+
+      } catch (IOException e1)
+      {
+         // TODO Auto-generated catch block
+         e1.printStackTrace();
+      }
+      return properties;
+   }
 }

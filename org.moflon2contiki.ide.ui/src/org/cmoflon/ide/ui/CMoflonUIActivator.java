@@ -6,55 +6,58 @@ import org.osgi.framework.BundleContext;
 /**
  * The activator class controls the plug-in life cycle
  */
-public class CMoflonUIActivator extends AbstractUIPlugin {
+public class CMoflonUIActivator extends AbstractUIPlugin
+{
 
-	// The shared instance
-	private static CMoflonUIActivator plugin;
-	
-	private static String bundleId;
-	
-	/**
-	 * The constructor
-	 */
-	public CMoflonUIActivator() {
-	}
+   // The shared instance
+   private static CMoflonUIActivator plugin;
 
-	@Override
-	   public void start(final BundleContext context) throws Exception
-	   {
-	      super.start(context);
-	      plugin = this;
-	      bundleId = context.getBundle().getSymbolicName();
+   private static String bundleId;
 
-	      // CoreActivator.getDefault().reconfigureLogging();
+   /**
+    * The constructor
+    */
+   public CMoflonUIActivator()
+   {
+   }
 
-	      // Configure logging for eMoflon
-	      //setUpLogging();
-	   }
+   @Override
+   public void start(final BundleContext context) throws Exception
+   {
+      super.start(context);
+      plugin = this;
+      bundleId = context.getBundle().getSymbolicName();
 
-	   @Override
-	   public void stop(final BundleContext context) throws Exception
-	   {
-	      plugin = null;
-	      bundleId = null;
-	      super.stop(context);
-	   }
+      // CoreActivator.getDefault().reconfigureLogging();
 
-	/**
-	 * Returns the shared instance
-	 *
-	 * @return the shared instance
-	 */
-	public static CMoflonUIActivator getDefault() {
-		return plugin;
-	}
+      // Configure logging for eMoflon
+      //setUpLogging();
+   }
 
-	public static String getModuleID()
-	   {
-	      if (bundleId == null)
-	         throw new NullPointerException();
-	      else
-	         return bundleId;
-	   }
+   @Override
+   public void stop(final BundleContext context) throws Exception
+   {
+      plugin = null;
+      bundleId = null;
+      super.stop(context);
+   }
+
+   /**
+    * Returns the shared instance
+    *
+    * @return the shared instance
+    */
+   public static CMoflonUIActivator getDefault()
+   {
+      return plugin;
+   }
+
+   public static String getModuleID()
+   {
+      if (bundleId == null)
+         throw new NullPointerException();
+      else
+         return bundleId;
+   }
 
 }
