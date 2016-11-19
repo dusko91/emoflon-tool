@@ -24,6 +24,7 @@ import org.moflon.ide.core.runtime.builders.RepositoryBuilder;
 public class CMoflonRepositoryBuilder extends AbstractBuilder{
 
 	protected boolean generateSDMs = true;
+	public static final String BUILDER_ID = "org.cmoflon.ide.core.runtime.builders.CMoflonRepositoryBuilder";
 	   
 	@Override
 	   protected void cleanResource(final IProgressMonitor monitor) throws CoreException
