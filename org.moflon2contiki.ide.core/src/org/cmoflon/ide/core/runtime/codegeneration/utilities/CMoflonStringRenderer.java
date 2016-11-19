@@ -9,16 +9,20 @@ import org.gervarro.democles.codegen.stringtemplate.StringRenderer;
  * @author David Giessing
  *
  */
-public class CMoflonStringRenderer extends StringRenderer {
-	
-	@Override
-	public String toString(Object o, String formatString, Locale locale) {
-		if("fulluppercase".equals(formatString)){
-			return ((String)o).toUpperCase();
-		}else if("fulllowercase".equals(formatString)){
-			return ((String)o).toLowerCase();
-		}
-		else return super.toString(o, formatString, locale);
-	}
+public class CMoflonStringRenderer extends StringRenderer
+{
+
+   @Override
+   public String toString(Object o, String formatString, Locale locale)
+   {
+      if ("fulluppercase".equals(formatString))
+      {
+         return ((String) o).toUpperCase();
+      } else if ("fulllowercase".equals(formatString))
+      {
+         return ((String) o).toLowerCase();
+      } else
+         return super.toString(o, formatString, locale);
+   }
 
 }

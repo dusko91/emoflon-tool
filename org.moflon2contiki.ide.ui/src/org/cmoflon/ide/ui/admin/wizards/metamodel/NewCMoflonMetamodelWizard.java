@@ -3,7 +3,7 @@ package org.cmoflon.ide.ui.admin.wizards.metamodel;
 import java.lang.reflect.InvocationTargetException;
 
 import org.apache.log4j.Logger;
-import org.cmoflon.ide.core.CMoflonCoreActivator;
+import org.cmoflon.ide.core.runtime.natures.CMoflonMetamodelNature;
 import org.cmoflon.ide.core.utilities.CMoflonWorkspaceHelper;
 import org.cmoflon.ide.ui.CMoflonUIActivator;
 import org.eclipse.core.resources.IProject;
@@ -11,6 +11,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -25,7 +26,7 @@ import org.moflon.ide.ui.admin.wizards.metamodel.NewMetamodelProjectInfoPage;
  * The new metamodel wizard creates a new contiki metamodel project with default directory structure and default files.
  * @author David Giessing
  */
-public class NewCMoflonMetamodelWizard extends Wizard implements IWorkbenchWizard
+public class NewContikiMetamodelWizard extends Wizard implements IWorkbenchWizard
 {
    // Page containing controls for taking user input
    private NewMetamodelProjectInfoPage projectInfo;
@@ -34,7 +35,7 @@ public class NewCMoflonMetamodelWizard extends Wizard implements IWorkbenchWizar
 
    private static final String SPECIFICATION_WORKINGSET_NAME = "Specifications";
 
-   public NewCMoflonMetamodelWizard()
+   public NewContikiMetamodelWizard()
    {
       setNeedsProgressMonitor(true);
    }
@@ -86,29 +87,29 @@ public class NewCMoflonMetamodelWizard extends Wizard implements IWorkbenchWizar
    {
       try
       {
-         monitor.beginTask("Creating metamodel project", 8);
+         final SubMonitor subMon = SubMonitor.convert(monitor, "Creating metamodel project", 8);
 
          String projectName = projectInfo.getProjectName();
          IPath location = projectInfo.getProjectLocation();
 
          // Create project
-         IProject newProjectHandle = CMoflonWorkspaceHelper.createProject(projectName, CMoflonUIActivator.getModuleID(), location , CMoflonWorkspaceHelper.createSubmonitorWith1Tick(monitor));
+         IProject newProjectHandle = CMoflonWorkspaceHelper.createProject(projectName, CMoflonUIActivator.getModuleID(), location, subMon.split(1));
 
          // generate default files
          CMoflonWorkspaceHelper.addFile(newProjectHandle, projectName + ".eap",
-               MoflonUtilitiesActivator.getPathRelToPlugIn("resources/kTC.eap",CMoflonUIActivator.getModuleID()), CMoflonUIActivator.getModuleID(),
-               CMoflonWorkspaceHelper.createSubmonitorWith1Tick(monitor));
+               MoflonUtilitiesActivator.getPathRelToPlugIn("resources/defaultFiles/EAEMoflon.eap", UIActivator.getModuleID()), UIActivator.getModuleID(),
+               subMon.split(1));
 
-         CMoflonWorkspaceHelper.addFile(newProjectHandle, ".gitignore", ".temp", CMoflonWorkspaceHelper.createSubmonitorWith1Tick(monitor));         
-         
+         CMoflonWorkspaceHelper.addFile(newProjectHandle, ".gitignore", ".temp", subMon.split(1));
+
          // Add Nature and Builders
-         CMoflonWorkspaceHelper.addNature(newProjectHandle, CMoflonCoreActivator.METAMODEL_NATURE_ID, CMoflonWorkspaceHelper.createSubmonitorWith1Tick(monitor));
+         CMoflonWorkspaceHelper.addNature(newProjectHandle, CMoflonMetamodelNature.NATURE_ID, subMon.split(1));
 
-         //Moflon2ContikiWorkspaceHelper.addNature(newProjectHandle, CoreActivator.JAVA_NATURE_ID, Moflon2ContikiWorkspaceHelper.createSubmonitorWith1Tick(monitor));
-         
+         //Moflon2ContikiWorkspaceHelper.addNature(newProjectHandle, CoreActivator.JAVA_NATURE_ID, Moflon2ContikisubMon.split(1));
+
          CMoflonWorkspaceHelper.moveProjectToWorkingSet(newProjectHandle, SPECIFICATION_WORKINGSET_NAME);
 
-         newProjectHandle.refreshLocal(IResource.DEPTH_INFINITE, CMoflonWorkspaceHelper.createSubmonitorWith1Tick(monitor));
+         newProjectHandle.refreshLocal(IResource.DEPTH_INFINITE, subMon.split(1));
 
       } catch (Exception e)
       {
@@ -118,10 +119,11 @@ public class NewCMoflonMetamodelWizard extends Wizard implements IWorkbenchWizar
       {
          monitor.done();
       }
-	}
+   }
 
-	@Override
-	public void init(IWorkbench workbench, IStructuredSelection selection) {
-		
-	}
+   @Override
+   public void init(IWorkbench workbench, IStructuredSelection selection)
+   {
+
+   }
 }

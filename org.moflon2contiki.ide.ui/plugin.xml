@@ -2,46 +2,6 @@
 <?eclipse version="3.4"?>
 <plugin>
    <extension
-         id="org.cmoflon.ide.ui.runtime.natures.CMoflonRepositoryNature"
-         name="CMoflon Repository Nature"
-         point="org.eclipse.core.resources.natures">
-      <runtime>
-         <run
-               class="org.cmoflon.ide.ui.runtime.natures.CMoflonRepositoryNature">
-         </run>
-      </runtime>
-   </extension>
-   <extension
-         id="org.cmoflon.ide.ui.runtime.natures.CMoflonMetamodelNature"
-         name="CMoflon Metamodel Nature"
-         point="org.eclipse.core.resources.natures">
-      <runtime>
-         <run
-               class="org.cmoflon.ide.ui.runtime.natures.CMoflonMetamodelNature">
-         </run>
-      </runtime>
-   </extension>
-   <extension
-         id="org.cmoflon.ide.core.runtime.builders.CMoflonMetamodelBuilder"
-         name="CMoflon Metamodel Builder"
-         point="org.eclipse.core.resources.builders">
-      <builder>
-         <run
-               class="org.cmoflon.ide.core.runtime.builders.CMoflonMetamodelBuilder">
-         </run>
-      </builder>
-   </extension>
-   <extension
-         id="org.cmoflon.ide.core.runtime.builders.CMoflonRepositoryBuilder"
-         name="CMoflon Repository Builder"
-         point="org.eclipse.core.resources.builders">
-      <builder>
-         <run
-               class="org.cmoflon.ide.core.runtime.builders.CMoflonRepositoryBuilder">
-         </run>
-      </builder>
-   </extension>
-   <extension
          point="org.eclipse.ui.newWizards">
       <category
             id="org.moflon.ide.ui.category"
@@ -50,11 +10,11 @@
       <wizard
             canFinishEarly="false"
             category="org.moflon.ide.ui.category"
-            class="org.cmoflon.ide.ui.admin.wizards.metamodel.NewCMoflonMetamodelWizard"
+            class="org.cmoflon.ide.ui.admin.wizards.metamodel.NewContikiMetamodelWizard"
             finalPerspective="org.moflon.ide.ui.perspective"
             hasPages="true"
-            id="org.cmoflon.ide.ui.admin.wizards.metamodel.NewCMoflonMetamodelWizard"
-            name="New CMoflon Metamodel Wizard"
+            id="org.moflon2contiki.ide.ui.admin.wizards.metamodel.NewContikiMetamodelWizard"
+            name="New Contiki Metamodel Wizard"
             preferredPerspectives="org.moflon.ide.ui.perspective"
             project="true">
       </wizard>
@@ -70,10 +30,10 @@
             <command
                   commandId="org.cmoflon.ide.ui.commands.build.BuildCommand"
                   icon="resources/icons/rebuildClasses.png"
-                  label="BuildCMoflon"
+                  label="BuildContiki"
                   mnemonic="C"
                   style="push"
-                  tooltip="Build CMoflon Code">
+                  tooltip="Build Contiki Code">
                <visibleWhen
                      checkEnabled="false">
                   <reference
@@ -89,7 +49,7 @@
       <command
             categoryId="org.moflon.ide.ui.commands.MainCategory"
             id="org.cmoflon.ide.ui.commands.build.BuildCommand"
-            name="BuildCMoflon">
+            name="BuildContiki">
       </command>
    </extension>
    <extension

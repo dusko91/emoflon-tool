@@ -1,168 +1,177 @@
 package org.cmoflon.ide.core.runtime.builders;
 
-import org.cmoflon.ide.core.CMoflonCoreActivator;
-import org.cmoflon.ide.core.runtime.CMoflonRepositoryCodeGenerator;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+import org.cmoflon.ide.core.runtime.ContikiRepositoryCodeGenerator;
 import org.cmoflon.ide.core.utilities.CMoflonWorkspaceHelper;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.moflon.core.propertycontainer.MoflonPropertiesContainer;
-import org.moflon.core.propertycontainer.MoflonPropertiesContainerHelper;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.SubMonitor;
+import org.gervarro.eclipse.workspace.util.AntPatternCondition;
+import org.moflon.codegen.eclipse.CodeGeneratorPlugin;
+import org.moflon.core.utilities.ErrorReporter;
 import org.moflon.core.utilities.WorkspaceHelper;
-import org.moflon.ide.core.runtime.builders.AbstractBuilder;
+import org.moflon.ide.core.runtime.builders.AbstractVisitorBuilder;
 import org.moflon.ide.core.runtime.builders.RepositoryBuilder;
 
 /**
- * Builder for projects with ContikiRepositoryNature. Similar to {@link RepositoryBuilder}. Triggers {@link CMoflonRepositoryCodeGenerator}.
+ * Builder for projects with CMoflonRepositoryNature. Similar to {@link RepositoryBuilder}. Triggers {@link ContikiRepositoryCodeGenerator}.
  * @author David Giessing
- *
+ * @author Roland Kluge
  */
-public class CMoflonRepositoryBuilder extends AbstractBuilder{
+public class CMoflonRepositoryBuilder extends AbstractVisitorBuilder
+{
+   public static final Logger logger = Logger.getLogger(CMoflonRepositoryBuilder.class);
 
-	protected boolean generateSDMs = true;
-	public static final String BUILDER_ID = "org.cmoflon.ide.core.runtime.builders.CMoflonRepositoryBuilder";
-	   
-	@Override
-	   protected void cleanResource(final IProgressMonitor monitor) throws CoreException
-	   {
-	      try
-	      {
-	         monitor.beginTask("Cleaning " + getProject(), 4);
+   public CMoflonRepositoryBuilder()
+   {
+      super(new AntPatternCondition(new String[] { "model/*.ecore" }));
+   }
 
-	         final IProject project = getProject();
+   protected boolean generateSDMs = true;
 
-	         // Remove all problem markers
-	         project.deleteMarkers(IMarker.PROBLEM, false, IResource.DEPTH_INFINITE);
-	         project.deleteMarkers(WorkspaceHelper.MOFLON_PROBLEM_MARKER_ID, false, IResource.DEPTH_INFINITE);
-	         project.deleteMarkers(WorkspaceHelper.INJECTION_PROBLEM_MARKER_ID, false, IResource.DEPTH_INFINITE);
-	         monitor.worked(1);
+   public static final String BUILDER_ID = CMoflonRepositoryBuilder.class.getName();
 
-	         // Remove generated code
-	         cleanFolderButKeepHiddenFiles(project.getFolder(WorkspaceHelper.GEN_FOLDER), WorkspaceHelper.createSubMonitor(monitor, 1));
+   @Override
+   protected final AntPatternCondition getTriggerCondition(final IProject project)
+   {
+      return new AntPatternCondition(new String[0]);
+   }
 
-	         // Remove debug data
-	         cleanFolderButKeepHiddenFiles(project.getFolder(WorkspaceHelper.DEBUG_FOLDER), WorkspaceHelper.createSubMonitor(monitor, 1));
+   @Override
+   protected void clean(final IProgressMonitor monitor) throws CoreException
+   {
+      SubMonitor subMon = SubMonitor.convert(monitor, "Cleaning " + getProject(), 4);
 
-	         // Remove generated model files
-	         cleanModels(project.getFolder(WorkspaceHelper.MODEL_FOLDER), WorkspaceHelper.createSubMonitor(monitor, 1));
-	      } finally
-	      {
-	         monitor.done();
-	      }
-	   }
+      final IProject project = getProject();
 
-	   @Override
-	   protected boolean processResource(final IProgressMonitor monitor) throws CoreException
-	   {
-		  System.out.println("Processing Resource CMoflonBuilder");
-		  CMoflonRepositoryCodeGenerator generator = new CMoflonRepositoryCodeGenerator(getProject());
-		  generator.generateCode(WorkspaceHelper.createSubmonitorWith1Tick(monitor),CMoflonWorkspaceHelper.getConstantsPropertiesFile(getProject()));
-		  CMoflonCoreActivator.getDefault().setDirty(getProject(), true);
+      // Remove all problem markers
+      project.deleteMarkers(IMarker.PROBLEM, false, IResource.DEPTH_INFINITE);
+      project.deleteMarkers(WorkspaceHelper.MOFLON_PROBLEM_MARKER_ID, false, IResource.DEPTH_INFINITE);
+      project.deleteMarkers(WorkspaceHelper.INJECTION_PROBLEM_MARKER_ID, false, IResource.DEPTH_INFINITE);
+      subMon.worked(1);
 
-	      return true;
-	   }
+      // Remove generated code
+      cleanFolderButKeepHiddenFiles(project.getFolder(WorkspaceHelper.GEN_FOLDER), subMon.split(1));
+   }
 
-	   @Override
-	   public boolean visit(final IResource resource) throws CoreException
-	   {
-	      // Make sure changes are from the right ecore file according to convention
-	      if (CMoflonRepositoryCodeGenerator.isEcoreFileOfProject(resource, getProject()))
-	      {
-	         return processResource(WorkspaceHelper.createSubMonitor(this.getProgressMonitorForIncrementalChanges(), 100));
-	      }
+   @Override
+   protected void processResource(IResource ecoreResource, int kind, Map<String, String> args, IProgressMonitor monitor)
+   {
+      SubMonitor subMon = SubMonitor.convert(monitor, "Processing Resource", 1);
+      logger.info("Processing Resource ContikiRepositoryBuilder");
+      ContikiRepositoryCodeGenerator generator = new ContikiRepositoryCodeGenerator(getProject());
+      final IStatus status = generator.generateCode(subMon.split(1), CMoflonWorkspaceHelper.getConstantsPropertiesFile(getProject()));
+      final IFile ecoreFile = Platform.getAdapterManager().getAdapter(ecoreResource, IFile.class);
+      if (status.matches(IStatus.ERROR))
+      {
+         try
+         {
+            handleErrorsAndWarnings(status, ecoreFile);
+         } catch (CoreException e)
+         {
+            logger.error("Problems while reporting errors and warnings: " + e);
+         }
+      }
+   }
 
-	      return false;
-	   }
+   /**
+    * Handles errors and warning produced by the code generation task
+    * 
+    * @param status
+    */
+   private void handleErrorsAndWarnings(final IStatus status, final IFile ecoreFile) throws CoreException
+   {
+      if (indicatesThatValidationCrashed(status))
+      {
+         throw new CoreException(new Status(IStatus.ERROR, CodeGeneratorPlugin.getModuleID(), status.getMessage(), status.getException().getCause()));
+      }
+      if (status.matches(IStatus.ERROR))
+      {
+         handleErrorsInEA(status);
+         handleErrorsInEclipse(status, ecoreFile);
+      }
+      if (status.matches(IStatus.WARNING))
+      {
+         handleInjectionWarningsAndErrors(status);
+      }
+   }
 
-	   @Override
-	   public boolean visit(final IResourceDelta deltas) throws CoreException
-	   {
-	      // Get changes and call visit on all
-	      boolean buildSuccessful = false;
-	      final IResourceDelta[] changes = deltas.getAffectedChildren();
-	      for (final IResourceDelta delta : changes)
-	      {
-	         buildSuccessful = visit(delta.getResource());
-	         visit(delta);
-	      }
-	      return buildSuccessful;
-	   }
+   private boolean indicatesThatValidationCrashed(IStatus status)
+   {
+      return status.getException() != null;
+   }
 
-	   protected void cleanFolderButKeepHiddenFiles(final IFolder folder, final IProgressMonitor monitor) throws CoreException
-	   {
-	      if (!folder.exists())
-	         return;
+   private void handleInjectionWarningsAndErrors(final IStatus status)
+   {
+      final String reporterClass = "org.moflon.moca.inject.validation.InjectionErrorReporter";
+      final ErrorReporter errorReporter = (ErrorReporter) Platform.getAdapterManager().loadAdapter(getProject(), reporterClass);
+      if (errorReporter != null)
+      {
+         errorReporter.report(status);
+      } else
+      {
+         logger.debug("Could not load error reporter '" + reporterClass + "'");
+      }
+   }
 
-	      try
-	      {
-	         monitor.beginTask("Inspecting " + folder.getName(), 2 * folder.members().length);
+   public void handleErrorsInEclipse(final IStatus status, final IFile ecoreFile)
+   {
+      final String reporterClass = "org.moflon.compiler.sdm.democles.eclipse.EclipseErrorReporter";
+      final ErrorReporter eclipseErrorReporter = (ErrorReporter) Platform.getAdapterManager().loadAdapter(ecoreFile, reporterClass);
+      if (eclipseErrorReporter != null)
+      {
+         eclipseErrorReporter.report(status);
+      } else
+      {
+         logger.debug("Could not load error reporter '" + reporterClass + "'");
+      }
+   }
 
-	         for (final IResource resource : folder.members())
-	         {
-	            // keep SVN data
-	            if (!resource.getName().startsWith("."))
-	            {
-	               if (WorkspaceHelper.isFolder(resource))
-	                  cleanFolderButKeepHiddenFiles((IFolder) resource, WorkspaceHelper.createSubmonitorWith1Tick(monitor));
-	               else
-	                  monitor.worked(1);
+   public void handleErrorsInEA(final IStatus status)
+   {
+      final String reporterClass = "org.moflon.validation.EnterpriseArchitectValidationHelper";
+      final ErrorReporter errorReporter = (ErrorReporter) Platform.getAdapterManager().loadAdapter(getProject(), reporterClass);
+      if (errorReporter != null)
+      {
+         errorReporter.report(status);
+      } else
+      {
+         logger.debug("Could not load error reporter '" + reporterClass + "'");
+      }
+   }
 
-	               resource.delete(true, WorkspaceHelper.createSubmonitorWith1Tick(monitor));
-	            } else
-	            {
-	               monitor.worked(2);
-	            }
-	         }
-	      } finally
-	      {
-	         monitor.done();
-	      }
-	   }
+   private void cleanFolderButKeepHiddenFiles(final IFolder folder, final IProgressMonitor monitor) throws CoreException
+   {
+      if (!folder.exists())
+         return;
 
-	   // Delete generated models within model folder
-	   private void cleanModels(final IFolder folder, final IProgressMonitor monitor) throws CoreException
-	   {
-	      try
-	      {
-	         monitor.beginTask("Inspecting " + folder.getName(), folder.members().length);
+      SubMonitor subMon = SubMonitor.convert(monitor, "Inspecting " + folder.getName(), 2 * folder.members().length);
 
-	         for (final IResource resource : folder.members())
-	         {
-	            // keep SVN data
-	            if (!resource.getName().startsWith("."))
-	            {
-	               // only delete generated models directly in folder 'model'
-	               if (!WorkspaceHelper.isFolder(resource))
-	               {
-	                  MoflonPropertiesContainer properties = MoflonPropertiesContainerHelper.load(getProject(), WorkspaceHelper.createSubmonitorWith1Tick(monitor));
-	                  if (properties.getReplaceGenModel().isBool() && resource.getName().endsWith(WorkspaceHelper.GEN_MODEL_EXT))
-	                     resource.delete(true, WorkspaceHelper.createSubmonitorWith1Tick(monitor));
-	                  else
-	                     monitor.worked(1);
+      for (final IResource resource : folder.members())
+      {
+         // keep SVN data
+         if (!resource.getName().startsWith("."))
+         {
+            if (WorkspaceHelper.isFolder(resource))
+               cleanFolderButKeepHiddenFiles((IFolder) resource, subMon.split(1));
+            else
+               subMon.worked(1);
 
-	                  if (WorkspaceHelper.isIntegrationProject(getProject()) && isAGeneratedFileInIntegrationProject(resource))
-	                     resource.delete(true, WorkspaceHelper.createSubmonitorWith1Tick(monitor));
-	                  else
-	                     monitor.worked(1);
-	               }
-	            } else
-	            {
-	               monitor.worked(1);
-	            }
-	         }
-	      } finally
-	      {
-	         monitor.done();
-	      }
-	   }
-
-	   private boolean isAGeneratedFileInIntegrationProject(final IResource resource)
-	   {
-	      return !(resource.getName().endsWith(WorkspaceHelper.PRE_ECORE_FILE_EXTENSION) || resource.getName().endsWith(WorkspaceHelper.PRE_TGG_FILE_EXTENSION));
-	   }
-
+            resource.delete(true, subMon.split(1));
+         } else
+         {
+            subMon.worked(2);
+         }
+      }
+   }
 }

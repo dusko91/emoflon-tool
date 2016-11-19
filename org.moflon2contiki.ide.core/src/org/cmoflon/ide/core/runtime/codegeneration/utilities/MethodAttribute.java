@@ -5,16 +5,19 @@ package org.cmoflon.ide.core.runtime.codegeneration.utilities;
  * @author david
  *
  */
-public class MethodAttribute extends ClassAttribute {
-	
-	private String parameters;
-	
-	public MethodAttribute(Type owningtype, Type type, String name, String parameters) {
-		super(owningtype, type,name);
-		this.parameters=parameters;
-	}
-	
-	public String getParameters(){
-		return this.parameters;
-	}
+public class MethodAttribute extends ClassAttribute
+{
+
+   private String parameters;
+
+   public MethodAttribute(Type owningtype, Type type, String name, String parameters)
+   {
+      super(owningtype, type, name);
+      this.parameters = parameters;
+   }
+
+   public String getParameters()
+   {
+      return this.parameters;
+   }
 }

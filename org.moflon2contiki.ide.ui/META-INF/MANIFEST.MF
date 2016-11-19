@@ -17,6 +17,5 @@ Require-Bundle: org.eclipse.ui,
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Export-Package: org.cmoflon.ide.ui,
- org.cmoflon.ide.ui.admin.wizards.metamodel,
- org.cmoflon.ide.ui.runtime.natures
+ org.cmoflon.ide.ui.admin.wizards.metamodel
 Bundle-ClassPath: .
