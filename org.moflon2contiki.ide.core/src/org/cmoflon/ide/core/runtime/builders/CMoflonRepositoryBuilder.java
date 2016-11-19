@@ -24,7 +24,6 @@ import org.moflon.ide.core.runtime.builders.RepositoryBuilder;
 public class CMoflonRepositoryBuilder extends AbstractBuilder{
 
 	protected boolean generateSDMs = true;
-	public static final String BUILDER_ID = "org.moflon2contiki.ide.core.runtime.builders.ContikiRepositoryBuilder";
 	   
 	@Override
 	   protected void cleanResource(final IProgressMonitor monitor) throws CoreException
@@ -58,7 +57,7 @@ public class CMoflonRepositoryBuilder extends AbstractBuilder{
 	   @Override
 	   protected boolean processResource(final IProgressMonitor monitor) throws CoreException
 	   {
-		  System.out.println("Processing Resource ContikiRepositoryBuilder");
+		  System.out.println("Processing Resource CMoflonBuilder");
 		  CMoflonRepositoryCodeGenerator generator = new CMoflonRepositoryCodeGenerator(getProject());
 		  generator.generateCode(WorkspaceHelper.createSubmonitorWith1Tick(monitor),CMoflonWorkspaceHelper.getConstantsPropertiesFile(getProject()));
 		  CMoflonCoreActivator.getDefault().setDirty(getProject(), true);
