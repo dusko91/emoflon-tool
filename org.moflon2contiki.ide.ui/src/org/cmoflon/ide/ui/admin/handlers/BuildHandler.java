@@ -19,7 +19,7 @@ import org.moflon.ide.ui.admin.handlers.AbstractCommandHandler;
 
 /**
  * Replacement of eMoflons {@link org.moflon.ide.ui.admin.handlers.BuildHandler}.<br>
- *  Builds the Moflon2Contiki Repository Projects(and only those).
+ *  Builds the CMoflon Repository Projects(and only those).
  * @author David Giessing
  *
  */
@@ -45,7 +45,7 @@ public class BuildHandler extends AbstractCommandHandler
          final IProject project = file.getProject();
          projects.add(project);
       }
-      //Only allow ContikiRepoProjects to be build
+      //Only allow CMoflonRepoProjects to be build
       for (IProject p : projects)
       {
          try
@@ -68,7 +68,7 @@ public class BuildHandler extends AbstractCommandHandler
       if (!projects.isEmpty())
       {
 
-         final Job job = new CMoflonBuildJob("Moflon2Contiki Building", projects);
+         final Job job = new CMoflonBuildJob("CMoflon Building", projects);
          job.setUser(true);
          job.schedule();
       }

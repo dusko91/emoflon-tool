@@ -2,8 +2,8 @@ package org.cmoflon.ide.core.runtime.codegeneration;
 
 import java.util.List;
 
-import org.cmoflon.ide.core.runtime.codegeneration.utilities.ContikiIncludes;
-import org.cmoflon.ide.core.runtime.codegeneration.utilities.ContikiIncludes.Components;
+import org.cmoflon.ide.core.runtime.codegeneration.utilities.CMoflonIncludes;
+import org.cmoflon.ide.core.runtime.codegeneration.utilities.CMoflonIncludes.Components;
 import org.stringtemplate.v4.ST;
 
 public class HeaderFileGenerator
@@ -76,7 +76,7 @@ public class HeaderFileGenerator
    }
 
    /**
-    * Generates the general Includes for Contiki as well as the Component Specific stuff
+    * Generates the general Includes for CMoflon as well as the Component Specific stuff
     * @param comp The desired Component
     * @param include	The StringTemplate for the includes
     * @return 
@@ -84,8 +84,8 @@ public class HeaderFileGenerator
    public static String generateIncludes(Components comp, ST include)
    {
       String result = "";
-      List<String> includes = ContikiIncludes.getContikiIncludes();
-      includes.addAll(ContikiIncludes.getComponentSpecificIncludes(comp));
+      List<String> includes = CMoflonIncludes.getCMoflonIncludes();
+      includes.addAll(CMoflonIncludes.getComponentSpecificIncludes(comp));
       for (String path : includes)
       {
          include.add("path", path);

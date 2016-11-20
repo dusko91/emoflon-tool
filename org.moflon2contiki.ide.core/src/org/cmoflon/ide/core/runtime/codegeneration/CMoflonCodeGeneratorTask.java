@@ -173,7 +173,7 @@ public class CMoflonCodeGeneratorTask implements ITask {
 			// return genModelProcessorStatus;
 			// }
 
-			System.out.println("Entering Code Generation in Moflon2ContikiCodeGenerator");
+			System.out.println("Entering Code Generation in CMoflonCodeGenerator");
 			// (6) Generate code
 			monitor.subTask("Generating code for project " + project.getName());
 			final CMoflonCodeGenerator codeGenerator = new CMoflonCodeGenerator(resource, project, this.genModel, this.injectionManager);
@@ -232,7 +232,7 @@ public class CMoflonCodeGeneratorTask implements ITask {
 
 	@Override
 	public String getTaskName() {
-		return "ContikiCodeGeneration";
+		return "CMoflonCodeGeneration";
 	}
 
 	public final IFile getEcoreFile() {

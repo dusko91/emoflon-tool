@@ -47,7 +47,7 @@ import org.stringtemplate.v4.STGroup;
  * @author David Giessing
  *
  */
-public class ContikiTemplateConfiguration implements TemplateConfigurationProvider
+public class CMoflonTemplateConfiguration implements TemplateConfigurationProvider
 {
    //Prefixes for STGs
    public static final String CONTROL_FLOW_GENERATOR = "ControlFlowGenerator";
@@ -60,9 +60,9 @@ public class ContikiTemplateConfiguration implements TemplateConfigurationProvid
 
    protected final HashMap<String, OperationSequenceCompiler> operationSequenceCompilers = new HashMap<String, OperationSequenceCompiler>();
 
-   private static final Logger logger = Logger.getLogger(ContikiTemplateConfiguration.class);
+   private static final Logger logger = Logger.getLogger(CMoflonTemplateConfiguration.class);
 
-   public ContikiTemplateConfiguration(GenModel genModel)
+   public CMoflonTemplateConfiguration(GenModel genModel)
    {
       final EcoreToGenModelConverter ecoreToGenModelConverter = new EcoreToGenModelConverter(genModel);
       final EcoreModelAdaptor ecoreModelAdaptor = new CMoflonEcoreModelAdaptor(ecoreToGenModelConverter);
@@ -84,7 +84,7 @@ public class ContikiTemplateConfiguration implements TemplateConfigurationProvid
       bindingAndBlackTemplateGroup.registerRenderer(EMFVariable.class, ecoreModelAdaptor);
       bindingAndBlackTemplateGroup.registerRenderer(EClassifier.class, ecoreModelAdaptor);
       bindingAndBlackTemplateGroup.registerRenderer(String.class, new CMoflonStringRenderer());
-      templates.put(ContikiCodeGeneratorConfig.BINDING_AND_BLACK_PATTERN_MATCHER_GENERATOR, bindingAndBlackTemplateGroup);
+      templates.put(CMoflonCodeGeneratorConfig.BINDING_AND_BLACK_PATTERN_MATCHER_GENERATOR, bindingAndBlackTemplateGroup);
 
       final STGroup bindingTemplateGroup = createBindingTemplates();
       bindingTemplateGroup.registerModelAdaptor(EModelElement.class, ecoreModelAdaptor);
@@ -92,7 +92,7 @@ public class ContikiTemplateConfiguration implements TemplateConfigurationProvid
       bindingTemplateGroup.registerRenderer(EMFVariable.class, ecoreModelAdaptor);
       bindingTemplateGroup.registerRenderer(EClassifier.class, ecoreModelAdaptor);
       bindingTemplateGroup.registerRenderer(String.class, new CMoflonStringRenderer());
-      templates.put(ContikiCodeGeneratorConfig.BINDING_PATTERN_MATCHER_GENERATOR, bindingTemplateGroup);
+      templates.put(CMoflonCodeGeneratorConfig.BINDING_PATTERN_MATCHER_GENERATOR, bindingTemplateGroup);
 
       final STGroup blackTemplateGroup = createBlackTemplates();
       blackTemplateGroup.registerModelAdaptor(EModelElement.class, ecoreModelAdaptor);
@@ -100,7 +100,7 @@ public class ContikiTemplateConfiguration implements TemplateConfigurationProvid
       blackTemplateGroup.registerRenderer(EMFVariable.class, ecoreModelAdaptor);
       blackTemplateGroup.registerRenderer(EClassifier.class, ecoreModelAdaptor);
       blackTemplateGroup.registerRenderer(String.class, new CMoflonStringRenderer());
-      templates.put(ContikiCodeGeneratorConfig.BLACK_PATTERN_MATCHER_GENERATOR, blackTemplateGroup);
+      templates.put(CMoflonCodeGeneratorConfig.BLACK_PATTERN_MATCHER_GENERATOR, blackTemplateGroup);
 
       final STGroup redTemplateGroup = createRedTemplates();
       redTemplateGroup.registerModelAdaptor(EModelElement.class, ecoreModelAdaptor);
@@ -108,7 +108,7 @@ public class ContikiTemplateConfiguration implements TemplateConfigurationProvid
       redTemplateGroup.registerRenderer(EMFVariable.class, ecoreModelAdaptor);
       redTemplateGroup.registerRenderer(EClassifier.class, ecoreModelAdaptor);
       redTemplateGroup.registerRenderer(String.class, new CMoflonStringRenderer());
-      templates.put(ContikiCodeGeneratorConfig.RED_PATTERN_MATCHER_GENERATOR, redTemplateGroup);
+      templates.put(CMoflonCodeGeneratorConfig.RED_PATTERN_MATCHER_GENERATOR, redTemplateGroup);
 
       final STGroup greenTemplateGroup = createGreenTemplates();
       greenTemplateGroup.registerModelAdaptor(EModelElement.class, ecoreModelAdaptor);
@@ -116,7 +116,7 @@ public class ContikiTemplateConfiguration implements TemplateConfigurationProvid
       greenTemplateGroup.registerRenderer(EMFVariable.class, ecoreModelAdaptor);
       greenTemplateGroup.registerRenderer(EClassifier.class, ecoreModelAdaptor);
       greenTemplateGroup.registerRenderer(String.class, new CMoflonStringRenderer());
-      templates.put(ContikiCodeGeneratorConfig.GREEN_PATTERN_MATCHER_GENERATOR, greenTemplateGroup);
+      templates.put(CMoflonCodeGeneratorConfig.GREEN_PATTERN_MATCHER_GENERATOR, greenTemplateGroup);
 
       final STGroup expressionTemplateGroup = createExpressionTemplates();
       expressionTemplateGroup.registerModelAdaptor(EModelElement.class, ecoreModelAdaptor);
@@ -124,14 +124,14 @@ public class ContikiTemplateConfiguration implements TemplateConfigurationProvid
       expressionTemplateGroup.registerRenderer(EMFVariable.class, ecoreModelAdaptor);
       expressionTemplateGroup.registerRenderer(EClassifier.class, ecoreModelAdaptor);
       expressionTemplateGroup.registerRenderer(String.class, new CMoflonStringRenderer());
-      templates.put(ContikiCodeGeneratorConfig.EXPRESSION_PATTERN_MATCHER_GENERATOR, expressionTemplateGroup);
+      templates.put(CMoflonCodeGeneratorConfig.EXPRESSION_PATTERN_MATCHER_GENERATOR, expressionTemplateGroup);
 
-      operationSequenceCompilers.put(ContikiCodeGeneratorConfig.BINDING_AND_BLACK_PATTERN_MATCHER_GENERATOR, createBindingAndBlackOperationSequenceCompiler());
-      operationSequenceCompilers.put(ContikiCodeGeneratorConfig.BINDING_PATTERN_MATCHER_GENERATOR, createBindingOperationSequenceCompiler());
-      operationSequenceCompilers.put(ContikiCodeGeneratorConfig.BLACK_PATTERN_MATCHER_GENERATOR, createBlackOperationSequenceCompiler());
-      operationSequenceCompilers.put(ContikiCodeGeneratorConfig.RED_PATTERN_MATCHER_GENERATOR, createRedOperationSequenceCompiler());
-      operationSequenceCompilers.put(ContikiCodeGeneratorConfig.GREEN_PATTERN_MATCHER_GENERATOR, createGreenOperationSequenceCompiler());
-      operationSequenceCompilers.put(ContikiCodeGeneratorConfig.EXPRESSION_PATTERN_MATCHER_GENERATOR, createExpressionOperationSequenceCompiler());
+      operationSequenceCompilers.put(CMoflonCodeGeneratorConfig.BINDING_AND_BLACK_PATTERN_MATCHER_GENERATOR, createBindingAndBlackOperationSequenceCompiler());
+      operationSequenceCompilers.put(CMoflonCodeGeneratorConfig.BINDING_PATTERN_MATCHER_GENERATOR, createBindingOperationSequenceCompiler());
+      operationSequenceCompilers.put(CMoflonCodeGeneratorConfig.BLACK_PATTERN_MATCHER_GENERATOR, createBlackOperationSequenceCompiler());
+      operationSequenceCompilers.put(CMoflonCodeGeneratorConfig.RED_PATTERN_MATCHER_GENERATOR, createRedOperationSequenceCompiler());
+      operationSequenceCompilers.put(CMoflonCodeGeneratorConfig.GREEN_PATTERN_MATCHER_GENERATOR, createGreenOperationSequenceCompiler());
+      operationSequenceCompilers.put(CMoflonCodeGeneratorConfig.EXPRESSION_PATTERN_MATCHER_GENERATOR, createExpressionOperationSequenceCompiler());
    }
 
    private STGroup createControlFlowTemplates()

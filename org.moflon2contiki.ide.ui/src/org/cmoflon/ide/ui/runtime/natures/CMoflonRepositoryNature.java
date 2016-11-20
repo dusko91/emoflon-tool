@@ -1,6 +1,7 @@
 package org.cmoflon.ide.ui.runtime.natures;
 
 import org.cmoflon.ide.core.CMoflonCoreActivator;
+import org.cmoflon.ide.core.runtime.builders.CMoflonRepositoryBuilder;
 import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
@@ -17,7 +18,7 @@ public class CMoflonRepositoryNature implements IProjectNature
 	      // Get project description and add model builder
 	      IProjectDescription desc = project.getDescription();
 	      ICommand command = desc.newCommand();
-	      command.setBuilderName(CMoflonCoreActivator.REPOSITORY_BUILDER_ID);
+	      command.setBuilderName(CMoflonRepositoryBuilder.BUILDER_ID);
 	      desc.setBuildSpec(new ICommand[] { command });
 
 	      // Reset augmented description

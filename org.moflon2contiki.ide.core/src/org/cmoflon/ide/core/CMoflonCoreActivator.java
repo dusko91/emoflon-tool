@@ -11,6 +11,7 @@ public class CMoflonCoreActivator extends AbstractUIPlugin
 
    // The shared instance
    private static CMoflonCoreActivator plugin;
+ 
 
    private static String bundleId;
 

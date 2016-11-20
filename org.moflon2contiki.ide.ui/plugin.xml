@@ -10,11 +10,11 @@
       <wizard
             canFinishEarly="false"
             category="org.moflon.ide.ui.category"
-            class="org.cmoflon.ide.ui.admin.wizards.metamodel.NewContikiMetamodelWizard"
+            class="org.cmoflon.ide.ui.admin.wizards.metamodel.NewCMoflonMetamodelWizard"
             finalPerspective="org.moflon.ide.ui.perspective"
             hasPages="true"
-            id="org.moflon2contiki.ide.ui.admin.wizards.metamodel.NewContikiMetamodelWizard"
-            name="New Contiki Metamodel Wizard"
+            id="org.cmoflon.ide.ui.admin.wizards.metamodel.NewCMoflonMetamodelWizard"
+            name="New CMoflon Metamodel Wizard"
             preferredPerspectives="org.moflon.ide.ui.perspective"
             project="true">
       </wizard>
@@ -30,10 +30,10 @@
             <command
                   commandId="org.cmoflon.ide.ui.commands.build.BuildCommand"
                   icon="resources/icons/rebuildClasses.png"
-                  label="BuildContiki"
+                  label="BuildCMoflon"
                   mnemonic="C"
                   style="push"
-                  tooltip="Build Contiki Code">
+                  tooltip="Build CMoflon Code">
                <visibleWhen
                      checkEnabled="false">
                   <reference
@@ -49,7 +49,7 @@
       <command
             categoryId="org.moflon.ide.ui.commands.MainCategory"
             id="org.cmoflon.ide.ui.commands.build.BuildCommand"
-            name="BuildContiki">
+            name="BuildCMoflon">
       </command>
    </extension>
    <extension

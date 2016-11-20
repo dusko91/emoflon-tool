@@ -23,10 +23,10 @@ import org.moflon.ide.ui.UIActivator;
 import org.moflon.ide.ui.admin.wizards.metamodel.NewMetamodelProjectInfoPage;
 
 /**
- * The new metamodel wizard creates a new contiki metamodel project with default directory structure and default files.
+ * The new metamodel wizard creates a new CMoflon metamodel project with default directory structure and default files.
  * @author David Giessing
  */
-public class NewContikiMetamodelWizard extends Wizard implements IWorkbenchWizard
+public class NewCMoflonMetamodelWizard extends Wizard implements IWorkbenchWizard
 {
    // Page containing controls for taking user input
    private NewMetamodelProjectInfoPage projectInfo;
@@ -35,7 +35,7 @@ public class NewContikiMetamodelWizard extends Wizard implements IWorkbenchWizar
 
    private static final String SPECIFICATION_WORKINGSET_NAME = "Specifications";
 
-   public NewContikiMetamodelWizard()
+   public NewCMoflonMetamodelWizard()
    {
       setNeedsProgressMonitor(true);
    }
@@ -97,7 +97,7 @@ public class NewContikiMetamodelWizard extends Wizard implements IWorkbenchWizar
 
          // generate default files
          CMoflonWorkspaceHelper.addFile(newProjectHandle, projectName + ".eap",
-               MoflonUtilitiesActivator.getPathRelToPlugIn("resources/defaultFiles/EAEMoflon.eap", UIActivator.getModuleID()), UIActivator.getModuleID(),
+               MoflonUtilitiesActivator.getPathRelToPlugIn("resources/kTC.eap", CMoflonUIActivator.getModuleID()), CMoflonUIActivator.getModuleID(),
                subMon.split(1));
 
          CMoflonWorkspaceHelper.addFile(newProjectHandle, ".gitignore", ".temp", subMon.split(1));
@@ -105,7 +105,7 @@ public class NewContikiMetamodelWizard extends Wizard implements IWorkbenchWizar
          // Add Nature and Builders
          CMoflonWorkspaceHelper.addNature(newProjectHandle, CMoflonMetamodelNature.NATURE_ID, subMon.split(1));
 
-         //Moflon2ContikiWorkspaceHelper.addNature(newProjectHandle, CoreActivator.JAVA_NATURE_ID, Moflon2ContikisubMon.split(1));
+         //CMoflonWorkspaceHelper.addNature(newProjectHandle, CoreActivator.JAVA_NATURE_ID, subMon.split(1));
 
          CMoflonWorkspaceHelper.moveProjectToWorkingSet(newProjectHandle, SPECIFICATION_WORKINGSET_NAME);
 

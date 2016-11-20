@@ -1,8 +1,11 @@
 package org.cmoflon.ide.core.utilities;
 
+import org.cmoflon.ide.core.CMoflonCoreActivator;
+import org.cmoflon.ide.core.runtime.natures.CMoflonRepositoryNature;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.emf.common.util.URI;
@@ -11,6 +14,7 @@ import org.moflon.codegen.eclipse.CodeGeneratorPlugin;
 import org.moflon.codegen.eclipse.GenericMonitoredResourceLoader;
 import org.moflon.codegen.eclipse.MonitoredMetamodelLoader;
 import org.moflon.core.propertycontainer.MoflonPropertiesContainer;
+import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.dependency.PackageRemappingDependency;
 
 /**
@@ -39,6 +43,18 @@ public class CMoflonMonitoredMetamodelLoader extends GenericMonitoredResourceLoa
             new PackageRemappingDependency(metamodelURI, false, false).getResource(resourceSet, false, true);
          }
          subMon.worked(1);
+      }
+   }
+   
+   @Override
+   protected boolean isAccessible(IProject project)
+   {
+      try
+      {
+         return project.isAccessible() && (project.hasNature(CMoflonRepositoryNature.NATURE_ID) || project.hasNature(WorkspaceHelper.INTEGRATION_NATURE_ID));
+      } catch (final CoreException e)
+      {
+         return false;
       }
    }
 }

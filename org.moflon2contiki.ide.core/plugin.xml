@@ -3,7 +3,7 @@
 <plugin>
    <extension
          id="org.cmoflon.ide.core.runtime.natures.CMoflonRepositoryNature"
-         name="Contiki Repository Nature"
+         name="CMoflon Repository Nature"
          point="org.eclipse.core.resources.natures">
       <runtime>
          <run
@@ -13,7 +13,7 @@
    </extension>
    <extension
          id="org.cmoflon.ide.core.runtime.natures.CMoflonMetamodelNature"
-         name="Contiki Metamodel Nature"
+         name="CMoflon Metamodel Nature"
          point="org.eclipse.core.resources.natures">
       <runtime>
          <run
@@ -23,7 +23,7 @@
    </extension>
    <extension
          id="org.cmoflon.ide.core.runtime.builders.CMoflonMetamodelBuilder"
-         name="Contiki Metamodel Builder"
+         name="CMoflon Metamodel Builder"
          point="org.eclipse.core.resources.builders">
       <builder>
          <run
@@ -33,7 +33,7 @@
    </extension>
    <extension
          id="org.cmoflon.ide.core.runtime.builders.CMoflonRepositoryBuilder"
-         name="Contiki Repository Builder"
+         name="CMoflon Repository Builder"
          point="org.eclipse.core.resources.builders">
       <builder>
          <run

@@ -8,7 +8,7 @@ import java.util.List;
  * @author David Giessing
  *
  */
-public class ContikiIncludes
+public class CMoflonIncludes
 {
 
    public enum Components {
@@ -41,7 +41,7 @@ public class ContikiIncludes
 
    public static String NETWORKADDR = "\"../../lib/networkaddr.h\"";
 
-   public static List<String> getContikiIncludes()
+   public static List<String> getCMoflonIncludes()
    {
       List<String> result = new ArrayList<String>();
       result.add(STDLIB);

@@ -13,11 +13,11 @@ import org.moflon.compiler.sdm.democles.TemplateConfigurationProvider;
 import org.moflon.sdm.compiler.democles.validation.scope.PatternMatcher;
 
 /**
- * Overrides {@link DefaultValidatorConfig}. Needed to obtain correct {@link ContikiTemplateConfiguration}.
+ * Overrides {@link DefaultValidatorConfig}. Needed to obtain correct {@link CMoflonTemplateConfiguration}.
  * @author David Giessing
  *
  */
-public class ContikiCodeGeneratorConfig extends DefaultValidatorConfig
+public class CMoflonCodeGeneratorConfig extends DefaultValidatorConfig
 {
 
    public static final String BINDING_AND_BLACK_PATTERN_MATCHER_GENERATOR = "BindingAndBlackPatternMatcherGenerator";
@@ -32,7 +32,7 @@ public class ContikiCodeGeneratorConfig extends DefaultValidatorConfig
 
    public static final String EXPRESSION_PATTERN_MATCHER_GENERATOR = "ExpressionPatternMatcherGenerator";
 
-   public ContikiCodeGeneratorConfig(ResourceSet resourceSet)
+   public CMoflonCodeGeneratorConfig(ResourceSet resourceSet)
    {
       super(resourceSet);
    }
@@ -95,6 +95,6 @@ public class ContikiCodeGeneratorConfig extends DefaultValidatorConfig
    public TemplateConfigurationProvider createTemplateConfiguration(GenModel genModel)
    {
 
-      return new ContikiTemplateConfiguration(genModel);
+      return new CMoflonTemplateConfiguration(genModel);
    }
 }

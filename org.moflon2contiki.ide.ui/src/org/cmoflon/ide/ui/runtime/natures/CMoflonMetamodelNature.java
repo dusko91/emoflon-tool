@@ -1,6 +1,7 @@
 package org.cmoflon.ide.ui.runtime.natures;
 
 import org.cmoflon.ide.core.CMoflonCoreActivator;
+import org.cmoflon.ide.core.runtime.builders.CMoflonMetamodelBuilder;
 import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.CoreException;
 
@@ -13,7 +14,7 @@ public class CMoflonMetamodelNature implements IProjectNature{
 	      // Get project description and add model builder
 	      IProjectDescription desc = project.getDescription();
 	      ICommand command = desc.newCommand();
-	      command.setBuilderName(CMoflonCoreActivator.METAMODEL_BUILDER_ID);
+	      command.setBuilderName(CMoflonMetamodelBuilder.BUILDER_ID);
 	      desc.setBuildSpec(new ICommand[] { command });
 	      // Reset augmented description
 	      project.setDescription(desc, null);

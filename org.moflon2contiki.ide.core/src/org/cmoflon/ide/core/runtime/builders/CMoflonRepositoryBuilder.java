@@ -3,7 +3,7 @@ package org.cmoflon.ide.core.runtime.builders;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
-import org.cmoflon.ide.core.runtime.ContikiRepositoryCodeGenerator;
+import org.cmoflon.ide.core.runtime.CMoflonRepositoryCodeGenerator;
 import org.cmoflon.ide.core.utilities.CMoflonWorkspaceHelper;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -24,7 +24,7 @@ import org.moflon.ide.core.runtime.builders.AbstractVisitorBuilder;
 import org.moflon.ide.core.runtime.builders.RepositoryBuilder;
 
 /**
- * Builder for projects with CMoflonRepositoryNature. Similar to {@link RepositoryBuilder}. Triggers {@link ContikiRepositoryCodeGenerator}.
+ * Builder for projects with CMoflonRepositoryNature. Similar to {@link RepositoryBuilder}. Triggers {@link CMoflonRepositoryCodeGenerator}.
  * @author David Giessing
  * @author Roland Kluge
  */
@@ -68,8 +68,8 @@ public class CMoflonRepositoryBuilder extends AbstractVisitorBuilder
    protected void processResource(IResource ecoreResource, int kind, Map<String, String> args, IProgressMonitor monitor)
    {
       SubMonitor subMon = SubMonitor.convert(monitor, "Processing Resource", 1);
-      logger.info("Processing Resource ContikiRepositoryBuilder");
-      ContikiRepositoryCodeGenerator generator = new ContikiRepositoryCodeGenerator(getProject());
+      logger.info("Processing Resource CMoflonRepositoryBuilder");
+      CMoflonRepositoryCodeGenerator generator = new CMoflonRepositoryCodeGenerator(getProject());
       final IStatus status = generator.generateCode(subMon.split(1), CMoflonWorkspaceHelper.getConstantsPropertiesFile(getProject()));
       final IFile ecoreFile = Platform.getAdapterManager().getAdapter(ecoreResource, IFile.class);
       if (status.matches(IStatus.ERROR))

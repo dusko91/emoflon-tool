@@ -3,8 +3,7 @@ package org.cmoflon.ide.core.runtime;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
-import org.cmoflon.ide.core.runtime.codegeneration.CMoflonCodeGenerator;
-import org.cmoflon.ide.core.runtime.codegeneration.ContikiCodeGenerator;
+import org.cmoflon.ide.core.runtime.codegeneration.CMoflonCodeGeneratorTask;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
@@ -22,23 +21,23 @@ import org.moflon.core.utilities.eMoflonEMFUtil;
 import org.osgi.framework.FrameworkUtil;
 
 /**
- * Mimics {@link RepositoryCodeGenerator}. Needed to invoke {@link ContikiCodeGenerator}
+ * Mimics {@link RepositoryCodeGenerator}. Needed to invoke {@link CMoflonCodeGenerator}
  * @author David Giessing
  *
  */
-public class ContikiRepositoryCodeGenerator
+public class CMoflonRepositoryCodeGenerator
 {
 
-   private static final Logger logger = Logger.getLogger(ContikiRepositoryCodeGenerator.class);
+   private static final Logger logger = Logger.getLogger(CMoflonRepositoryCodeGenerator.class);
 
    protected IProject project;
 
-   public ContikiRepositoryCodeGenerator(final IProject project)
+   public CMoflonRepositoryCodeGenerator(final IProject project)
    {
       this.project = project;
    }
 
-   public IStatus generateCode(final IProgressMonitor monitor, Properties contikiProperties)
+   public IStatus generateCode(final IProgressMonitor monitor, Properties cMoflonProperties)
    {
       final SubMonitor subMon = SubMonitor.convert(monitor);
       IFile ecoreFile;
@@ -54,7 +53,7 @@ public class ContikiRepositoryCodeGenerator
          final ResourceSet resourceSet = CodeGeneratorPlugin.createDefaultResourceSet();
          eMoflonEMFUtil.installCrossReferencers(resourceSet);
          subMon.worked(1);
-         final CMoflonCodeGenerator gen = new CMoflonCodeGenerator(ecoreFile, resourceSet);
+         final CMoflonCodeGeneratorTask gen = new CMoflonCodeGeneratorTask(ecoreFile, resourceSet);
          final IStatus status = gen.run(subMon.split(1));
          if (status.matches(IStatus.ERROR))
          {
