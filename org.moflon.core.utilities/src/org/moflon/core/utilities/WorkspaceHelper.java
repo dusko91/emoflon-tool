@@ -744,20 +744,6 @@ public class WorkspaceHelper
       return resource != null && isFile(resource) && resource.getName().endsWith(".java");
    }
 
-   /**
-    * Returns the project in the workspace with the given project name.
-    * 
-    * The returned project has to be checked for existence
-    * 
-    * @deprecated Use {@link #getProjectByName(String)}
-    */
-   // TODO Remove on next release
-   @Deprecated
-   public static IProject getProjectRoot(final String projectName)
-   {
-      return getProjectByName(projectName);
-   }
-
    public static IProject getProjectByName(final String projectName)
    {
       return ResourcesPlugin.getWorkspace().getRoot().getProject(projectName);
@@ -1089,17 +1075,22 @@ public class WorkspaceHelper
    }
 
    /**
-    * Creates the given folder if it does not exist yet.
+    * Creates the given folder (and any missing intermediate folders) if it does not exist yet.
     * 
     * @param folder
     * @param monitor
-    * @throws CoreException
     */
    public static void createFolderIfNotExists(final IFolder folder, final IProgressMonitor monitor) throws CoreException
    {
-      final SubMonitor subMon = SubMonitor.convert(monitor, "Creating " + folder, 1);
-      if (!folder.exists())
-         folder.create(true, true, subMon.newChild(1));
+      final IPath projectRelativePath = folder.getProjectRelativePath();
+      final int segmentCount = projectRelativePath.segmentCount();
+      final SubMonitor subMon = SubMonitor.convert(monitor, "Creating " + folder, segmentCount);
+      for (int i = segmentCount - 1; i >= 0; --i)
+      {
+         final IFolder subFolder = folder.getProject().getFolder(projectRelativePath.removeLastSegments(i));
+         if (!subFolder.exists())
+            subFolder.create(true, true, subMon.newChild(1));
+      }
    }
 
    /**
