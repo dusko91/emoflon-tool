@@ -32,7 +32,12 @@ Require-Bundle: org.eclipse.ui,
  org.moflon.sdm.constraints.codegenerator;bundle-version="2.0.0",
  org.gervarro.eclipse.task;bundle-version="1.0.1",
  org.moflon.core.moca.inject,
- org.gervarro.eclipse.workspace.util;bundle-version="2.0.0"
+ org.gervarro.eclipse.workspace.util;bundle-version="2.0.0",
+ org.moflon.sdm.constraints.operationspecification,
+ org.moflon.sdm.constraints.constraintstodemocles,
+ org.moflon.sdm.compiler.democles.pattern,
+ org.moflon.sdm.constraints.scopevalidation,
+ org.moflon.sdm.democles.literalexpressionsolver
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Export-Package: org.cmoflon.ide.core,
