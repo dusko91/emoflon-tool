@@ -33,15 +33,18 @@ public class BasicResourceFillingMocaToMoflonTransformation extends
 
 	protected static final Logger MOCA_TO_MOFLON_TRANSFORMATION_LOGGER =
 			Logger.getLogger(ResourceFillingMocaToMoflonTransformation.class);
+	public static final String MOCA_TREE_ATTRIBUTE_NS_PREFIX = "Moflon::NsPrefix";
+	public static final String MOCA_TREE_ATTRIBUTE_PLUGINID = "Moflon::PluginID";
+	public static final String MOCA_TREE_ATTRIBUTE_WORKINGSET = "Moflon::WorkingSet";
 	   
 	protected final IWorkspace workspace = ResourcesPlugin.getWorkspace();
 	protected final ResourceSet set;
-	private final MetamodelBuilder metamodelBuilder;
-	private final IProject metamodelProject;
+	protected final MetamodelBuilder metamodelBuilder;
+	protected final IProject metamodelProject;
 	
-	private final LinkedList<ITask> metamodelLoaderTasks =
+	protected final LinkedList<ITask> metamodelLoaderTasks =
 			new LinkedList<ITask>();
-	private final LinkedList<ProjectDependencyAnalyzer> projectDependencyAnalyzerTasks =
+	protected final LinkedList<ProjectDependencyAnalyzer> projectDependencyAnalyzerTasks =
 			new LinkedList<ProjectDependencyAnalyzer>();
 
 	public BasicResourceFillingMocaToMoflonTransformation(
@@ -97,7 +100,7 @@ public class BasicResourceFillingMocaToMoflonTransformation extends
 		}
 	}
 
-	static final boolean isExported(final String exported) {
+	protected static final boolean isExported(final String exported) {
 		return !"false".equals(exported);
 	}
 	
@@ -163,7 +166,7 @@ public class BasicResourceFillingMocaToMoflonTransformation extends
 		// Do nothing
 	}
 
-	private final void handleOrReportMissingProject(final Node node,
+	protected final void handleOrReportMissingProject(final Node node,
 			final IProject project) {
 		handleMissingProject(node, project);
 		if (!project.exists()) {
@@ -171,7 +174,7 @@ public class BasicResourceFillingMocaToMoflonTransformation extends
 		}
 	}
 
-	private final void handleOrReportClosedProject(final Node node,
+	protected final void handleOrReportClosedProject(final Node node,
 			final IProject project) {
 		handleClosedProject(node, project);
 		if (!project.isAccessible()) {
