@@ -16,6 +16,8 @@ import org.moflon.sdm.compiler.democles.validation.result.Severity;
 import org.moflon.sdm.compiler.democles.validation.result.ValidationReport;
 import org.moflon.sdm.compiler.democles.validation.scope.impl.PatternMatcherImpl;
 
+import com.sun.istack.internal.logging.Logger;
+
 abstract public class PatternMatcherGenerator extends PatternMatcherImpl
 {
    PatternMatcherCompiler patternMatcher;
@@ -36,6 +38,7 @@ abstract public class PatternMatcherGenerator extends PatternMatcherImpl
          EClass eClass = (EClass) ((AdapterResource) pattern.eResource()).getTarget();
 
          CompilerPattern compilerPattern = patternMatcher.compilePattern(pattern, adornment);
+         Logger.getLogger(getClass()).info(String.format("Generating search plan for pattern '%s'", compilerPattern.getName()));
          CompilerPatternBody body = compilerPattern.getBodies().get(0);
          //			final ReachabilityAnalyzer reachabilityAnalyzer = new BDDReachabilityAnalyzer(body.getOperations(), adornment);
          final ReachabilityAnalyzer reachabilityAnalyzer = new NullReachabilityAnalyzer();
