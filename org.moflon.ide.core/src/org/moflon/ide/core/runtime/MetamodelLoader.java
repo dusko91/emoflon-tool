@@ -59,7 +59,7 @@ public class MetamodelLoader implements ITask {
 		try {
 			if (isExported(exportAttribute)) {
 				if (isUserDefined(namespaceURI)) {
-					MOCA_TO_MOFLON_TRANSFORMATION_LOGGER.warn("Namespace URIs are being ignored for exported projects");
+					MOCA_TO_MOFLON_TRANSFORMATION_LOGGER.warn("Namespace URIs are being ignored for exported projects: " + namespaceURI);
 				}
 
 				final String nodeName = node.getName();
