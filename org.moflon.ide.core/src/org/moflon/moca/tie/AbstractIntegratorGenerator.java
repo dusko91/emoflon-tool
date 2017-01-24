@@ -139,30 +139,29 @@ public abstract class AbstractIntegratorGenerator extends AbstractFileGenerator
       }
 
       attributes.put("projects", projects);
+      attributes.put("projectName", project.getName());
       attributes.put("corrPackage", getRootOfClassName() + "Package.eINSTANCE");
       attributes.put("className", getClassName());
       
       return attributes;
    }
 
+   protected abstract String getSupportedNature();
+   
+   protected String getRootOfClassName(){
+      return MoflonUtil.getDefaultNameOfFileInProjectWithoutExtension(project.getName());
+   }
+   
+   protected abstract String getClassName();
+   
    /**
     * Reversed list of {@link #getProjectsOnBuildPath(IProject)}
     */
-   public static List<IProject> getProjectsOnBuildPathInReversedOrder(final IProject project)
-   {
-      List<IProject> result = getProjectsOnBuildPath(project);
-      Collections.reverse(result);
-      return result;
-   }
-
-   /**
-    * Returns a list of all classpath entries of type {@link IClasspathEntry#CPE_PROJECT} of the given project.
-    */
-   public static List<IProject> getProjectsOnBuildPath(final IProject project)
+   private static List<IProject> getProjectsOnBuildPathInReversedOrder(final IProject project)
    {
       // Fetch or create java project view of the given project
       IJavaProject javaProject = JavaCore.create(project);
-
+      
       // Get current entries on the classpath
       ArrayList<IProject> projectsOnBuildPath = new ArrayList<>();
       try
@@ -178,15 +177,8 @@ public abstract class AbstractIntegratorGenerator extends AbstractFileGenerator
       {
          LogUtils.error(logger, e, "Unable to determine projects on buildpath for: " + project.getName());
       }
-
-      return projectsOnBuildPath;
+      List<IProject> result = projectsOnBuildPath;
+      Collections.reverse(result);
+      return result;
    }
-
-   protected abstract String getSupportedNature();
-   
-   protected String getRootOfClassName(){
-      return MoflonUtil.getDefaultNameOfFileInProjectWithoutExtension(project.getName());
-   }
-   
-   protected abstract String getClassName();
 }
