@@ -16,7 +16,6 @@ import org.moflon.core.mocatomoflon.impl.ExporterImpl;
 import org.moflon.core.utilities.MoflonUtil;
 import org.moflon.core.utilities.UncheckedCoreException;
 import org.moflon.core.utilities.WorkspaceHelper;
-import org.moflon.ide.core.CoreActivator;
 import org.moflon.ide.core.runtime.builders.MetamodelBuilder;
 import org.moflon.tgg.language.TripleGraphGrammar;
 
@@ -30,22 +29,22 @@ public class BasicResourceFillingMocaToMoflonTransformation extends
 	public static final String MOCA_TREE_ATTRIBUTE_NS_URI = "Moflon::NsUri";
 	public static final String MOCA_TREE_ATTRIBUTE_EXPORT = "Moflon::Export";
 	public static final String MOFLON_TREE_ATTRIBUTE_NAME = "Moflon::Name";
+   public static final String MOCA_TREE_ATTRIBUTE_NS_PREFIX = "Moflon::NsPrefix";
+   public static final String MOCA_TREE_ATTRIBUTE_PLUGINID = "Moflon::PluginID";
+   public static final String MOCA_TREE_ATTRIBUTE_WORKINGSET = "Moflon::WorkingSet";
 
 	protected static final Logger MOCA_TO_MOFLON_TRANSFORMATION_LOGGER =
 			Logger.getLogger(ResourceFillingMocaToMoflonTransformation.class);
-	public static final String MOCA_TREE_ATTRIBUTE_NS_PREFIX = "Moflon::NsPrefix";
-	public static final String MOCA_TREE_ATTRIBUTE_PLUGINID = "Moflon::PluginID";
-	public static final String MOCA_TREE_ATTRIBUTE_WORKINGSET = "Moflon::WorkingSet";
 	   
 	protected final IWorkspace workspace = ResourcesPlugin.getWorkspace();
 	protected final ResourceSet set;
-	protected final MetamodelBuilder metamodelBuilder;
-	protected final IProject metamodelProject;
+	private final MetamodelBuilder metamodelBuilder;
+	private final IProject metamodelProject;
 	
-	protected final LinkedList<ITask> metamodelLoaderTasks =
-			new LinkedList<ITask>();
-	protected final LinkedList<ProjectDependencyAnalyzer> projectDependencyAnalyzerTasks =
-			new LinkedList<ProjectDependencyAnalyzer>();
+	private final LinkedList<ITask> metamodelLoaderTasks =
+			new LinkedList<>();
+	private final LinkedList<ProjectDependencyAnalyzer> projectDependencyAnalyzerTasks =
+			new LinkedList<>();
 
 	public BasicResourceFillingMocaToMoflonTransformation(
 			final ResourceSet set,
@@ -63,6 +62,15 @@ public class BasicResourceFillingMocaToMoflonTransformation extends
 	public final LinkedList<ProjectDependencyAnalyzer> getProjectDependencyAnalyzerTasks() {
 		return projectDependencyAnalyzerTasks;
 	}
+	
+	public final MetamodelBuilder getMetamodelBuilder() {
+	   return this.metamodelBuilder;
+	}
+	
+	public final IProject getMetamodelProject()
+   {
+      return metamodelProject;
+   }
 
 	@Override
 	public void handleOutermostPackage(final Node node,
@@ -166,7 +174,7 @@ public class BasicResourceFillingMocaToMoflonTransformation extends
 		// Do nothing
 	}
 
-	protected final void handleOrReportMissingProject(final Node node,
+	private final void handleOrReportMissingProject(final Node node,
 			final IProject project) {
 		handleMissingProject(node, project);
 		if (!project.exists()) {
@@ -174,7 +182,7 @@ public class BasicResourceFillingMocaToMoflonTransformation extends
 		}
 	}
 
-	protected final void handleOrReportClosedProject(final Node node,
+	private final void handleOrReportClosedProject(final Node node,
 			final IProject project) {
 		handleClosedProject(node, project);
 		if (!project.isAccessible()) {
@@ -183,7 +191,7 @@ public class BasicResourceFillingMocaToMoflonTransformation extends
 	}
 
 	protected final void reportError(final String errorMessage, final Object... arguments) {
-		throw new UncheckedCoreException(String.format(errorMessage, arguments), CoreActivator.getModuleID());
+		throw new UncheckedCoreException(String.format(errorMessage, arguments), WorkspaceHelper.getPluginId(getClass()));
 	}
 
 	protected void reportError(final CoreException e) {
