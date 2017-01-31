@@ -3,8 +3,10 @@ package org.moflon.ide.core.properties;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 
 import org.apache.log4j.Logger;
 import org.eclipse.core.resources.IFile;
@@ -19,7 +21,6 @@ import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.moflon.codegen.eclipse.CodeGeneratorPlugin;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.core.utilities.eMoflonEMFUtil;
-import org.moflon.ide.core.CoreActivator;
 import org.moflon.util.plugins.MetamodelProperties;
 
 import MocaTree.Attribute;
@@ -56,12 +57,13 @@ public class MocaTreeEAPropertiesReader
          return properties;
       } else
       {
-         throw new CoreException(new Status(IStatus.ERROR, CoreActivator.getModuleID(), "Cannot extract project properties, since Moca tree is missing."));
+         throw new CoreException(new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()), "Cannot extract project properties, since Moca tree is missing."));
       }
    }
 
    public Map<String, MetamodelProperties> getProperties(final Node rootNode) throws CoreException
    {
+      this.mocaTree = rootNode;
       Map<String, MetamodelProperties> propertiesMap = new HashMap<>();
       Node exportedTree = (Node) rootNode.getChildren().get(0);
 
@@ -89,6 +91,7 @@ public class MocaTreeEAPropertiesReader
       properties.put(MetamodelProperties.EXPORT_FLAG_KEY, getValueForProperty("Moflon::Export", rootNode));
       properties.put(MetamodelProperties.VALIDATED_FLAG_KEY, getValueForProperty("Moflon::Validated", rootNode));
       properties.put(MetamodelProperties.WORKING_SET_KEY, getValueForProperty("Moflon::WorkingSet", rootNode));
+      properties.setHasAttributeConstraints(containsAttributeConstraintsNode(rootNode));
 
       switch (rootNode.getName())
       {
@@ -109,13 +112,28 @@ public class MocaTreeEAPropertiesReader
       return properties;
    }
 
+   private boolean containsAttributeConstraintsNode(Node rootNode)
+   {
+      final Queue<Node> unvisitedNodes = new LinkedList<>();
+      unvisitedNodes.add(rootNode);
+      while(!unvisitedNodes.isEmpty())
+      {
+         Node nextNode = unvisitedNodes.poll();
+         if ("AttributeConstraints".equals(nextNode.getName()))
+            return true;
+         
+         nextNode.getChildren().stream().filter(t -> t instanceof Node).map(t -> (Node)t).forEach(n -> unvisitedNodes.add(n));
+      }        
+      return false;
+   }
+
    public List<String> extractDependencies(final Node rootPackage) throws CoreException
    {
       Collection<Text> dependenciesNodes = rootPackage.getChildren("dependencies");
 
       if (dependenciesNodes.size() != 1)
       {
-         throw new CoreException(new Status(IStatus.ERROR, CoreActivator.getModuleID(), "Missing dependencies nodes for project " + rootPackage.getName()));
+         throw new CoreException(new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()), "Missing dependencies nodes for project " + rootPackage.getName()));
       }
 
       final List<String> dependencies = new ArrayList<>();
@@ -139,7 +157,7 @@ public class MocaTreeEAPropertiesReader
          value = attributes.iterator().next().getValue();
       } else
       {
-         throw new CoreException(new Status(IStatus.ERROR, CoreActivator.getModuleID(), "Missing property " + property + " for project " + rootPackage.getName()));
+         throw new CoreException(new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()), "Missing property " + property + " for project " + rootPackage.getName()));
       }
       return value;
    }

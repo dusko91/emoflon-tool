@@ -52,7 +52,7 @@ public class NewRepositoryWizard extends AbstractMoflonWizard
          generateDefaultFiles(subMon, project);
          subMon.worked(3);
 
-         ResourcesPlugin.getWorkspace().run(new PluginProducerWorkspaceRunnable(project, properties), subMon.newChild(1));
+         ResourcesPlugin.getWorkspace().run(new PluginProducerWorkspaceRunnable(project, properties), subMon.split(1));
          subMon.worked(2);
       } catch (Exception e)
       {
@@ -65,14 +65,14 @@ public class NewRepositoryWizard extends AbstractMoflonWizard
    {
       String defaultEcoreFile = DefaultFilesHelper.generateDefaultEPackageForProject(project.getName());
       WorkspaceHelper.addFile(project, MoflonUtil.getDefaultPathToEcoreFileInProject(project.getName()), defaultEcoreFile,
-            SubMonitor.convert(monitor).newChild(1));
+            SubMonitor.convert(monitor).split(1));
    }
 
    // The monitor is allowed to perform 1 tick
    protected void createProject(IProgressMonitor monitor, IProject project, MetamodelProperties metamodelProperties) throws CoreException
    {
-      metamodelProperties.put(MetamodelProperties.TYPE_KEY, MetamodelProperties.REPOSITORY_KEY);
+      metamodelProperties.put(MetamodelProperties.TYPE_KEY, MetamodelProperties.MOSLGT_REPOSITORY_KEY);
       MoflonProjectCreator createMoflonProject = new MoflonProjectCreator(project, metamodelProperties);
-      ResourcesPlugin.getWorkspace().run(createMoflonProject, SubMonitor.convert(monitor).newChild(1));
+      ResourcesPlugin.getWorkspace().run(createMoflonProject, SubMonitor.convert(monitor).split(1));
    }
 }

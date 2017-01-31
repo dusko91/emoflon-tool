@@ -89,7 +89,7 @@ public class MetamodelBuilder extends AbstractVisitorBuilder
          final CleanMocaToMoflonTransformation transformation = new CleanMocaToMoflonTransformation(set, this, getProject());
          transformation.mocaToEcore(mocaTree);
 
-         mocaFile.touch(subMon.newChild(1));
+         mocaFile.touch(subMon.split(1));
       }
       subMon.setWorkRemaining(0);
    }
@@ -97,7 +97,7 @@ public class MetamodelBuilder extends AbstractVisitorBuilder
    @Override
    protected void processResource(IResource mocaFile, int kind, Map<String, String> args, IProgressMonitor monitor)
    {
-      final MultiStatus mocaToMoflonStatus = new MultiStatus(CoreActivator.getModuleID(), 0, getClass().getName() + " failed", null);
+      final MultiStatus mocaToMoflonStatus = new MultiStatus(WorkspaceHelper.getPluginId(getClass()), 0, getClass().getName() + " failed", null);
 
       final String mocaFilePath = WorkspaceHelper.TEMP_FOLDER + "/" + getProject().getName() + WorkspaceHelper.MOCA_XMI_FILE_EXTENSION;
       if (mocaFile instanceof IFile && mocaFilePath.equals(mocaFile.getProjectRelativePath().toString()) && mocaFile.isAccessible())
@@ -109,7 +109,7 @@ public class MetamodelBuilder extends AbstractVisitorBuilder
          {
             deleteProblemMarkers();
             
-            MoflonProjectCreator.addGitignoreFileForMetamodelProject(getProject(), subMon.newChild(1));
+            MoflonProjectCreator.addGitignoreFileForMetamodelProject(getProject(), subMon.split(1));
 
             final URI workspaceURI = URI.createPlatformResourceURI("/", true);
             final URI projectURI = URI.createURI(getProject().getName() + "/", true).resolve(workspaceURI);
@@ -130,7 +130,7 @@ public class MetamodelBuilder extends AbstractVisitorBuilder
             callPreBuildHooks(properties, mocaTreeReader);
 
             // Create and run exporter on Moca tree
-            final SubMonitor exporterSubMonitor = SubMonitor.convert(subMon.newChild(10), "Running MOCA-to-eMoflon transformation", properties.keySet().size());
+            final SubMonitor exporterSubMonitor = SubMonitor.convert(subMon.split(10), "Running MOCA-to-eMoflon transformation", properties.keySet().size());
             final ResourceFillingMocaToMoflonTransformation exporter = new ResourceFillingMocaToMoflonTransformation(set, this, getProject(), properties,
                   exporterSubMonitor);
             try
@@ -141,11 +141,8 @@ public class MetamodelBuilder extends AbstractVisitorBuilder
                throw e;
             } catch (final Exception e)
             {
-               throw new CoreException(new Status(IStatus.ERROR, CoreActivator.getModuleID(), "Exception during export: " + e.toString(), e));
-            } finally
-            {
-               exporterSubMonitor.done();
-            }
+               throw new CoreException(new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()), "Exception during export: " + e.toString(), e));
+            } 
 
             for (final ErrorMessage message : exporter.getMocaToMoflonReport().getErrorMessages())
             {
@@ -171,7 +168,7 @@ public class MetamodelBuilder extends AbstractVisitorBuilder
             ITask[] taskArray = new ITask[exporter.getMetamodelLoaderTasks().size()];
             taskArray = exporter.getMetamodelLoaderTasks().toArray(taskArray);
             final IStatus metamodelLoaderStatus = ProgressMonitoringJob.executeSyncSubTasks(taskArray,
-                  new MultiStatus(CoreActivator.getModuleID(), 0, "Resource loading failed", null), subMon.newChild(5));
+                  new MultiStatus(WorkspaceHelper.getPluginId(getClass()), 0, "Resource loading failed", null), subMon.split(5));
             CoreActivator.checkCancellation(subMon);
             if (!metamodelLoaderStatus.isOK())
             {
@@ -192,7 +189,7 @@ public class MetamodelBuilder extends AbstractVisitorBuilder
             }
             triggerProjects.clear();
             final IStatus projectDependencyAnalyzerStatus = ProgressMonitoringJob.executeSyncSubTasks(dependencyAnalyzers,
-                  new MultiStatus(CoreActivator.getModuleID(), 0, "Dependency analysis failed", null), subMon.newChild(5));
+                  new MultiStatus(WorkspaceHelper.getPluginId(getClass()), 0, "Dependency analysis failed", null), subMon.split(5));
             CoreActivator.checkCancellation(subMon);
             if (!projectDependencyAnalyzerStatus.isOK())
             {
@@ -223,10 +220,7 @@ public class MetamodelBuilder extends AbstractVisitorBuilder
          } catch (CoreException e)
          {
             LogUtils.error(logger, e, "Unable to update created projects.");
-         } finally
-         {
-            subMon.done();
-         }
+         } 
       }
    }
 

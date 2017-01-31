@@ -1,7 +1,10 @@
 package org.moflon.tgg.mosl.builder;
 
 import java.util.Iterator;
-import org.eclipse.core.commands.*;
+
+import org.eclipse.core.commands.AbstractHandler;
+import org.eclipse.core.commands.ExecutionEvent;
+import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.runtime.CoreException;
@@ -11,6 +14,7 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.handlers.HandlerUtil;
 import org.gervarro.eclipse.workspace.util.WorkspaceTask;
+import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.ide.core.runtime.ProjectNatureAndBuilderConfiguratorTask;
 
 public class AddRemoveMOSLTGGNatureHandler extends AbstractHandler {
@@ -29,7 +33,7 @@ public class AddRemoveMOSLTGGNatureHandler extends AbstractHandler {
 				}
 				if (project != null) {
 					try {
-						final boolean hasNature = project.hasNature(MOSLTGGNature.NATURE_ID);
+						final boolean hasNature = project.hasNature(WorkspaceHelper.MOSL_TGG_NATURE);
 						final ProjectNatureAndBuilderConfiguratorTask projectConfiguratorTask =
 								new ProjectNatureAndBuilderConfiguratorTask(project, false);
 						final MOSLTGGNature moslTGGProjectConfigurator = new MOSLTGGNature();

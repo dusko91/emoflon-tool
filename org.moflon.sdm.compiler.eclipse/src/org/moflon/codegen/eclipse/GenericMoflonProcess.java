@@ -32,7 +32,7 @@ import org.moflon.core.utilities.WorkspaceHelper;
  * 
  * @see #run(IProgressMonitor)
  */
-abstract public class GenericMoflonProcess implements ITask
+public abstract class GenericMoflonProcess implements ITask
 {
    private final IFile ecoreFile;
 
@@ -59,11 +59,14 @@ abstract public class GenericMoflonProcess implements ITask
    public final IStatus run(final IProgressMonitor monitor)
    {
       final SubMonitor subMon = SubMonitor.convert(monitor, getTaskName(), 10);
+      
+      if (!ecoreFile.exists())
+         return new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()), "Ecore file does not exist. Expected location: " + ecoreFile);
+      
       try
       {
          // (1) Loads moflon.properties file
          final IProject project = ecoreFile.getProject();
-         MoflonPropertiesContainerHelper.updateMoflonPropertiesToNewBasePackage(project);
          final URI projectURI = URI.createPlatformResourceURI(project.getName() + "/", true);
          final URI moflonPropertiesURI = URI.createURI(MoflonPropertiesContainerHelper.MOFLON_CONFIG_FILE).resolve(projectURI);
          final Resource moflonPropertiesResource = CodeGeneratorPlugin.createDefaultResourceSet().getResource(moflonPropertiesURI, true);
@@ -77,15 +80,15 @@ abstract public class GenericMoflonProcess implements ITask
       } catch (WrappedException wrappedException)
       {
          final Exception exception = wrappedException.exception();
-         return new Status(IStatus.ERROR, CodeGeneratorPlugin.getModuleID(), exception.getMessage(), exception);
+         return new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()), exception.getMessage(), exception);
       } catch (RuntimeException runtimeException)
       {
-         return new Status(IStatus.ERROR, CodeGeneratorPlugin.getModuleID(), runtimeException.getMessage(), runtimeException);
+         return new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()), runtimeException.getMessage(), runtimeException);
       }
 
       // (2) Load metamodel
       final MonitoredMetamodelLoader metamodelLoader = new MonitoredMetamodelLoader(resourceSet, ecoreFile, moflonProperties);
-      final IStatus metamodelLoaderStatus = metamodelLoader.run(subMon.newChild(2));
+      final IStatus metamodelLoaderStatus = metamodelLoader.run(subMon.split(2));
       if (subMon.isCanceled())
       {
          return Status.CANCEL_STATUS;
@@ -97,7 +100,7 @@ abstract public class GenericMoflonProcess implements ITask
       this.resources = metamodelLoader.getResources();
 
       // Delegate to the subclass
-      return processResource(subMon.newChild(7));
+      return processResource(subMon.split(7));
    }
 
    abstract public IStatus processResource(final IProgressMonitor monitor);

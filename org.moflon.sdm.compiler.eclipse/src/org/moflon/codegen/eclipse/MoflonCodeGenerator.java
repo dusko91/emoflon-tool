@@ -46,8 +46,9 @@ public class MoflonCodeGenerator extends GenericMoflonProcess
    {
       super(ecoreFile, resourceSet);
    }
-   
-   public void setValidationTimeout(final int timeoutInMillis) {
+
+   public void setValidationTimeout(final int timeoutInMillis)
+   {
       this.timeoutForValidationTaskInMillis = timeoutInMillis;
    }
 
@@ -57,23 +58,15 @@ public class MoflonCodeGenerator extends GenericMoflonProcess
       return "Generating code";
    }
 
-   @SuppressWarnings("deprecation")
    @Override
    public IStatus processResource(final IProgressMonitor monitor)
    {
       try
       {
+         final int totalWork = 5 + 10 + 10 + 15 + 35 + 30 + 5;
          final MoflonPropertiesContainer moflonProperties = getMoflonProperties();
-         final SubMonitor subMon = SubMonitor.convert(monitor, "Code generation task for " + moflonProperties.getProjectName(), 100);
-         final String metaModelProjectName = moflonProperties.getMetaModelProject().getMetaModelProjectName();
-         final String fullProjectName;
-         if ("NO_META_MODEL_PROJECT_NAME_SET_YET".equals(metaModelProjectName))
-         {
-            fullProjectName = moflonProperties.getProjectName();
-         }
-         else {
-            fullProjectName = metaModelProjectName + "::" + moflonProperties.getProjectName();
-         }
+         final SubMonitor subMon = SubMonitor.convert(monitor, "Code generation task for " + moflonProperties.getProjectName(), totalWork);
+         final String fullProjectName = getFullProjectName(moflonProperties);
          logger.info("Generating code for: " + fullProjectName);
 
          long toc = System.nanoTime();
@@ -94,42 +87,58 @@ public class MoflonCodeGenerator extends GenericMoflonProcess
             return Status.CANCEL_STATUS;
          }
 
-         // (2) Validate metamodel (including SDMs)
+         // (2.1) Validate SDMs
          final ITask validator = methodBodyHandler.createValidator(ePackage);
          final WorkspaceJob validationJob = new WorkspaceJob(engineID) {
             @Override
             public IStatus runInWorkspace(final IProgressMonitor monitor) throws CoreException
             {
                final SubMonitor subMon = SubMonitor.convert(monitor, "Validation job", 100);
-               return validator.run(subMon.newChild(100));
+               return validator.run(subMon.split(100));
             }
          };
          JobGroup jobGroup = new JobGroup("Validation job group", 1, 1);
          validationJob.setJobGroup(jobGroup);
          validationJob.schedule();
-         jobGroup.join(timeoutForValidationTaskInMillis, subMon.newChild(10));
+         //         final IStatus validatorStatus = validationJob.runInWorkspace(subMon.split(10));
+         jobGroup.join(timeoutForValidationTaskInMillis, subMon.split(10));
 
          final IStatus validatorStatus = validationJob.getResult();
 
          if (validatorStatus == null)
          {
             //TODO@rkluge: This is a really ugly hack that should be removed as soon as a more elegant solution is available
-            validationJob.getThread().stop();
+            //validationJob.getThread().stop();
             throw new OperationCanceledException("Validation took longer than " + (timeoutForValidationTaskInMillis / 1000)
                   + "seconds. This could(!) mean that some of your patterns have no valid search plan. You may increase the timeout value using the eMoflon property page");
          } else if (subMon.isCanceled())
          {
             return Status.CANCEL_STATUS;
          }
+
          if (validatorStatus.matches(IStatus.ERROR))
          {
             return validatorStatus;
          }
 
+         // (2.2) Weave MOSL-GT control flow
+         final ITask weaver = methodBodyHandler.createControlFlowWeaver(ePackage);
+         final IStatus weaverStatus = weaver.run(subMon.split(10));
+
+         if (subMon.isCanceled())
+         {
+            return Status.CANCEL_STATUS;
+         }
+
+         if (weaverStatus.matches(IStatus.ERROR))
+         {
+            return weaverStatus;
+         }
+
          // (3) Build or load GenModel
          final MonitoredGenModelBuilder genModelBuilderJob = new MonitoredGenModelBuilder(getResourceSet(), getAllResources(), getEcoreFile(), true,
                getMoflonProperties());
-         final IStatus genModelBuilderStatus = genModelBuilderJob.run(subMon.newChild(15));
+         final IStatus genModelBuilderStatus = genModelBuilderJob.run(subMon.split(15));
          if (subMon.isCanceled())
          {
             return Status.CANCEL_STATUS;
@@ -156,7 +165,7 @@ public class MoflonCodeGenerator extends GenericMoflonProcess
          // (5) Process GenModel
          subMon.subTask("Processing SDMs for project " + project.getName());
          final ITask genModelProcessor = methodBodyHandler.createGenModelProcessor(this, resource);
-         final IStatus genModelProcessorStatus = genModelProcessor.run(subMon.newChild(35));
+         final IStatus genModelProcessorStatus = genModelProcessor.run(subMon.split(35));
          if (subMon.isCanceled())
          {
             return Status.CANCEL_STATUS;
@@ -185,13 +194,28 @@ public class MoflonCodeGenerator extends GenericMoflonProcess
 
          logger.info("Completed in " + (tic - toc) / 1e9 + "s");
 
-         return validatorStatus.isOK() && injectionStatus.isOK() ? new Status(IStatus.OK, CodeGeneratorPlugin.getModuleID(), "Code generation succeeded")
-               : new MultiStatus(CodeGeneratorPlugin.getModuleID(), validatorStatus.getCode(), new IStatus[] { validatorStatus, injectionStatus },
+         final boolean everythingOK = validatorStatus.isOK() && injectionStatus.isOK() && weaverStatus.isOK();
+         return everythingOK ? new Status(IStatus.OK, CodeGeneratorPlugin.getModuleID(), "Code generation succeeded")
+               : new MultiStatus(CodeGeneratorPlugin.getModuleID(), validatorStatus.getCode(), new IStatus[] { validatorStatus, weaverStatus, injectionStatus },
                      "Code generation warnings/errors", null);
       } catch (final Exception e)
       {
          return new Status(IStatus.ERROR, CodeGeneratorPlugin.getModuleID(), IStatus.ERROR, e.getMessage(), e);
-      } 
+      }
+   }
+
+   protected String getFullProjectName(final MoflonPropertiesContainer moflonProperties)
+   {
+      final String metaModelProjectName = moflonProperties.getMetaModelProject().getMetaModelProjectName();
+      final String fullProjectName;
+      if ("NO_META_MODEL_PROJECT_NAME_SET_YET".equals(metaModelProjectName))
+      {
+         fullProjectName = moflonProperties.getProjectName();
+      } else
+      {
+         fullProjectName = metaModelProjectName + "::" + moflonProperties.getProjectName();
+      }
+      return fullProjectName;
    }
 
    /**

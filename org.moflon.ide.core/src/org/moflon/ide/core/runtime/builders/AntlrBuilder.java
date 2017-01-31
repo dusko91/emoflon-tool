@@ -29,7 +29,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubMonitor;
 import org.moflon.core.utilities.LogUtils;
 import org.moflon.core.utilities.MoflonUtil;
-import org.moflon.ide.core.CoreActivator;
+import org.moflon.core.utilities.WorkspaceHelper;
 
 public class AntlrBuilder extends AbstractBuilder
 {
@@ -119,7 +119,7 @@ public class AntlrBuilder extends AbstractBuilder
                compileAntlrResource(resource.getParent().findMember(prefix + "Parser.g"));
          } catch (URISyntaxException e)
          {
-            MoflonUtil.throwCoreExceptionAsError(e.getMessage(), CoreActivator.getModuleID(), e);
+            MoflonUtil.throwCoreExceptionAsError(e.getMessage(), WorkspaceHelper.getPluginId(getClass()), e);
          }
 
       }
@@ -183,9 +183,11 @@ public class AntlrBuilder extends AbstractBuilder
    protected boolean processResource(final IProgressMonitor monitor) throws CoreException
    {
       logger.debug("Process resource.");
+      
+      final SubMonitor subMon = SubMonitor.convert(monitor, "Process resource", 1);
       getProject().accept(this);
-
-      monitor.done();
+      subMon.worked(1);
+      
       return true;
    }
 
@@ -206,8 +208,8 @@ public class AntlrBuilder extends AbstractBuilder
             Matcher m = antlrFilePattern.matcher(res.getName());
             if (m.matches())
             {
-               deleteResource(container, m.group(1) + ".tokens", subMon.newChild(1));
-               deleteResource(container, m.group(1) + ".java", subMon.newChild(1));
+               deleteResource(container, m.group(1) + ".tokens", subMon.split(1));
+               deleteResource(container, m.group(1) + ".java", subMon.split(1));
             } else
             {
                subMon.worked(2);
@@ -216,7 +218,7 @@ public class AntlrBuilder extends AbstractBuilder
 
          if (res.getType() == IResource.FOLDER)
          {
-            cleanDirectory((IFolder) res, subMon.newChild(1));
+            cleanDirectory((IFolder) res, subMon.split(1));
          } else
          {
             subMon.worked(1);
@@ -232,7 +234,7 @@ public class AntlrBuilder extends AbstractBuilder
       final SubMonitor subMon = SubMonitor.convert(monitor, "Deleting", 1);
       if (res != null && res.exists())
       {
-         res.delete(true, subMon.newChild(1));
+         res.delete(true, subMon.split(1));
       }
    }
 

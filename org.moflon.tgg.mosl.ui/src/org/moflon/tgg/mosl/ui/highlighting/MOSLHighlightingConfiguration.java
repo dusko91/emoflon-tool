@@ -2,7 +2,6 @@ package org.moflon.tgg.mosl.ui.highlighting;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.xtext.ui.editor.syntaxcoloring.DefaultHighlightingConfiguration;
-
 import org.eclipse.xtext.ui.editor.syntaxcoloring.IHighlightingConfigurationAcceptor;
 import org.eclipse.xtext.ui.editor.utils.TextStyle;
 import org.moflon.tgg.mosl.ui.highlighting.rules.AbstractHighlightingRule;
@@ -16,6 +15,16 @@ public class MOSLHighlightingConfiguration extends DefaultHighlightingConfigurat
 	public final static String SOURCE_ID = "source";
 	public final static String TARGET_ID = "target";
 	
+	private static MOSLHighlightingConfiguration instance;
+	
+	public static MOSLHighlightingConfiguration getInstance(){
+		return instance;
+	}
+	
+	public MOSLHighlightingConfiguration(){
+		super();
+		instance = this;
+	}
 	
 	@Override
 	public void configure(IHighlightingConfigurationAcceptor acceptor) {

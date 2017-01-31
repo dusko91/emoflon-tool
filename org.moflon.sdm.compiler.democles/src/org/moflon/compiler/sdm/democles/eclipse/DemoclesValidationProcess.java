@@ -1,6 +1,5 @@
 package org.moflon.compiler.sdm.democles.eclipse;
 
-import org.apache.log4j.Logger;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -18,12 +17,17 @@ import org.moflon.compiler.sdm.democles.ScopeValidationConfigurator;
 
 public class DemoclesValidationProcess extends GenericMoflonProcess
 {
-   static final Logger logger = Logger.getLogger(DemoclesValidationProcess.class);
-   private boolean shallSaveIntermediateModels = false;
+   private final boolean shallSaveIntermediateModels;
 
    public DemoclesValidationProcess(final IFile ecoreFile, final ResourceSet resourceSet)
    {
+      this(ecoreFile, resourceSet, false);
+   }
+
+   public DemoclesValidationProcess(IFile ecoreFile, ResourceSet resourceSet, boolean shallSaveIntermediateModels)
+   {
       super(ecoreFile, resourceSet);
+      this.shallSaveIntermediateModels = shallSaveIntermediateModels;
    }
 
    @Override
@@ -56,7 +60,7 @@ public class DemoclesValidationProcess extends GenericMoflonProcess
          }
 
          final ITask validator = new DemoclesValidatorTask(validatorConfig.createScopeValidator(), ePackage);
-         final IStatus validatorStatus = validator.run(subMon.newChild(10));
+         final IStatus validatorStatus = validator.run(subMon.split(10));
          if (subMon.isCanceled())
          {
             return Status.CANCEL_STATUS;

@@ -21,18 +21,16 @@ import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.gervarro.eclipse.workspace.util.AntPatternCondition;
 import org.moflon.codegen.eclipse.CodeGeneratorPlugin;
 import org.moflon.codegen.eclipse.MoflonCodeGenerator;
+import org.moflon.core.propertycontainer.MoflonPropertiesContainer;
+import org.moflon.core.propertycontainer.MoflonPropertiesContainerHelper;
 import org.moflon.core.utilities.ErrorReporter;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.core.utilities.eMoflonEMFUtil;
-import org.moflon.ide.core.CoreActivator;
 import org.moflon.ide.core.preferences.EMoflonPreferencesStorage;
 import org.moflon.ide.core.runtime.CleanVisitor;
 import org.moflon.ide.core.runtime.MoflonProjectCreator;
 import org.moflon.util.plugins.manifest.ExportedPackagesInManifestUpdater;
 import org.moflon.util.plugins.manifest.PluginXmlUpdater;
-
-import org.moflon.core.propertycontainer.MoflonPropertiesContainer;
-import org.moflon.core.propertycontainer.MoflonPropertiesContainerHelper;
 
 public class RepositoryBuilder extends AbstractVisitorBuilder
 {
@@ -45,13 +43,14 @@ public class RepositoryBuilder extends AbstractVisitorBuilder
       super(new AntPatternCondition(new String[] { "model/*.ecore" }));
    }
 
+   @Override
    public ISchedulingRule getRule(final int kind, final Map<String, String> args)
    {
       return getProject();
    }
 
    @Override
-   protected void processResource(IResource ecoreResource, int kind, Map<String, String> args, IProgressMonitor monitor)
+   protected void processResource(final IResource ecoreResource, final int kind, Map<String, String> args, final IProgressMonitor monitor)
    {
       if (isEcoreFile(ecoreResource))
       {
@@ -61,10 +60,9 @@ public class RepositoryBuilder extends AbstractVisitorBuilder
             final SubMonitor subMon = SubMonitor.convert(monitor, "Generating code for project " + getProject().getName(), 13);
 
             final IProject project = getProject();
-            CoreActivator.removeOldStyleGitignoreAndKeepFiles(project);
-            MoflonProjectCreator.createFoldersIfNecessary(project, subMon.newChild(1));
-            MoflonProjectCreator.addGitignoreFileForRepositoryProject(project, subMon.newChild(1));
-            MoflonProjectCreator.addGitKeepFiles(project, subMon.newChild(1));
+            MoflonProjectCreator.createFoldersIfNecessary(project, subMon.split(1));
+            MoflonProjectCreator.addGitignoreFileForRepositoryProject(project, subMon.split(1));
+            MoflonProjectCreator.addGitKeepFiles(project, subMon.split(1));
 
             // Compute project dependencies
             final IBuildConfiguration[] referencedBuildConfigs = project.getReferencedBuildConfigs(project.getActiveBuildConfig().getName(), false);
@@ -88,7 +86,7 @@ public class RepositoryBuilder extends AbstractVisitorBuilder
             final MoflonCodeGenerator codeGenerationTask = new MoflonCodeGenerator(ecoreFile, resourceSet);
             codeGenerationTask.setValidationTimeout(EMoflonPreferencesStorage.getInstance().getValidationTimeout());
 
-            final IStatus status = codeGenerationTask.run(subMon.newChild(1));
+            final IStatus status = codeGenerationTask.run(subMon.split(1));
             handleErrorsAndWarnings(status, ecoreFile);
             subMon.worked(3);
 
@@ -97,13 +95,13 @@ public class RepositoryBuilder extends AbstractVisitorBuilder
             {
                ExportedPackagesInManifestUpdater.updateExportedPackageInManifest(project, genModel);
 
-               PluginXmlUpdater.updatePluginXml(project, genModel, subMon.newChild(1));
+               PluginXmlUpdater.updatePluginXml(project, genModel, subMon.split(1));
                ResourcesPlugin.getWorkspace().checkpoint(false);
             }
 
          } catch (final CoreException e)
          {
-            final IStatus status = new Status(e.getStatus().getSeverity(), CoreActivator.getModuleID(), e.getMessage(), e);
+            final IStatus status = new Status(e.getStatus().getSeverity(), WorkspaceHelper.getPluginId(getClass()), e.getMessage(), e);
             handleErrorsInEclipse(status, ecoreFile);
          }
       }
@@ -150,7 +148,7 @@ public class RepositoryBuilder extends AbstractVisitorBuilder
       project.accept(cleanVisitor, IResource.DEPTH_INFINITE, IResource.NONE);
 
       // Remove generated model files
-      cleanModels(WorkspaceHelper.getModelFolder(project), subMon.newChild(1));
+      cleanModels(WorkspaceHelper.getModelFolder(project), subMon.split(1));
    }
 
    // Delete generated models within model folder
@@ -170,10 +168,10 @@ public class RepositoryBuilder extends AbstractVisitorBuilder
             // only delete generated models directly in folder 'model'
             if (!WorkspaceHelper.isFolder(resource))
             {
-               MoflonPropertiesContainer properties = MoflonPropertiesContainerHelper.load(getProject(), subMon.newChild(1));
+               MoflonPropertiesContainer properties = MoflonPropertiesContainerHelper.load(getProject(), subMon.split(1));
                if (properties.getReplaceGenModel().isBool() && resource.getName().endsWith(WorkspaceHelper.GEN_MODEL_EXT))
                {
-                  resource.delete(true, subMon.newChild(1));
+                  resource.delete(true, subMon.split(1));
                } else
                {
                   monitor.worked(1);
@@ -181,7 +179,7 @@ public class RepositoryBuilder extends AbstractVisitorBuilder
 
                if (WorkspaceHelper.isIntegrationProject(getProject()) && isAGeneratedFileInIntegrationProject(resource))
                {
-                  resource.delete(true, subMon.newChild(1));
+                  resource.delete(true, subMon.split(1));
                } else
                {
                   monitor.worked(1);
@@ -202,9 +200,9 @@ public class RepositoryBuilder extends AbstractVisitorBuilder
    /**
     * Handles errors and warning produced by the code generation task
     * 
-    * @param status
+    * @param status the {@link IStatus} that contains the errors and warnings
     */
-   private void handleErrorsAndWarnings(final IStatus status, final IFile ecoreFile) throws CoreException
+   protected void handleErrorsAndWarnings(final IStatus status, final IFile ecoreFile) throws CoreException
    {
       if (indicatesThatValidationCrashed(status))
       {

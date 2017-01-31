@@ -8,7 +8,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.runtime.jobs.Job;
-import org.moflon.ide.core.CoreActivator;
+import org.moflon.core.utilities.WorkspaceHelper;
 
 public class RefreshProjectJob extends Job
 {
@@ -34,11 +34,11 @@ public class RefreshProjectJob extends Job
       final SubMonitor subMon = SubMonitor.convert(monitor, this.getName(), 1);
       try
       {
-         project.refreshLocal(IResource.DEPTH_INFINITE, subMon.newChild(1));
+         project.refreshLocal(IResource.DEPTH_INFINITE, subMon.split(1));
       } catch (final CoreException e)
       {
          return e.getStatus();
       }
-      return new Status(IStatus.OK, CoreActivator.getModuleID(), null);
+      return new Status(IStatus.OK, WorkspaceHelper.getPluginId(getClass()), null);
    }
 }

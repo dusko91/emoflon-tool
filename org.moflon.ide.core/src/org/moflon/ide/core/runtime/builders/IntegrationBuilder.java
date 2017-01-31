@@ -23,6 +23,8 @@ import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.moflon.codegen.eclipse.CodeGeneratorPlugin;
 import org.moflon.codegen.eclipse.MonitoredMetamodelLoader;
+import org.moflon.core.propertycontainer.MoflonPropertiesContainer;
+import org.moflon.core.propertycontainer.MoflonPropertiesContainerHelper;
 import org.moflon.core.utilities.MoflonUtil;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.core.utilities.eMoflonEMFUtil;
@@ -56,9 +58,6 @@ import org.moflon.tgg.language.precompiler.PrecompilerFactory;
 import org.moflon.tgg.language.precompiler.RuleProcessingMessage;
 import org.moflon.tgg.language.precompiler.TGGPrecompiler;
 
-import org.moflon.core.propertycontainer.MoflonPropertiesContainer;
-import org.moflon.core.propertycontainer.MoflonPropertiesContainerHelper;
-
 import SDMLanguage.sdmUtil.CompilerInjection;
 import SDMLanguage.sdmUtil.SdmUtilFactory;
 
@@ -79,7 +78,7 @@ public class IntegrationBuilder extends RepositoryBuilder
       try
       {
          final SubMonitor subMon = SubMonitor.convert(monitor, "Generating code", 500);
-         final IStatus tggCompilationStatus = processTGG(subMon.newChild(250));
+         final IStatus tggCompilationStatus = processTGG(subMon.split(250));
          if (tggCompilationStatus.matches(IStatus.ERROR))
          {
             handleErrorsInEclipse(tggCompilationStatus, (IFile) resource);
@@ -88,10 +87,10 @@ public class IntegrationBuilder extends RepositoryBuilder
          final IFile ecoreFile = WorkspaceHelper.getModelFolder(getProject())
                .getFile(MoflonUtil.lastCapitalizedSegmentOf(getProject().getName()) + WorkspaceHelper.ECORE_FILE_EXTENSION);
 
-         super.processResource(ecoreFile, kind, args, subMon.newChild(250));
+         super.processResource(ecoreFile, kind, args, subMon.split(250));
       } catch (final CoreException e)
       {
-         final IStatus status = new Status(e.getStatus().getSeverity(), CoreActivator.getModuleID(), e.getMessage(), e);
+         final IStatus status = new Status(e.getStatus().getSeverity(), WorkspaceHelper.getPluginId(getClass()), e.getMessage(), e);
          handleErrorsInEclipse(status, (IFile) resource);
       }
 	   }
@@ -103,7 +102,7 @@ public class IntegrationBuilder extends RepositoryBuilder
 
       final ResourceSet set = CodeGeneratorPlugin.createDefaultResourceSet();
       eMoflonEMFUtil.installCrossReferencers(set);
-      final MoflonPropertiesContainer moflonProperties = MoflonPropertiesContainerHelper.load(getProject(), subMon.newChild(5));
+      final MoflonPropertiesContainer moflonProperties = MoflonPropertiesContainerHelper.load(getProject(), subMon.split(5));
 
       // Load TGG file
       final IFolder modelFolder = getProject().getFolder(WorkspaceHelper.MODEL_FOLDER);
@@ -123,7 +122,7 @@ public class IntegrationBuilder extends RepositoryBuilder
       uriMapping.put(ecoreFileURI, preEcoreFileURI);
 
       final MonitoredMetamodelLoader metamodelLoader = new MonitoredMetamodelLoader(set, tggFile, moflonProperties);
-      metamodelLoader.run(subMon.newChild(10));
+      metamodelLoader.run(subMon.split(10));
       final Resource tggResource = metamodelLoader.getMainResource();
       final Resource ecoreResource = set.getResource(ecoreFileURI, false);
       CoreActivator.setEPackageURI((EPackage) ecoreResource.getContents().get(0));
@@ -134,7 +133,7 @@ public class IntegrationBuilder extends RepositoryBuilder
 
       if (tgg.getTggRule().isEmpty())
       {
-         return new Status(IStatus.WARNING, CoreActivator.getModuleID(), IStatus.WARNING,
+         return new Status(IStatus.WARNING, WorkspaceHelper.getPluginId(getClass()), IStatus.WARNING,
                "Your TGG does not contain any rules, aborting attempt to generate code...", null);
       }
 
@@ -149,7 +148,7 @@ public class IntegrationBuilder extends RepositoryBuilder
     	  precompiler.precompileTGG(tgg);
       } catch (final RuntimeException e) {
     	  // Report error if model transformation fails
-    	  return new Status(IStatus.ERROR, CoreActivator.getModuleID(), IStatus.ERROR, e.getMessage(), e);
+    	  return new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()), IStatus.ERROR, e.getMessage(), e);
       }
 
       // print refinement precompiling log
@@ -161,7 +160,7 @@ public class IntegrationBuilder extends RepositoryBuilder
     	  enrichCspsWithTypeInformation();
       } catch (final RuntimeException e) {
     	  // Report error if model transformation fails
-    	  return new Status(IStatus.ERROR, CoreActivator.getModuleID(), IStatus.ERROR, e.getMessage(), e);
+    	  return new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()), IStatus.ERROR, e.getMessage(), e);
       }
 
       // Persist tgg model after precompilation
@@ -174,7 +173,7 @@ public class IntegrationBuilder extends RepositoryBuilder
          tggResource.save(saveOptions);
       } catch (final IOException e)
       {
-         return new Status(IStatus.ERROR, CoreActivator.getModuleID(), IStatus.ERROR, e.getMessage(), e);
+         return new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()), IStatus.ERROR, e.getMessage(), e);
       }
       subMon.worked(5);
 
@@ -198,7 +197,7 @@ public class IntegrationBuilder extends RepositoryBuilder
         	 compiler.deriveOperationalRules(tgg, ApplicationTypes.get(moflonProperties.getTGGBuildMode().getBuildMode().getValue()));
          } catch (final RuntimeException e) {
         	 // Report error if model transformation fails
-        	 return new Status(IStatus.ERROR, CoreActivator.getModuleID(), IStatus.ERROR, e.getMessage(), e);
+        	 return new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()), IStatus.ERROR, e.getMessage(), e);
          }
          StaticAnalysis staticAnalysis = compiler.getStaticAnalysis();
 
@@ -215,7 +214,7 @@ public class IntegrationBuilder extends RepositoryBuilder
             smaResource.save(saveOptions);
          } catch (final IOException e)
          {
-            return new Status(IStatus.ERROR, CoreActivator.getModuleID(), IStatus.ERROR, e.getMessage(), e);
+            return new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()), IStatus.ERROR, e.getMessage(), e);
          }
 
          // Persist compiler injections
@@ -235,7 +234,7 @@ public class IntegrationBuilder extends RepositoryBuilder
                 compiler.compileModelgenerationSdms(tgg);
             } catch (final RuntimeException e) {
           	  // Report error if model transformation fails
-          	  return new Status(IStatus.ERROR, CoreActivator.getModuleID(), IStatus.ERROR, e.getMessage(), e);
+          	  return new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()), IStatus.ERROR, e.getMessage(), e);
             }
             for (RuleAnalyzerResult analyzerResult : compiler.getRuleAnalyzer().getRuleAnalyzerResult())
             {
@@ -257,7 +256,7 @@ public class IntegrationBuilder extends RepositoryBuilder
          ecoreResource.save(saveOptions);
       } catch (final IOException e)
       {
-         return new Status(IStatus.ERROR, CoreActivator.getModuleID(), IStatus.ERROR, e.getMessage(), e);
+         return new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()), IStatus.ERROR, e.getMessage(), e);
       }
       subMon.worked(5);
 
@@ -307,18 +306,20 @@ public class IntegrationBuilder extends RepositoryBuilder
    private void generateUserDefinedConstraints(final List<TGGConstraint> userDefinedConstraints) throws CoreException
    {
       TGGUserDefinedConstraintUnparserAdapter unparser = new TGGUserDefinedConstraintUnparserAdapter();
+      String pkgPath = "src/" + getProject().getName().replace(".", "/") + "/csp/constraints/";
+      
+      // Create required folder structure
+      WorkspaceHelper.addAllFolders(getProject(), pkgPath, new NullProgressMonitor());
 
       if (userDefinedConstraints.size() != 0)
       {
-         // Create required folder structure
-         WorkspaceHelper.addAllFolders(getProject(), "src/csp/constraints", new NullProgressMonitor());
 
          for (TGGConstraint constraint : userDefinedConstraints)
          {
-            String content = unparser.unparseCspConstraint(constraint);
+            String content = unparser.unparseCspConstraint(getProject().getName(), constraint);
 
             String nameInUpperCase = MocaUtil.firstToUpper(constraint.getName());
-            String path = "src/csp/constraints/" + nameInUpperCase + ".java";
+            String path = pkgPath + nameInUpperCase + ".java";
 
             // Ignore existing files
             if (!getProject().getFile(path).exists())

@@ -33,6 +33,8 @@ public class MetamodelProperties
    public static final String REPOSITORY_KEY = "repository";
 
    public static final String INTEGRATION_KEY = "integration";
+   
+   public static final String MOSLGT_REPOSITORY_KEY = "moslgt";
 
    public static final String NAME_KEY = "name";
 
@@ -53,6 +55,8 @@ public class MetamodelProperties
    public static final String EXPORT_FLAG_KEY = "exportProject";
 
    public static final String VALIDATED_FLAG_KEY = "isValidated";
+   
+   public static final String HAS_ATTRIBUTE_CONSTRAINTS_KEY = "hasAttributeConstraints";
 
    private static final Logger logger = Logger.getLogger(MetamodelProperties.class);
 
@@ -169,6 +173,16 @@ public class MetamodelProperties
          this.put(JAVA_VERION, "JavaSE-1.8");
    }
 
+   public boolean hasAttributeConstraints()
+   {
+      return "true".equals(this.get(HAS_ATTRIBUTE_CONSTRAINTS_KEY));
+   }
+   
+   public void setHasAttributeConstraints(final boolean hasAttributeConstraints)
+   {
+      this.put(HAS_ATTRIBUTE_CONSTRAINTS_KEY, Boolean.toString(hasAttributeConstraints));
+   }
+   
    /**
     * Reads the given properties and produces a mapping from project to properties.
     */

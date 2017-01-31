@@ -18,14 +18,14 @@ Require-Bundle: org.eclipse.xtext,
  org.eclipse.core.runtime,
  org.eclipse.ui,
  org.eclipse.core.commands,
- org.moflon.core.utilities;bundle-version="1.1.0",
+ org.moflon.core.utilities,
  org.moflon.sdm.compiler.eclipse,
  SDMLanguage,
- org.moflon.tgg.language
-Import-Package: org.apache.log4j
+ org.moflon.tgg.language,
+ org.moflon.ide.mosl.core,
+ org.eclipse.emf.mwe2.launch
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
-Export-Package: 
- org.moflon.tgg.mosl,
+Export-Package: org.moflon.tgg.mosl,
  org.moflon.tgg.mosl.defaults,
  org.moflon.tgg.mosl.formatting,
  org.moflon.tgg.mosl.formatting2,
@@ -39,4 +39,4 @@ Export-Package:
  org.moflon.tgg.mosl.tgg.impl,
  org.moflon.tgg.mosl.tgg.util,
  org.moflon.tgg.mosl.validation
-
+Import-Package: org.apache.log4j
