@@ -3,7 +3,7 @@ match_t* _result;
 if((_result = memb_alloc(&memb_<body.header.name><adornment>)) == NULL)
 	printf("ERROR[topologycontrol]: match-list is full\n");
 else {
-	if(_result->match = malloc(<length(body.header.internalSymbolicParameters)>*sizeof(void*))==NULL){
+	if((_result->match = malloc(<length(body.header.internalSymbolicParameters)>*sizeof(void*)))==NULL){
 		printf("ERROR[topologycontrol]: could not allocate memory\n");
 		break;
 	}else{
@@ -15,7 +15,7 @@ else {
 
 SingleMatch(engine, importManager, body, chain) ::= <<
 void** _result;
-if(_result = malloc(<length(body.header.internalSymbolicParameters)>*sizeof(void*))==NULL){
+if((_result = malloc(<length(body.header.internalSymbolicParameters)>*sizeof(void*)))==NULL){
 	printf("ERROR[topologycontrol]: could not allocate memory\n");
 	return NULL;
 }else{
@@ -39,7 +39,7 @@ list_t <body.header.name><adornment>(<boundSymbolicParameters:{x| <if(x.Type.Lin
 	<else>if((_result = memb_alloc(&memb_<body.header.name><adornment>)) == NULL)
 	printf("ERROR[topologycontrol]: match-list is full\n");)
 	else {
-		if(_result->match = malloc(<length((boundSymbolicParameters))>*sizeof(void*))==NULL){
+		if((_result->match = malloc(<length((boundSymbolicParameters))>*sizeof(void*)))==NULL){
 			printf("ERROR[topologycontrol]: could not allocate memory\n");
 			break;
 		}else{
