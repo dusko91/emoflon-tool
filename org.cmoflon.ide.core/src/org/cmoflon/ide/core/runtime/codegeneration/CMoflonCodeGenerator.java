@@ -141,7 +141,9 @@ public class CMoflonCodeGenerator
    												+"\t\tunsigned long start=RTIMER_NOW();"+nl()
    												+"\t\tprintf(\"[topologycontrol]: STATUS: Run\\n\");"+nl();
    
-   private static String EVAL_STATEMENTS_END = "\t\tprintf(\"[topologycontrol]: TIME: %lu\\n\",RTIMER_NOW()-start);"+nl();
+   private static String EVAL_STATEMENTS_END =  "\t\tunsigned long end=RTIMER_NOW();"+nl()
+   												+"\t\tunsigned long runtime= finish>start? finish-start:start-finish;"+nl()
+   												+"\t\tprintf(\"[topologycontrol]: TIME: %lu\\n\",runtime);"+nl();
 
    /**
     * Constants mapping
